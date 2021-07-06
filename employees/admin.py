@@ -7,10 +7,10 @@ from .models import (Employees, EmployeeGroup, Departments, Designations, Attend
 
 admin.site.register(Employees)
 admin.site.register(EmployeeGroup)
-admin.site.register(Departments, MPTTModelAdmin)
+admin.site.register(Departments)
 admin.site.register(Designations)
 admin.site.register(Attendances)
-#admin.site.register(EmployeeCheckins)
+admin.site.register(EmployeeCheckins)
 admin.site.register(LeavesApplications)
 
 

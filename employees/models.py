@@ -92,7 +92,7 @@ class Departments(MPTTModel):
 
 
 
-class Designations(MPTTModel):
+class Designations(models.Model):
 
     designation_id = models.CharField(max_length=30, primary_key = True)
 
@@ -107,6 +107,7 @@ class Designations(MPTTModel):
         verbose_name_plural = "Designations"
 
 ##################  Attendance Models ########################################################
+
 
 class Attendances(models.Model):
 
@@ -124,7 +125,7 @@ class Attendances(models.Model):
     late_entry = models.BooleanField(default = False)
     early_exit = models.BooleanField(default = False)
     comment = models.CharField(max_length=100)
-    total_time = models.FloatField()
+    total_time = models.FloatField(default=0.0)
     class Meta:
         verbose_name = "Attendance"
         verbose_name_plural = "Attendances"
@@ -134,7 +135,7 @@ class EmployeeCheckins(models.Model):
 
     
     employees = models.ForeignKey('Employees', on_delete=models.CASCADE)
-
+    
     attendance = models.ForeignKey('Attendances', on_delete=models.CASCADE)
     checked_in = models.DateTimeField()
     checked_out = models.DateTimeField(blank=True)

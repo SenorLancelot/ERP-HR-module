@@ -1,64 +1,79 @@
 from rest_framework import serializers
+from rest_framework_recursive.fields import RecursiveField
 
 from .models import Employees, EmployeeGroup, Departments, Designations, Attendances, EmployeeCheckins, LeavePolicies, LeavesApplications, Leave
 
-class EmployeesSerializer(serializers.Serializer):
-
+class EmployeesSerializer(serializers.ModelSerializer):
+    # parent = sistField(s.ModelSerializerchild=RecursiveField())
     class Meta:
 
         model = Employees
+        # fields = [
+        #     "employee_id",
+        #     "first_name",
+        #     "last_name",
+        #     "employment_type",
+        #     "gender",
+        #     "date_of_birth",
+        #     "contact_no",
+        #     "company_email",
+        #     "department",
+        #     "employee_group",
+            
+        # ]
+
         fields = "__all__"
 
-class EmployeeGroupSerializer(serializers.Serializer):
+class EmployeeGroupSerializer(serializers.ModelSerializer):
 
     class Meta:
 
         model = EmployeeGroup
         fields = "__all__"
 
-class DepartmentsSerializer(serializers.Serializer):
+class DepartmentsSerializer(serializers.ModelSerializer):
 
     class Meta:
 
         model = Departments
         fields = "__all__"
 
-class DesignationsSerializer(serializers.Serializer):
+class DesignationsSerializer(serializers.ModelSerializer):
 
     class Meta:
 
         model = Designations
         fields = "__all__"
 
-class AttendancesSerializer(serializers.Serializer):
+class AttendancesSerializer(serializers.ModelSerializer):
 
     class Meta:
 
         model = Attendances
         fields = "__all__"
 
-class EmployeeCheckinsSerializer(serializers.Serializer):
+class EmployeeCheckinsSerializer(serializers.ModelSerializer):
 
     class Meta:
 
         model = EmployeeCheckins
         fields = "__all__"
 
-class LeavePoliciesSerializer(serializers.Serializer):
+class LeavePoliciesSerializer(serializers.ModelSerializer):
 
     class Meta:
 
         model = LeavePolicies
         fields = "__all__"
 
-class LeavesApplicationsSerializer(serializers.Serializer):
+class LeavesApplicationsSerializer(serializers.ModelSerializer):
 
     class Meta:
 
         model = LeavesApplications
         fields = "__all__"
 
-class LeavesSerializer(serializers.Serializer):
+class LeavesSerializer(serializers.ModelSerializer):
     
     class Meta:
 
