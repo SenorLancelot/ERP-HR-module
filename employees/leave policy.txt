@@ -1,0 +1,30 @@
+leave policy
+
+designation : ceo
+
+allowed leaves : [{
+    leavetype: "sick", allowed days : "30"
+
+
+}]
+
+
+leave 
+
+employee : xyz
+
+date :
+
+leave_type : 
+
+status :
+ 
+leave_application :
+
+
+leave_application 
+
+from_date :
+
+to_date :
+
