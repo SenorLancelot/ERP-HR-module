@@ -4,7 +4,9 @@ from rest_framework import generics, viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
-
+# from datetime import datetime
+import datetime
+from datetime import date
 # project imports
 from . import models
 from .models import *
@@ -21,12 +23,12 @@ class EmployeeViewSet(viewsets.ViewSet):
     def get_employee_list(self, request):
 
         try:
-            employee_ids = request.data["employees"]
+            employee_ids = request.data["employee_ids"]
         except:
             return Response({"Message" : "BAD REQUEST"}, status=status.HTTP_404_NOT_FOUND )
 
         try:
-            queryset = Employees.objects.filter(employee_id__in = request.data["employees"])    
+            queryset = Employees.objects.filter(employee_id__in = request.data["employee_ids"])    
         except:
             return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
 
@@ -174,9 +176,74 @@ class DesignationsViewSet(viewsets.ViewSet):
 class AttendancesViewSet(viewsets.ViewSet):
 
     @swagger_auto_schema(responses={200: AttendancesSerializer})
+    def get_department_attendances_list(self, request, dept_id):
+        dep_id = dept_id
+
+        if (request.GET.get('filter_by', False)):
+            filter_type = request.GET.get('filter_by', "date")
+            
+            if(filter_type == "date"):
+                date_req = request.GET.get('date', datetime.date.today)
+                queryset = Attendances.objects.filter(employee__department = dep_id, attendance_date = date_req)
+                serialized = AttendancesSerializer(queryset, many = True)
+                return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+            else:
+                month = request.GET.get('month', date.today().month)
+                year = request.GET.get('year', date.today().year)
+                queryset = Attendances.objects.filter(employee__department = dep_id, attendance_date__month = month, attendance_date__year = year)
+                serialized = AttendancesSerializer(queryset, many = True)
+                return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+        else:
+            
+            queryset = Attendances.objects.filter(employee__department = dep_id)
+            serialized = AttendancesSerializer(queryset, many = True)
+            return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+    
+
+    def get_employee_attendances_list(self, request, emp_id):
+        if isinstance(emp_id, uuid.UUID):
+
+            employee_id = emp_id
+
+        else:
+
+            return Response({"Message" : "UUID Format wrong"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+        if (request.GET.get('filter_by', False)):
+            filter_type = request.GET.get('filter_by', "date")
+            
+            if(filter_type == "date"):
+                date_req = request.GET.get('date', datetime.date.today)
+                queryset = Attendances.objects.filter(employee_id = employee_id, attendance_date = date_req)
+                serialized = AttendancesSerializer(queryset, many = True)
+                return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+            else:
+
+                month = request.GET.get('month', date.today().month)
+                year = request.GET.get('year', date.today().year)
+                queryset = Attendances.objects.filter(employee_id = employee_id, attendance_date__month = month, attendance_date__year = year)
+                serialized = AttendancesSerializer(queryset, many = True)
+                return Response(data=serialized.data, status= status.HTTP_200_OK)
+            
+            # write range view
+
+
+
+
+        else:
+            
+            queryset = Attendances.objects.filter(employee = employee_id)
+            serialized = AttendancesSerializer(queryset, many = True)
+            return Response(data=serialized.data, status= status.HTTP_200_OK)
+
     def get_attendances_list(self, request):
-        
-        queryset = Attendances.objects.filter(employee_id = request.GET.get("employee_id", ""))
+
+        queryset = Attendances.objects.all()
         serialized = AttendancesSerializer(queryset, many = True)
         return Response(data=serialized.data, status= status.HTTP_200_OK)
 
@@ -331,7 +398,7 @@ class LeaveViewSet(viewsets.ViewSet):
 
 # monthly attendance and hours to see for overtime or absentee hours
 
-# leave generation based on designation's leave policy for each empployee
+# leave generation based on designation's leave policy for each employee
 
 # make leave application/get/post employee based should have all deets and all apps, whereas when requesting all, only get open
 

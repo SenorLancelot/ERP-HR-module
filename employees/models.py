@@ -136,10 +136,10 @@ class EmployeeCheckins(models.Model):
     
     employees = models.ForeignKey('Employees', on_delete=models.CASCADE)
     
-    attendance = models.ForeignKey('Attendances', on_delete=models.CASCADE)
+    # attendance = models.ForeignKey('Attendances', on_delete=models.CASCADE)
     checked_in = models.DateTimeField()
     checked_out = models.DateTimeField(blank=True)
-    total_time_elapsed = models.TimeField()
+    total_time_elapsed = models.FloatField(blank=True)
 
     objects = models.Manager()
     class Meta:

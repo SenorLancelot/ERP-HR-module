@@ -11,6 +11,9 @@ urlpatterns = [
     path("designations/list/", DesignationsViewSet.as_view({'get' : 'get_designations_list', "post" : "post_designations_list", "delete" : "delete_designations_list"})),
     path("leavepolicies/list/", LeavePoliciesViewSet.as_view({'get' : 'get_leavepolicies_list', "post" : "post_leavepolicies_list", "delete" : "delete_leavepolicies_list"})),
     path("leaveapplications/list/", LeaveApplicationsViewSet.as_view({'get' : 'get_leaveapplications_list', "post" : "post_leaveapplications_list", "delete" : "delete_leaveapplications_list"})),
-    path("leaves/list/", LeaveApplicationsViewSet.as_view({'get' : 'get_leave_list', "post" : "post_leaves_list", "delete" : "delete_leave_list"}))
+    path("leaves/list/", LeaveApplicationsViewSet.as_view({'get' : 'get_leave_list', "post" : "post_leaves_list", "delete" : "delete_leave_list"})),
+    path("attendances/employee/<uuid:emp_id>", AttendancesViewSet.as_view({'get' : 'get_employee_attendances_list'})),
+    path("attendances/department/<int:dept_id>", AttendancesViewSet.as_view({'get' : 'get_department_attendances_list'}))
+    
     
 ]
