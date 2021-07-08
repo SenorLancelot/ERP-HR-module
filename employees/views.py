@@ -19,7 +19,7 @@ class EmployeeViewSet(viewsets.ViewSet):
 
     
     # def get_employee(self, request):
-    @swagger_auto_schema(responses={200: EmployeesSerializer})
+    @swagger_auto_schema(request_body = {},responses={200: EmployeesSerializer})
     def get_employee_list(self, request):
 
         try:
@@ -175,6 +175,12 @@ class DesignationsViewSet(viewsets.ViewSet):
 
 class AttendancesViewSet(viewsets.ViewSet):
 
+
+    # def get_monthly_reports(self, request):
+
+
+
+
     @swagger_auto_schema(responses={200: AttendancesSerializer})
     def get_department_attendances_list(self, request, dept_id):
         dep_id = dept_id
@@ -267,9 +273,66 @@ class AttendancesViewSet(viewsets.ViewSet):
 
 class EmployeeCheckinsViewSet(viewsets.ViewSet):
 
-    def post_employee_checkins(self, request):
-        employee_id = request.GET.get("employee_id")
-        queryset = EmployeeCheckins.objects.filter(attendance_attendance_date = request.GET.get("date"))
+    
+
+
+
+    @swagger_auto_schema(request_body=EmployeeCheckinsSerializer,responses={200: AttendancesSerializer})
+    def post_employee_checkin(self, request):
+        try:
+            employee_id = request.data["employee"]
+            date = request.data["date"]
+        except:
+            return Response({"Message" : "Query parameters not specified. Please specify employee_id and date"}, status= status.HTTP_400_BAD_REQUEST)
+        
+        employee = Employees.objects.get(employee_id=employee_id)
+
+
+
+        try:
+            attendance = Attendances.objects.get(attendance_date = date, employee_id=employee_id)
+
+        
+        except Attendances.DoesNotExist:
+
+
+            e_check = EmployeeCheckins(date = request.data["date"], checked_in = request.data["checked_in"], total_time_elapsed = request.data["total_time_elapsed"],employee = employee)
+            e_check.save()
+            a = Attendances(employee = employee, attendance_date = date, comment = "haha")
+            a.save()
+            a.checks.add(e_check)
+            a.save()
+            return Response(status= status.HTTP_200_OK)
+            
+        serialized = EmployeeCheckinsSerializer(data=request.data)
+            
+        if(serialized.is_valid()):
+
+            a = EmployeeCheckins.objects.latest('checked_in')
+                
+            if a.checked_out is not None:
+                    
+                serialized.save()
+                e = EmployeeCheckins.objects.latest('checked_in')
+                attendance.checks.add(e)
+                return Response(data=serialized.data, status= status.HTTP_200_OK)
+            else:
+
+                return Response({"Message" : "Check out of existing session"}, status=status.HTTP_200_OK)
+
+
+        
+
+        
+
+    # def post_employee_checkout(self, request):
+
+        
+
+
+
+        
+
 
         
 
@@ -296,7 +359,7 @@ class EmployeeCheckinsViewSet(viewsets.ViewSet):
 
         return Response(data=request.data, status= status.HTTP_200_OK)
 
-
+######################################################## Leave Viewsets #################################
 
 class LeavePoliciesViewSet(viewsets.ViewSet):
 
@@ -387,14 +450,11 @@ class LeaveViewSet(viewsets.ViewSet):
 
 
 
+# Single Employee based attendance views (entries for that particular employee) (get/post) (when check in, see if an existing attendance, if not create) done
 
+# All attendees in a Day done
 
-
-# Single Employee based attendance views (entries for that particular employee) (get/post) (when check in, see if an existing attendance, if not create)
-
-# All attendees in a Day
-
-# Department wise attendances
+# Department wise attendances done
 
 # monthly attendance and hours to see for overtime or absentee hours
 
@@ -409,7 +469,20 @@ class LeaveViewSet(viewsets.ViewSet):
 
 
 
+        # if(request.GET.get('isFilter',False)):
+            
+        #     start_date_req = request.GET.get("start_date",datetime.date.today())
+        #     end_date_req = request.GET.get("end_date", datetime.date.today())
+        #     queryset=Attendances.objects.filter(employee_id=employee_id,daterange=["attendance_datedate=start_date_req","attendance_date__date=end_date_req"])
+        #     serialized = AttendancesSerializer(queryset, many = True)
+        #     return Response(data=serialized.data, status= status.HTTP_200_OK)
 
+        #good job on date range
+        # else:
+
+        #    queryset = Attendances.objects.filter(employee = employee_id)
+        #    serialized = AttendancesSerializer(queryset, many = True)
+        #    return Response(data=serialized.data, status= status.HTTP_200_OK)
 
 
 
