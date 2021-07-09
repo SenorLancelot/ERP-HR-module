@@ -220,10 +220,10 @@ class AttendancesViewSet(viewsets.ViewSet):
 
 
         # if(request.GET.get('isFilter',False)):
-        #      filter_type = request.GET.get('filter_by',"start_date","end_date")  
+        #     
         #     start_date_req = request.GET.get("start_date",datetime.date.today())
         #     end_date_req = request.GET.get("end_date", datetime.date.today())
-        #     queryset=Attendances.objects.filter(employee_id=employee_id,daterange=["attendance_datedate=start_date_req","attendance_date__date=end_date_req"])
+        #     queryset=Attendances.objects.filter(employee_id=employee_id,attendance_date__range=[start_date_req,end_date_req])
         #     serialized = AttendancesSerializer(queryset, many = True)
         #     return Response(data=serialized.data, status= status.HTTP_200_OK)
 
@@ -235,7 +235,7 @@ class AttendancesViewSet(viewsets.ViewSet):
         #    return Response(data=serialized.data, status= status.HTTP_200_OK)
 
         if(request.GET.get('isFilter',False)):
-            
+                
             start_date_req = request.GET.get("start_date",datetime.date.today())
             end_date_req = request.GET.get("end_date", datetime.date.today())
             queryset=Attendances.objects.filter(employee_id=employee_id,attendance_date__range=[start_date_req,end_date_req])
@@ -337,7 +337,9 @@ class EmployeeCheckinsViewSet(viewsets.ViewSet):
         if(serialized.is_valid()):
 
             a = EmployeeCheckins.objects.latest('checked_in')
-                
+
+            #SOLVE THIS FUCKING ERROR
+
             if a.checked_out is not None:
                     
                 serialized.save()
@@ -488,9 +490,9 @@ class LeaveViewSet(viewsets.ViewSet):
 
 # leave generation based on designation's leave policy for each employee
 
-# make leave application/get/post employee based should have all deets and all apps, whereas when requesting all, only get open
+# make leave application/get/post employee based should have all deets and all apps, whereas when requesting all, only get open #loran
 
-# accept/reject leave application
+# accept/reject leave application loran
 
 #  ask rugved about leave policy problem
 

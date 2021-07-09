@@ -14,6 +14,8 @@ urlpatterns = [
     path("leaves/list/", LeaveApplicationsViewSet.as_view({'get' : 'get_leave_list', "post" : "post_leaves_list", "delete" : "delete_leave_list"})),
     path("attendances/employee/<uuid:emp_id>", AttendancesViewSet.as_view({'get' : 'get_employee_attendances_list'})),
     path("attendances/department/<int:dept_id>", AttendancesViewSet.as_view({'get' : 'get_department_attendances_list'})),
-    path("employeecheckins/checkin/post/", EmployeeCheckinsViewSet.as_view({"post" : "post_employee_checkin"}))
+    path("employeecheckins/checkin/post/", EmployeeCheckinsViewSet.as_view({"post" : "post_employee_checkin"})),
+    
+
     
 ]

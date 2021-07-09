@@ -124,7 +124,7 @@ class Attendances(models.Model):
     #TODO: change terminology
     late_entry = models.BooleanField(default = False)
     early_exit = models.BooleanField(default = False)
-    comment = models.CharField(max_length=100)
+    comment = models.CharField(max_length=100, null=True, blank=True)
     total_time = models.FloatField(default=0.0)
     class Meta:
         verbose_name = "Attendance"
@@ -195,7 +195,7 @@ class LeavesApplications(models.Model):
         ("Rejected", "Rejected"),
         ("Cancelled", "Cancelled")
     )
-
+    status = models.CharField(max_length=50, choices = statusType, default= "Open")
     post_date = models.DateField()
 
     class Meta:
