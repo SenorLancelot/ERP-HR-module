@@ -19,7 +19,7 @@ class EmployeeViewSet(viewsets.ViewSet):
 
     
     # def get_employee(self, request):
-    @swagger_auto_schema(request_body = {},responses={200: EmployeesSerializer})
+    @swagger_auto_schema(responses={200: EmployeesSerializer})
     def get_employee_list(self, request):
 
         try:
@@ -219,33 +219,61 @@ class AttendancesViewSet(viewsets.ViewSet):
             return Response({"Message" : "UUID Format wrong"}, status=status.HTTP_400_BAD_REQUEST)
 
 
-        if (request.GET.get('filter_by', False)):
-            filter_type = request.GET.get('filter_by', "date")
+        # if(request.GET.get('isFilter',False)):
+        #      filter_type = request.GET.get('filter_by',"start_date","end_date")  
+        #     start_date_req = request.GET.get("start_date",datetime.date.today())
+        #     end_date_req = request.GET.get("end_date", datetime.date.today())
+        #     queryset=Attendances.objects.filter(employee_id=employee_id,daterange=["attendance_datedate=start_date_req","attendance_date__date=end_date_req"])
+        #     serialized = AttendancesSerializer(queryset, many = True)
+        #     return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+        #good job on date range
+        # else:
+
+        #    queryset = Attendances.objects.filter(employee = employee_id)
+        #    serialized = AttendancesSerializer(queryset, many = True)
+        #    return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+        if(request.GET.get('isFilter',False)):
             
-            if(filter_type == "date"):
-                date_req = request.GET.get('date', datetime.date.today)
-                queryset = Attendances.objects.filter(employee_id = employee_id, attendance_date = date_req)
-                serialized = AttendancesSerializer(queryset, many = True)
-                return Response(data=serialized.data, status= status.HTTP_200_OK)
-
-            else:
-
-                month = request.GET.get('month', date.today().month)
-                year = request.GET.get('year', date.today().year)
-                queryset = Attendances.objects.filter(employee_id = employee_id, attendance_date__month = month, attendance_date__year = year)
-                serialized = AttendancesSerializer(queryset, many = True)
-                return Response(data=serialized.data, status= status.HTTP_200_OK)
-            
-            # write range view
-
-
-
-
-        else:
-            
-            queryset = Attendances.objects.filter(employee = employee_id)
+            start_date_req = request.GET.get("start_date",datetime.date.today())
+            end_date_req = request.GET.get("end_date", datetime.date.today())
+            queryset=Attendances.objects.filter(employee_id=employee_id,attendance_date__range=[start_date_req,end_date_req])
             serialized = AttendancesSerializer(queryset, many = True)
             return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+        
+        else:
+
+           queryset = Attendances.objects.filter(employee = employee_id)
+           serialized = AttendancesSerializer(queryset, many = True)
+           return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+        
+        # if (request.GET.get('filter_by', False)):
+        #     filter_type = request.GET.get('filter_by', "date")
+            
+        #     if(filter_type == "date"):
+        #         date_req = request.GET.get('date', datetime.date.today)
+        #         queryset = Attendances.objects.filter(employee_id = employee_id, attendance_date = date_req)
+        #         serialized = AttendancesSerializer(queryset, many = True)
+        #         return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+        #     else:
+
+        #         month = request.GET.get('month', date.today().month)
+        #         year = request.GET.get('year', date.today().year)
+        #         queryset = Attendances.objects.filter(employee_id = employee_id, attendance_date__month = month, attendance_date__year = year)
+        #         serialized = AttendancesSerializer(queryset, many = True)
+        #         return Response(data=serialized.data, status= status.HTTP_200_OK)
+            
+        
+
+        # else:
+            
+        #     queryset = Attendances.objects.filter(employee = employee_id)
+        #     serialized = AttendancesSerializer(queryset, many = True)
+        #     return Response(data=serialized.data, status= status.HTTP_200_OK)
 
     def get_attendances_list(self, request):
 
