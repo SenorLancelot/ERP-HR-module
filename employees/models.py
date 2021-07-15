@@ -151,6 +151,8 @@ class EmployeeCheckins(models.Model):
 #TODO: maybe we should link leavepolicies with employee
 class LeavePolicies(models.Model):
 
+    leavepolicy_id = models.CharField(max_length=50, primary_key= True)
+
     leave_type = models.ManyToManyField('LeaveType', through= "LeavePolicy_TypeMembership")
     #TODO: leave policy (per designation), leave type (per leave policy) (through membership)
     objects = models.Manager()
@@ -167,6 +169,7 @@ class LeavePolicy_TypeMembership(models.Model):
     leave_type = models.ForeignKey('LeaveType', on_delete=models.CASCADE)
     total_days_allowed = models.IntegerField()
     total_consecutive_days = models.IntegerField()
+    
 
 
 
@@ -182,6 +185,7 @@ class LeaveType(models.Model):
 
 class LeavesApplications(models.Model):
 
+    leaveapplication_id = models.CharField(max_length=50, primary_key = True)
     leave_type = models.ForeignKey('LeaveType', on_delete=models.CASCADE)
     employee = models.ForeignKey('Employees', on_delete=models.CASCADE, related_name='employee')
     from_date = models.DateField()
@@ -202,8 +206,22 @@ class LeavesApplications(models.Model):
         verbose_name = "LeaveApplication"
         verbose_name_plural = "LeaveApplications"
 
+class EmployeeLeaveReport(models.Model):
 
-class Leave(models.Model):
+    employee = models.ForeignKey('Employees', on_delete=models.CASCADE)
+    leave_types = models.ManyToManyField('LeaveType')
+
+class LeaveReport_Membership(models.Model):
+
+    employee_report = models.ForeignKey('EmployeeLeaveReport', on_delete=models.CASCADE)
+    leave_type = models.ForeignKey('LeaveType', on_delete=models.CASCADE)
+    leaves_taken = models.IntegerField()
+    leaves_remaining = models.IntegerField()
+    blocked_till = models.DateField()
+    is_compulsory = models.BooleanField(default=False)
+
+
+class Leaves(models.Model):
 
     employee = models.ForeignKey('Employees', on_delete=models.CASCADE)
     leave_type = models.ForeignKey('LeaveType', on_delete=models.CASCADE)
@@ -218,3 +236,9 @@ class Leave(models.Model):
     
 #Leaves get created at the start itself when an employee is assigned a designations
 
+class MonthlyReports(models.Model):
+
+    objects = models.Manager()
+    employee = models.ForeignKey('Employees', on_delete=models.CASCADE)
+
+    total_time_worked = models.FloatField(default=0, null=True, blank=True)

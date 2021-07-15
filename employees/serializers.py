@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework_recursive.fields import RecursiveField
 
-from .models import Employees, EmployeeGroup, Departments, Designations, Attendances, EmployeeCheckins, LeavePolicies, LeavesApplications, Leave
+from .models import *
 
 class EmployeesSerializer(serializers.ModelSerializer):
     # parent = sistField(s.ModelSerializerchild=RecursiveField())
@@ -77,5 +77,12 @@ class LeavesSerializer(serializers.ModelSerializer):
     
     class Meta:
 
-        model = Leave
+        model = Leaves
+        fields = "__all__"
+
+class MonthlyReportsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = MonthlyReports
         fields = "__all__"

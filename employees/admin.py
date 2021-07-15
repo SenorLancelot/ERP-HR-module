@@ -2,7 +2,7 @@ from django.contrib import admin
 from mptt.admin import MPTTModelAdmin
 
 # Register your models here.
-from .models import (Employees, EmployeeGroup, Departments, Designations, Attendances, EmployeeCheckins, LeavePolicies, LeavesApplications)
+from .models import *
 
 
 admin.site.register(Employees)
@@ -12,5 +12,6 @@ admin.site.register(Designations)
 admin.site.register(Attendances)
 admin.site.register(EmployeeCheckins)
 admin.site.register(LeavesApplications)
+admin.site.register(MonthlyReports)
 
 
