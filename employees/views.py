@@ -9,6 +9,7 @@ from django.db.models import Sum
 import datetime
 from datetime import date
 # project imports
+from rest_framework.decorators import action
 
 from .models import *
 from .serializers import *
@@ -24,9 +25,9 @@ class EmployeeViewSet(viewsets.ViewSet):
         try:
             employee = request.data["employee_id"]
 
-        except ValueError:
+        except:
 
-            print(ValueError)
+            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
 
         queryset = Employees.objects.get(employee_id = employee)
 
@@ -44,22 +45,6 @@ class EmployeeViewSet(viewsets.ViewSet):
     @swagger_auto_schema(responses={200: EmployeesSerializer})
     def get_employee_list(self, request):
 
-        # try:
-        #     employee_ids = request.data["employee_ids"]
-        # except:
-        #     return Response({"Message" : "BAD REQUEST"}, status=status.HTTP_404_NOT_FOUND )
-
-        # try:
-        #     queryset = Employees.objects.filter(employee_id__in = request.data["employee_ids"])    
-        # except:
-        #     return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
-
-        # try:
-        #     serialized = EmployeesSerializer(queryset, many = True)
-        # except:
-        #     return Response({"Message" : "Serializer error"}, status=status.HTTP_404_NOT_FOUND )
-        
-        # return Response(data=serialized.data, status= status.HTTP_200_OK)
 
         try:
             queryset = Employees.objects.all()
@@ -91,7 +76,7 @@ class EmployeeViewSet(viewsets.ViewSet):
     #     return Response(data=serialized.data, status= status.HTTP_200_OK)
 
 
-
+    # @action(detail=True, methods=['post'])
     @swagger_auto_schema(request_body=EmployeesSerializer,responses={200: EmployeesSerializer})
     def post_to_employee_list(self, request):
         
@@ -150,14 +135,14 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
 
 class DepartmentsViewSet(viewsets.ViewSet):
 
-    def patch_Departments_list(self, request):
+    def patch_departments_list(self, request):
         
         try:
             department = request.data["department_id"]
 
-        except ValueError:
+        except:
 
-            print(ValueError)
+            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
 
         queryset = Departments.objects.get(department_id = department)
 
@@ -209,9 +194,9 @@ class DesignationsViewSet(viewsets.ViewSet):
         try:
             designation = request.data["designation_id"]
 
-        except ValueError:
+        except:
 
-            print(ValueError)
+            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
 
         queryset = Designations.objects.get(designation_id = designation)
 
@@ -376,15 +361,9 @@ class EmployeeCheckinsViewSet(viewsets.ViewSet):
             date = request.data["date"]
         except:
             return Response({"Message" : "body not specified. Please specify employee_id and date"}, status= status.HTTP_400_BAD_REQUEST)
-        
         employee = Employees.objects.get(employee_id=employee_id)
-
-
-
         try:
             attendance = Attendances.objects.get(attendance_date = date, employee_id=employee_id)
-
-        
         except Attendances.DoesNotExist:
 
 
@@ -476,14 +455,16 @@ class EmployeeCheckinsViewSet(viewsets.ViewSet):
 
 class LeavePoliciesViewSet(viewsets.ViewSet):
 
+
+    
     def patch_leavepolicies_list(self, request):
         
         try:
             leavepolicy = request.data["leavepolicy_id"]
 
-        except ValueError:
+        except:
 
-            print(ValueError)
+            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
 
         queryset = LeavePolicies.objects.get(leavepolicy_id = leavepolicy)
 
@@ -529,15 +510,43 @@ class LeavePoliciesViewSet(viewsets.ViewSet):
 
 
 class LeaveApplicationsViewSet(viewsets.ViewSet):
+
+    def accept_applications(self,request):
+        try:
+            accepted_ids = request.data["accepted_ids"]
+        except:
+            return Response({"Message","specify accepted ids"})
+        employee = Employees.objects.get(employee_id=accepted_ids)
+        # aceepted = LeavesApplications.objects.filter(accepted_ids__in=employee.update(status='Approved'))
+        try:
+            leave_ids = LeavesApplications.objects.filter(employee_id__in=accepted_ids)
+            accept = LeavesApplications.objects.filter(accepted_ids= employee.update(status='Approved'))
+            serialized = LeavesApplicationsSerializer(accept, many=True)
+            return Response(data=serialized.data)
+        except:
+            return Response(status=status.HTTP_400_BAD_REQUESTs)
+
+    def get_leaveapplications_employee(self,request,emp_id):
+        if isinstance(emp_id, uuid.UUID):
+
+            employee_id = emp_id
+            
+            queryset = LeavesApplications.objects.filter(employee = emp_id)
+            serialized = LeavesApplicationsSerializer(queryset,many=True)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        else:
+
+            return Response({"Message" : "UUID Format wrong"}, status=status.HTTP_400_BAD_REQUEST)
     
     def patch_leavesapplications_list(self, request):
         
         try:
             leaveapplication = request.data["leaveapplication_id"]
 
-        except ValueError:
+        except:
 
-            print(ValueError)
+            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
 
         queryset = LeavesApplications.objects.get(leaveapplication_id = leaveapplication)
 
@@ -582,6 +591,25 @@ class LeaveApplicationsViewSet(viewsets.ViewSet):
 
 class LeaveViewSet(viewsets.ViewSet):
 
+    def patch_leaves_list(self, request):
+        
+        try:
+            leave = request.data["leave_id"]
+
+        except:
+
+            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
+
+        queryset = Leaves.objects.get(leave_id = leave)
+
+        serialized = LeavesSerializer(queryset, request.data, partial = True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+
     @swagger_auto_schema(responses={200: LeavesSerializer})
     def get_leave_list(self, request):
     
@@ -615,6 +643,27 @@ class LeaveViewSet(viewsets.ViewSet):
     
 
 class MonthlyReportsViewSet(viewsets.ViewSet):
+
+
+    def patch_monthlyreports_list(self, request):
+        
+        try:
+            monthlyreport = request.data["monthlyreport_id"]
+
+        except:
+
+            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
+
+        queryset = MonthlyReports.objects.get(monthlyreport_id = monthlyreport)
+
+        serialized = MonthlyReportsSerializer(queryset, request.data, partial = True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+
 
     def get_monthly_reports_list(self, request):
 

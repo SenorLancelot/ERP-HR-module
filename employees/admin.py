@@ -13,5 +13,6 @@ admin.site.register(Attendances)
 admin.site.register(EmployeeCheckins)
 admin.site.register(LeavesApplications)
 admin.site.register(MonthlyReports)
-
-
+admin.site.register(LeavePolicies)
+admin.site.register(LeaveType)
+admin.site.register(LeavePolicy_TypeMembership)

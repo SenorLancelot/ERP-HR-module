@@ -100,6 +100,7 @@ class Designations(models.Model):
 
     description = models.CharField(max_length=300)
 
+    
     #TODO: things like salary?
 
     class Meta:
@@ -157,7 +158,7 @@ class LeavePolicies(models.Model):
     #TODO: leave policy (per designation), leave type (per leave policy) (through membership)
     objects = models.Manager()
 
-    leaves_allowed = models.IntegerField()
+    # leaves_allowed = models.IntegerField()
 
     class Meta:
         verbose_name = "LeavePolicy"
@@ -167,14 +168,15 @@ class LeavePolicies(models.Model):
 class LeavePolicy_TypeMembership(models.Model):
     leave_policy = models.ForeignKey('LeavePolicies', on_delete=models.CASCADE)
     leave_type = models.ForeignKey('LeaveType', on_delete=models.CASCADE)
-    total_days_allowed = models.IntegerField()
-    total_consecutive_days = models.IntegerField()
+    total_days_allowed = models.IntegerField(default=0)
+    total_consecutive_days = models.IntegerField(default=0)
     
 
 
 
 class LeaveType(models.Model):
 
+    leave_id = models.CharField(max_length=50, primary_key=True)
     leave_type = models.CharField(max_length=30)
     is_paid = models.BooleanField(default = False)
     is_carry_forward = models.BooleanField(default = False)
@@ -223,6 +225,7 @@ class LeaveReport_Membership(models.Model):
 
 class Leaves(models.Model):
 
+    leave_id = models.CharField(max_length=50, primary_key = True)
     employee = models.ForeignKey('Employees', on_delete=models.CASCADE)
     leave_type = models.ForeignKey('LeaveType', on_delete=models.CASCADE)
     objects = models.Manager()
@@ -238,6 +241,7 @@ class Leaves(models.Model):
 
 class MonthlyReports(models.Model):
 
+    monthlyreport_id = models.CharField(max_length=50, primary_key = True)
     objects = models.Manager()
     employee = models.ForeignKey('Employees', on_delete=models.CASCADE)
 
