@@ -353,7 +353,6 @@ class AttendancesViewSet(viewsets.ViewSet):
 class EmployeeCheckinsViewSet(viewsets.ViewSet):
 
     
-
     @swagger_auto_schema(request_body=EmployeeCheckinsSerializer,responses={200: AttendancesSerializer})
     def post_employee_checkin(self, request):
         try:
@@ -381,10 +380,7 @@ class EmployeeCheckinsViewSet(viewsets.ViewSet):
 
             a = EmployeeCheckins.objects.filter(employee = employee_id).latest('checked_in')
 
-            #SOLVE THIS FUCKING ERROR
-
-            if a.checked_out is not None:
-                    
+            if a.checked_out is not None:          
                 serialized.save()
                 e = EmployeeCheckins.objects.latest('checked_in')
                 attendance.checks.add(e)
@@ -410,20 +406,14 @@ class EmployeeCheckinsViewSet(viewsets.ViewSet):
 
             return Response({"Message" : "No checkin for the employee found"})
 
-
-
-
         if a.checked_out is None:
                     
-            
-            
             a.checked_out = checkout
             a.save()
             return Response( status= status.HTTP_200_OK)
         else:
 
             return Response({"Message" : "ALready checked out of existing session"}, status=status.HTTP_200_OK)
-
 
 
 
@@ -524,7 +514,7 @@ class LeaveApplicationsViewSet(viewsets.ViewSet):
             serialized = LeavesApplicationsSerializer(accept, many=True)
             return Response(data=serialized.data)
         except:
-            return Response(status=status.HTTP_400_BAD_REQUESTs)
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     def get_leaveapplications_employee(self,request,emp_id):
         if isinstance(emp_id, uuid.UUID):
@@ -716,6 +706,109 @@ class MonthlyReportsViewSet(viewsets.ViewSet):
             return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+
+class CalendarViewSet(viewsets.ViewSet):
+
+
+    def patch_calendar_list(self, request):
+        
+        try:
+            date = request.data["date"]
+        except:
+            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
+        queryset = Calendar.objects.get(date=date)
+
+        serialized = CalendarSerializer(queryset, request.data, partial = True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+
+    @swagger_auto_schema(responses={200: CalendarSerializer})
+    def get_calendar_list(self, request):
+    
+        try:
+            queryset = Calendar.objects.all()
+        except:
+            return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
+        
+        serialized = CalendarSerializer(queryset, many = True)
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+
+    @swagger_auto_schema(request_body=CalendarSerializer,responses={200: CalendarSerializer})
+    def post_calendar_list(self, request):
+
+        serialized = CalendarSerializer(data = request.data)
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status= status.HTTP_200_OK)
+        
+        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+
+    def delete_leave_list(self, request):
+
+        Calendar.objects.filter(date__in = request.data["dates"]).delete()
+
+        return Response(data=request.data, status= status.HTTP_200_OK)
+
+
+
+class EventsViewset(viewsets.ViewSet):
+    
+
+    def patch_events_list(self, request):
+        
+        try:
+            event_id = request.data["event_id"]
+        except:
+            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
+        queryset = Events.objects.get(event_id=event_id)
+
+        serialized = EventsSerializer(queryset, request.data, partial = True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+
+    @swagger_auto_schema(responses={200: EventsSerializer})
+    def get_events_list(self, request):
+    
+        try:
+            queryset = Events.objects.all()
+        except:
+            return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
+        
+        serialized = EventsSerializer(queryset, many = True)
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+
+    @swagger_auto_schema(request_body=EventsSerializer,responses={200: EventsSerializer})
+    def post_events_list(self, request):
+
+        serialized = EventsSerializer(data = request.data)
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status= status.HTTP_200_OK)
+        
+        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+
+    def delete_events_list(self, request):
+
+        Events.objects.filter(event_id__in = request.data["event_ids"]).delete()
+
+        return Response(data=request.data, status= status.HTTP_200_OK)
+
 # Single Employee based attendance views (entries for that particular employee) (get/post) (when check in, see if an existing attendance, if not create) done
 
 # All attendees in a Day done
@@ -736,7 +829,7 @@ class MonthlyReportsViewSet(viewsets.ViewSet):
 
 # leave generation based on designation's leave policy for each employee
 
-#privileged leaves assigned per quarter/ carry forwarding / 
+#privileged leave assigned per quarter/ carry forwarding / 
 
 
 

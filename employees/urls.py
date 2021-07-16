@@ -26,7 +26,7 @@ urlpatterns = [
     path("designations/create/", DesignationsViewSet.as_view({"post" : "post_designations_list"})),
     path("designations/read/", DesignationsViewSet.as_view({'get' : 'get_designations_list'})),
     path("designations/update/", DesignationsViewSet.as_view({"patch" : 'patch_designations_list'})),
-    path("designations/delete", DesignationsViewSet.as_view({"delete" : "delete_designations_list"})),
+    path("designations/delete/", DesignationsViewSet.as_view({"delete" : "delete_designations_list"})),
 
 
     path("leavepolicies/create/", LeavePoliciesViewSet.as_view({"post" : "post_leavepolicies_list"})),

@@ -86,3 +86,16 @@ class MonthlyReportsSerializer(serializers.ModelSerializer):
 
         model = MonthlyReports
         fields = "__all__"
+
+class CalendarSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Calendar
+        fields = "__all__"
+
+
+class EventsSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Events
+        fields = "__all__"

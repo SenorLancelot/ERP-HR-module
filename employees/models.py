@@ -100,7 +100,7 @@ class Designations(models.Model):
 
     description = models.CharField(max_length=300)
 
-    
+    objects = models.Manager()
     #TODO: things like salary?
 
     class Meta:
@@ -247,3 +247,28 @@ class MonthlyReports(models.Model):
     employee = models.ForeignKey('Employees', on_delete=models.CASCADE)
 
     total_time_worked = models.FloatField(default=0, null=True, blank=True)
+
+
+class Calendar(models.Model):
+    objects = models.Manager()
+    date = models.DateField()
+    is_holiday = models.BooleanField(default = False)
+    is_compulsory_working = models.BooleanField(default = False)
+    comment = models.CharField(max_length=300, null=True, blank=True)
+    universal_blocked_leave = models.BooleanField(default = False)
+
+    
+
+class Events(models.Model):
+    objects = models.Manager()
+    event_id = models.BigAutoField(primary_key=True)
+    fk_start_date = models.ForeignKey('Calendar', on_delete= models.CASCADE)
+    fk_end_date = models.ForeignKey('Calendar', on_delete= models.CASCADE)
+
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+
+    fk_department = models.ForeignKey('Departments', on_delete= models.CASCADE)
+    fk_employees = models.ManyToManyField('Employees')
+
+    fk_administrator = models.ForeignKey('Employees', on_delete= models.CASCADE)
