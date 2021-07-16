@@ -67,7 +67,7 @@ class Employees(MPTTModel):
 
 class EmployeeGroup(models.Model):
 
-    group_id = models.CharField(max_length=30, primary_key=True)
+    group_id = models.BigAutoField(primary_key=True)
     group_name = models.CharField(max_length=50)
 
     objects = models.Manager()
@@ -80,7 +80,7 @@ class EmployeeGroup(models.Model):
 
 class Departments(MPTTModel):
 
-    department_id = models.CharField(max_length=50, primary_key = True)
+    department_id = models.BigAutoField(primary_key=True)
 
     department_name = models.CharField(max_length=30)
 
@@ -94,7 +94,7 @@ class Departments(MPTTModel):
 
 class Designations(models.Model):
 
-    designation_id = models.CharField(max_length=30, primary_key = True)
+    designation_id = models.BigAutoField(primary_key=True)
 
     designation_name = models.CharField(max_length=30)
 
@@ -112,6 +112,7 @@ class Designations(models.Model):
 
 class Attendances(models.Model):
 
+    attendance_id = models.BigAutoField(primary_key=True)
     employee = models.ForeignKey('Employees', on_delete=models.CASCADE)
     attendance_date = models.DateField()
     
@@ -134,7 +135,7 @@ class Attendances(models.Model):
 
 class EmployeeCheckins(models.Model):
 
-    
+    check_id = models.BigAutoField(primary_key=True)
     employee = models.ForeignKey('Employees', on_delete=models.CASCADE)
     date = models.DateField(default=datetime.date.today)
     # attendance = models.ForeignKey('Attendances', on_delete=models.CASCADE)
@@ -152,7 +153,7 @@ class EmployeeCheckins(models.Model):
 #TODO: maybe we should link leavepolicies with employee
 class LeavePolicies(models.Model):
 
-    leavepolicy_id = models.CharField(max_length=50, primary_key= True)
+    leavepolicy_id = models.BigAutoField(primary_key=True)
 
     leave_type = models.ManyToManyField('LeaveType', through= "LeavePolicy_TypeMembership")
     #TODO: leave policy (per designation), leave type (per leave policy) (through membership)
@@ -176,7 +177,7 @@ class LeavePolicy_TypeMembership(models.Model):
 
 class LeaveType(models.Model):
 
-    leave_id = models.CharField(max_length=50, primary_key=True)
+    leave_id = models.BigAutoField(primary_key=True)
     leave_type = models.CharField(max_length=30)
     is_paid = models.BooleanField(default = False)
     is_carry_forward = models.BooleanField(default = False)
@@ -187,7 +188,7 @@ class LeaveType(models.Model):
 
 class LeavesApplications(models.Model):
 
-    leaveapplication_id = models.CharField(max_length=50, primary_key = True)
+    leaveapplication_id = models.BigAutoField(primary_key=True)
     leave_type = models.ForeignKey('LeaveType', on_delete=models.CASCADE)
     employee = models.ForeignKey('Employees', on_delete=models.CASCADE, related_name='employee')
     from_date = models.DateField()
@@ -225,7 +226,7 @@ class LeaveReport_Membership(models.Model):
 
 class Leaves(models.Model):
 
-    leave_id = models.CharField(max_length=50, primary_key = True)
+    leave_id = models.BigAutoField(primary_key=True)
     employee = models.ForeignKey('Employees', on_delete=models.CASCADE)
     leave_type = models.ForeignKey('LeaveType', on_delete=models.CASCADE)
     objects = models.Manager()
@@ -241,7 +242,7 @@ class Leaves(models.Model):
 
 class MonthlyReports(models.Model):
 
-    monthlyreport_id = models.CharField(max_length=50, primary_key = True)
+    monthlyreport_id = models.BigAutoField(primary_key=True)
     objects = models.Manager()
     employee = models.ForeignKey('Employees', on_delete=models.CASCADE)
 
