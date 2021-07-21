@@ -33,6 +33,7 @@ urlpatterns = [
     path("leavepolicies/update/", LeavePoliciesViewSet.as_view({'get' : 'get_leavepolicies_list'})),
     path("leavepolicies/read/", LeavePoliciesViewSet.as_view({"patch" : 'patch_leavepolicies_list'})),
     path("leavepolicies/delete/", LeavePoliciesViewSet.as_view({"delete" : "delete_leavepolicies_list"})),
+    path("leavepolicygeneration/designation/<int:designation_id>", LeavePoliciesViewSet.as_view({"post" : "leave_policy_generation"})),
 
     path("leaveapplications/create/", LeaveApplicationsViewSet.as_view({"post" : "post_leaveapplications_list"})),
     path("leaveapplications/read/", LeaveApplicationsViewSet.as_view({'get' : 'get_leaveapplications_list'})),
@@ -50,7 +51,8 @@ urlpatterns = [
     path("attendances/department/<int:dept_id>", AttendancesViewSet.as_view({'get' : 'get_department_attendances_list'})),
     path("employeecheckins/checkin/", EmployeeCheckinsViewSet.as_view({"post" : "post_employee_checkin"})),
     path("employeecheckins/checkout/", EmployeeCheckinsViewSet.as_view({"post" : "post_employee_checkout"})),
-    path("monthlyreports/employee/<uuid:emp_id>", MonthlyReportsViewSet.as_view({"post" : "generate_monthly_report", "patch" : 'patch_monthleyreports_list'}))
+    path("monthlyreports/employee/<uuid:emp_id>", MonthlyReportsViewSet.as_view({"post" : "generate_monthly_report", "patch" : 'patch_monthleyreports_list'})),
+    
       
 ]
 

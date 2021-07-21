@@ -445,6 +445,31 @@ class EmployeeCheckinsViewSet(viewsets.ViewSet):
 
 class LeavePoliciesViewSet(viewsets.ViewSet):
 
+    def leave_policy_generation(self, request, designation_id):
+
+        des_id = designation_id
+
+        try:
+            designation = Designations.objects.get(designation_id = des_id)
+        except:
+            return Response({"Message": "No designation found"}, status = status.HTTP_400_BAD_REQUEST)
+        if designation.leavepolicy is None:
+
+            lp = LeavePolicies()
+            lp.save()
+            designation.leavepolicy = lp
+            designation.save()
+            # lp_id = lp.leavepolicy_id
+            for member in request.data:
+                member["leave_policy"] = lp.leavepolicy_id
+            serialized = LeavePolicy_TypeMembershipSerializer(data = request.data, many = True)
+            if serialized.is_valid():
+                serialized.save()
+                return Response(data = serialized.data, status = status.HTTP_200_OK)
+            else:
+                return Response(data = serialized.errors, status = status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"Message" : "Leave Policy already exists"}, status = status.HTTP_400_BAD_REQUEST)
 
     
     def patch_leavepolicies_list(self, request):
@@ -707,107 +732,149 @@ class MonthlyReportsViewSet(viewsets.ViewSet):
 
 
 
-class CalendarViewSet(viewsets.ViewSet):
+# class CalendarViewSet(viewsets.ViewSet):
 
 
-    def patch_calendar_list(self, request):
+#     def patch_calendar_list(self, request):
         
-        try:
-            date = request.data["date"]
-        except:
-            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
-        queryset = Calendar.objects.get(date=date)
+#         try:
+#             date = request.data["date"]
+#         except:
+#             return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
+#         queryset = Calendar.objects.get(date=date)
 
-        serialized = CalendarSerializer(queryset, request.data, partial = True)
+#         serialized = CalendarSerializer(queryset, request.data, partial = True)
 
-        if serialized.is_valid():
-            serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+#         if serialized.is_valid():
+#             serialized.save()
+#             return Response(data=serialized.data, status= status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+#         return Response(data=serialized.errors, status= status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: CalendarSerializer})
-    def get_calendar_list(self, request):
+#     @swagger_auto_schema(responses={200: CalendarSerializer})
+#     def get_calendar_list(self, request):
     
-        try:
-            queryset = Calendar.objects.all()
-        except:
-            return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
+#         try:
+#             queryset = Calendar.objects.all()
+#         except:
+#             return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
         
-        serialized = CalendarSerializer(queryset, many = True)
-        if serialized.is_valid():
-            serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+#         serialized = CalendarSerializer(queryset, many = True)
+#         if serialized.is_valid():
+#             serialized.save()
+#             return Response(data=serialized.data, status= status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+#         return Response(data=serialized.errors, status= status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=CalendarSerializer,responses={200: CalendarSerializer})
-    def post_calendar_list(self, request):
+#     @swagger_auto_schema(request_body=CalendarSerializer,responses={200: CalendarSerializer})
+#     def post_calendar_list(self, request):
 
-        serialized = CalendarSerializer(data = request.data)
-        if serialized.is_valid():
-            serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+#         serialized = CalendarSerializer(data = request.data)
+#         if serialized.is_valid():
+#             serialized.save()
+#             return Response(data=serialized.data, status= status.HTTP_200_OK)
         
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+#         return Response(data=serialized.errors, status= status.HTTP_200_OK)
 
-    def delete_leave_list(self, request):
+#     def delete_leave_list(self, request):
 
-        Calendar.objects.filter(date__in = request.data["dates"]).delete()
+#         Calendar.objects.filter(date__in = request.data["dates"]).delete()
 
-        return Response(data=request.data, status= status.HTTP_200_OK)
+#         return Response(data=request.data, status= status.HTTP_200_OK)
 
 
 
-class EventsViewset(viewsets.ViewSet):
+# class EventsViewset(viewsets.ViewSet):
     
 
-    def patch_events_list(self, request):
+#     def patch_events_list(self, request):
         
-        try:
-            event_id = request.data["event_id"]
-        except:
-            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
-        queryset = Events.objects.get(event_id=event_id)
+#         try:
+#             event_id = request.data["event_id"]
+#         except:
+#             return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
+#         queryset = Events.objects.get(event_id=event_id)
 
-        serialized = EventsSerializer(queryset, request.data, partial = True)
+#         serialized = EventsSerializer(queryset, request.data, partial = True)
 
-        if serialized.is_valid():
-            serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+#         if serialized.is_valid():
+#             serialized.save()
+#             return Response(data=serialized.data, status= status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+#         return Response(data=serialized.errors, status= status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: EventsSerializer})
-    def get_events_list(self, request):
+#     @swagger_auto_schema(responses={200: EventsSerializer})
+#     def get_events_list(self, request):
     
-        try:
-            queryset = Events.objects.all()
-        except:
-            return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
+#         try:
+#             queryset = Events.objects.all()
+#         except:
+#             return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
         
-        serialized = EventsSerializer(queryset, many = True)
-        if serialized.is_valid():
-            serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+#         serialized = EventsSerializer(queryset, many = True)
+#         if serialized.is_valid():
+#             serialized.save()
+#             return Response(data=serialized.data, status= status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+#         return Response(data=serialized.errors, status= status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=EventsSerializer,responses={200: EventsSerializer})
-    def post_events_list(self, request):
+#     @swagger_auto_schema(request_body=EventsSerializer,responses={200: EventsSerializer})
+#     def post_events_list(self, request):
 
-        serialized = EventsSerializer(data = request.data)
-        if serialized.is_valid():
-            serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+#         serialized = EventsSerializer(data = request.data)
+#         if serialized.is_valid():
+#             serialized.save()
+#             return Response(data=serialized.data, status= status.HTTP_200_OK)
         
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+#         return Response(data=serialized.errors, status= status.HTTP_200_OK)
 
-    def delete_events_list(self, request):
+#     def delete_events_list(self, request):
 
-        Events.objects.filter(event_id__in = request.data["event_ids"]).delete()
+#         Events.objects.filter(event_id__in = request.data["event_ids"]).delete()
 
-        return Response(data=request.data, status= status.HTTP_200_OK)
+#         return Response(data=request.data, status= status.HTTP_200_OK)
+
+
+
+
+# class LeaveMembershipViewSet(viewsets.ViewSet):
+#     @swagger_auto_schema(responses={200: LeavePoliciesSerializer})
+#     def post_policy(self, request, design_id):
+#         designation_id = design_id  # ask
+#         serializer_class = LeavePoliciesSerializer
+#         if LeavePolicies.objects.filter(
+#             leave_type=request.data["leavetype_id"],
+#             #designations=design_id,
+#         ):
+#             return Response(
+#                 {"message": "Leave Policy exists"}, status=status.HTTP_400_BAD_REQUEST
+#             )
+#         else:
+#             serializer = LeavePoliciesSerializer(data=request.data)
+#             serializer.is_valid(raise_exception=True)
+#             policy = serializer.save()
+
+#     def post_leave_membership(self, request):
+#         serializer = self.get_serializer(data=request.data, many=True)
+#         serializer.is_valid(raise_exception=True)
+
+#         for index in serializer.validated_data:
+#             try:
+#                 leaveid = LeavePolicy_TypeMembership.objects.get(
+#                     leave_type=index["leavetype_id"],
+#                     leave_policy=index["leavepolicy_id"],
+#                 )
+#                 leaveid.total_days_allowed = index["total_days"]
+#                 leaveid.total_consecutive_days = index["total_cons"]
+#                 leaveid.save()
+#             except LeavePolicy_TypeMembership.DoesNotExist:
+#                 membership = LeavePolicy_TypeMembership(
+#                     leave_type=index["leavetype_id"],
+#                     leave_policy=index["leavepoliccy_id"],
+#                     total_days_allowed=index["total_days"],
+#                     total_consecutive_days=index["total_cons"],
+#                 )
+#                 membership.save()        
 
 # Single Employee based attendance views (entries for that particular employee) (get/post) (when check in, see if an existing attendance, if not create) done
 

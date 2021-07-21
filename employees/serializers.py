@@ -87,15 +87,23 @@ class MonthlyReportsSerializer(serializers.ModelSerializer):
         model = MonthlyReports
         fields = "__all__"
 
-class CalendarSerializer(serializers.ModelSerializer):
+
+
+class LeavePolicy_TypeMembershipSerializer(serializers.ModelSerializer):
 
     class Meta:
-        model = Calendar
+
+        model = LeavePolicy_TypeMembership
         fields = "__all__"
+# class CalendarSerializer(serializers.ModelSerializer):
+
+#     class Meta:
+#         model = Calendar
+#         fields = "__all__"
 
 
-class EventsSerializer(serializers.ModelSerializer):
+# class EventsSerializer(serializers.ModelSerializer):
 
-    class Meta:
-        model = Events
-        fields = "__all__"
+#     class Meta:
+#         model = Events
+#         fields = "__all__"

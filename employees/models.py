@@ -56,6 +56,7 @@ class Employees(MPTTModel):
     identification_number = models.CharField(max_length=50,)
     #TODO: probably new table (make dynamic)
     department = models.ForeignKey('Departments', on_delete=models.CASCADE)
+    designation = models.ForeignKey('Designations', on_delete = models.CASCADE)
     employee_group = models.ForeignKey('EmployeeGroup', on_delete=models.SET_NULL, null = True, blank= True)
     #  add qualification details to this as well as previous workex and history in company_email
 
@@ -100,6 +101,7 @@ class Designations(models.Model):
 
     description = models.CharField(max_length=300)
 
+    leavepolicy = models.ForeignKey("LeavePolicies", on_delete=models.CASCADE, null = True, blank = True)
     objects = models.Manager()
     #TODO: things like salary?
 
@@ -150,23 +152,24 @@ class EmployeeCheckins(models.Model):
 
 
 ##################  Leave models #############################################################
-#TODO: maybe we should link leavepolicies with employee
+
 class LeavePolicies(models.Model):
 
     leavepolicy_id = models.BigAutoField(primary_key=True)
 
-    leave_type = models.ManyToManyField('LeaveType', through= "LeavePolicy_TypeMembership")
-    #TODO: leave policy (per designation), leave type (per leave policy) (through membership)
+    leave_type = models.ManyToManyField('LeaveType', through= "LeavePolicy_TypeMembership", null = True, blank = True)
+    
     objects = models.Manager()
 
     # leaves_allowed = models.IntegerField()
 
     class Meta:
-        verbose_name = "LeavePolicy"
-        verbose_name_plural = "LeavePolicies"
+        verbose_name = "Leave Policy"
+        verbose_name_plural = "Leave Policies"
 
 
 class LeavePolicy_TypeMembership(models.Model):
+    objects = models.Manager()
     leave_policy = models.ForeignKey('LeavePolicies', on_delete=models.CASCADE)
     leave_type = models.ForeignKey('LeaveType', on_delete=models.CASCADE)
     total_days_allowed = models.IntegerField(default=0)
@@ -249,26 +252,26 @@ class MonthlyReports(models.Model):
     total_time_worked = models.FloatField(default=0, null=True, blank=True)
 
 
-class Calendar(models.Model):
-    objects = models.Manager()
-    date = models.DateField()
-    is_holiday = models.BooleanField(default = False)
-    is_compulsory_working = models.BooleanField(default = False)
-    comment = models.CharField(max_length=300, null=True, blank=True)
-    universal_blocked_leave = models.BooleanField(default = False)
+# class Calendar(models.Model):
+#     objects = models.Manager()
+#     date = models.DateField()
+#     is_holiday = models.BooleanField(default = False)
+#     is_compulsory_working = models.BooleanField(default = False)
+#     comment = models.CharField(max_length=300, null=True, blank=True)
+#     universal_blocked_leave = models.BooleanField(default = False)
 
     
 
-class Events(models.Model):
-    objects = models.Manager()
-    event_id = models.BigAutoField(primary_key=True)
-    fk_start_date = models.ForeignKey('Calendar', on_delete= models.CASCADE)
-    fk_end_date = models.ForeignKey('Calendar', on_delete= models.CASCADE)
+# class Events(models.Model):
+#     objects = models.Manager()
+#     event_id = models.BigAutoField(primary_key=True)
+#     fk_start_date = models.ForeignKey('Calendar', on_delete= models.CASCADE)
+#     fk_end_date = models.ForeignKey('Calendar', on_delete= models.CASCADE)
 
-    start_time = models.TimeField()
-    end_time = models.TimeField()
+#     start_time = models.TimeField()
+#     end_time = models.TimeField()
 
-    fk_department = models.ForeignKey('Departments', on_delete= models.CASCADE)
-    fk_employees = models.ManyToManyField('Employees')
+#     fk_department = models.ForeignKey('Departments', on_delete= models.CASCADE)
+#     fk_employees = models.ManyToManyField('Employees')
 
-    fk_administrator = models.ForeignKey('Employees', on_delete= models.CASCADE)
+#     fk_administrator = models.ForeignKey('Employees', on_delete= models.CASCADE)
