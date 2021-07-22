@@ -366,7 +366,7 @@ class EmployeeCheckinsViewSet(viewsets.ViewSet):
         except Attendances.DoesNotExist:
 
 
-            e_check = EmployeeCheckins(date = request.data["date"], checked_in = request.data["checked_in"], total_time_elapsed = request.data["total_time_elapsed"],employee = employee)
+            e_check = EmployeeCheckins(date = request.data["date"], checked_in = request.data["checked_in"],employee = employee)
             e_check.save()
             a = Attendances(employee = employee, attendance_date = date, comment = "haha")
             a.save()
@@ -395,25 +395,46 @@ class EmployeeCheckinsViewSet(viewsets.ViewSet):
         try:
             employee_id = request.data["employee"]
             checkout = request.data["checked_out"]
-            
+            is_last_checkout = request.data["is_last_checkout"]
         except:
             return Response({"Message" : "Query parameters not specified. Please specify employee_id"}, status= status.HTTP_400_BAD_REQUEST)
         try:
 
-            a = EmployeeCheckins.objects.filter(employee = employee_id).latest('checked_in')
+            e = EmployeeCheckins.objects.filter(employee = employee_id).latest('checked_in')
 
         except EmployeeCheckins.DoesNotExist:
 
             return Response({"Message" : "No checkin for the employee found"})
 
-        if a.checked_out is None:
-                    
-            a.checked_out = checkout
-            a.save()
+        if e.checked_out is None:     
+            e.checked_out = checkout
+            e.total_time_elapsed = 2   #change variable name to time_elapsed_in_hours
+
+            # print(e.checked_out - e.checked_in)
+            e.save()
+
+            if is_last_checkout:
+
+                date = e.date
+
+                a = Attendances.objects.get(attendance_date = date, employee_id=employee_id)
+
+                time_worked = EmployeeCheckins.objects.filter(date = date).aggregate(Sum('total_time_elapsed'))
+                print(time_worked)
+
+                a.total_time = time_worked["total_time_elapsed__sum"]  #change variable name to time_elapsed_in_hours
+                ot = time_worked["total_time_elapsed__sum"] - 1   #1 is supposed to be ideal working time
+            
+                if ot > 0:
+
+                    a.total_overtime = ot
+
+                a.save()
+
             return Response( status= status.HTTP_200_OK)
         else:
 
-            return Response({"Message" : "ALready checked out of existing session"}, status=status.HTTP_200_OK)
+            return Response({"Message" : "Already checked out of existing session"}, status=status.HTTP_200_OK)
 
 
 

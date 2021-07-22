@@ -130,6 +130,7 @@ class Attendances(models.Model):
     early_exit = models.BooleanField(default = False)
     comment = models.CharField(max_length=100, null=True, blank=True)
     total_time = models.FloatField(default=0.0)
+    total_overtime = models.FloatField(default = 0.0)
     class Meta:
         verbose_name = "Attendance"
         verbose_name_plural = "Attendances"
@@ -144,7 +145,7 @@ class EmployeeCheckins(models.Model):
     checked_in = models.DateTimeField()
     checked_out = models.DateTimeField(blank=True, null=True)
     total_time_elapsed = models.FloatField(blank=True, null=True)
-
+    is_last_checkout = models.BooleanField(default=False)
     objects = models.Manager()
     class Meta:
         verbose_name = "EmployeeCheckin"
