@@ -357,18 +357,21 @@ class EmployeeCheckinsViewSet(viewsets.ViewSet):
     def post_employee_checkin(self, request):
         try:
             employee_id = request.data["employee"]
-            date = request.data["date"]
+            checked_in = request.data["checked_in"]
+            is_first_session = request.data["is_first_session"]
         except:
             return Response({"Message" : "body not specified. Please specify employee_id and date"}, status= status.HTTP_400_BAD_REQUEST)
         employee = Employees.objects.get(employee_id=employee_id)
+
+        date = checked_in[0:10]
         try:
             attendance = Attendances.objects.get(attendance_date = date, employee_id=employee_id)
         except Attendances.DoesNotExist:
 
 
-            e_check = EmployeeCheckins(date = request.data["date"], checked_in = request.data["checked_in"],employee = employee)
+            e_check = EmployeeCheckins(checked_in = request.data["checked_in"],employee = employee, is_first_session = is_first_session)
             e_check.save()
-            a = Attendances(employee = employee, attendance_date = date, comment = "haha")
+            a = Attendances(employee = employee, attendance_date = date)
             a.save()
             a.checks.add(e_check)
             a.save()
@@ -394,8 +397,8 @@ class EmployeeCheckinsViewSet(viewsets.ViewSet):
 
         try:
             employee_id = request.data["employee"]
-            checkout = request.data["checked_out"]
-            is_last_checkout = request.data["is_last_checkout"]
+            checked_out = request.data["checked_out"]
+            is_last_session = request.data["is_last_session"]
         except:
             return Response({"Message" : "Query parameters not specified. Please specify employee_id"}, status= status.HTTP_400_BAD_REQUEST)
         try:
@@ -406,24 +409,32 @@ class EmployeeCheckinsViewSet(viewsets.ViewSet):
 
             return Response({"Message" : "No checkin for the employee found"})
 
-        if e.checked_out is None:     
-            e.checked_out = checkout
-            e.total_time_elapsed = 2   #change variable name to time_elapsed_in_hours
 
+        if e.checked_out is None:     
+            e.checked_out = checked_out
+            e.total_time_elapsed = 2   # * TODO change variable name to time_elapsed_in_hours
+            e.is_last_session = is_last_session
             # print(e.checked_out - e.checked_in)
             e.save()
 
-            if is_last_checkout:
+            if is_last_session:
+                print(e.checked_in)
+                print(type(e.checked_in))
 
-                date = e.date
-
+                print(e.checked_in.date())
+                date = e.checked_in.date()
+                
+                employee = Employees.objects.get(employee_id = employee_id)
+                workhours = employee.designation.schedule.total_work_hours
                 a = Attendances.objects.get(attendance_date = date, employee_id=employee_id)
 
-                time_worked = EmployeeCheckins.objects.filter(date = date).aggregate(Sum('total_time_elapsed'))
+                time_worked = EmployeeCheckins.objects.filter(checked_in__date = date).aggregate(Sum('total_time_elapsed'))
                 print(time_worked)
 
+
+
                 a.total_time = time_worked["total_time_elapsed__sum"]  #change variable name to time_elapsed_in_hours
-                ot = time_worked["total_time_elapsed__sum"] - 1   #1 is supposed to be ideal working time
+                ot = time_worked["total_time_elapsed__sum"] - workhours   #1 is supposed to be ideal working time
             
                 if ot > 0:
 
@@ -625,7 +636,7 @@ class LeaveApplicationsViewSet(viewsets.ViewSet):
 
         return Response(data=request.data, status= status.HTTP_200_OK)
 
-class LeaveViewSet(viewsets.ViewSet):
+class LeavesViewSet(viewsets.ViewSet):
 
     def patch_leaves_list(self, request):
         
@@ -725,7 +736,7 @@ class MonthlyReportsViewSet(viewsets.ViewSet):
         
         return Response(data=serialized.errors, status= status.HTTP_200_OK)
 
-    def delete_leave_list(self, request):
+    def delete_monthly_reports_list(self, request):
     
         MonthlyReports.objects.filter(id__in = request.data["monthlyreport_ids"]).delete()
 
@@ -752,7 +763,72 @@ class MonthlyReportsViewSet(viewsets.ViewSet):
             return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+class SchedulesViewSet(viewsets.ViewSet):
 
+    def patch_schedules_list(self, request):
+        
+        try:
+            schedule = request.data["schedule_id"]
+
+        except:
+
+            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
+
+        queryset = Schedules.objects.get(schedule_id = schedule)
+
+        serialized = SchedulesSerializer(queryset, request.data, partial = True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+
+
+    def get_schedules_list(self, request):
+
+        try:
+            queryset = Schedules.objects.all()
+        except:
+            return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
+        
+        serialized = SchedulesSerializer(queryset, many = True)
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status= status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+
+
+    def post_schedules_list(self, request, des_id):
+
+        designation_id = des_id
+        
+        try:
+
+            designation = Designations.objects.get(designation_id = designation_id)
+
+        except Designations.DoesNotExist:
+
+            return Response({{"Message" : "No designation found"}}, status = status.HTTP_400_BAD_REQUEST)
+        
+        serialized = SchedulesSerializer(data= request.data)
+
+        if serialized.is_valid():
+            print(serialized.data)
+            schedule = Schedules(**serialized.data)
+            schedule.save()
+            designation.schedule = schedule
+            designation.save()
+
+
+        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+
+    def delete_schedules_list(self, request):
+    
+        Schedules.objects.filter(id__in = request.data["schedule_ids"]).delete()
+
+        return Response(data=request.data, status= status.HTTP_200_OK)
 # class CalendarViewSet(viewsets.ViewSet):
 
 

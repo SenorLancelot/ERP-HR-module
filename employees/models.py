@@ -100,7 +100,7 @@ class Designations(models.Model):
     designation_name = models.CharField(max_length=30)
 
     description = models.CharField(max_length=300)
-
+    schedule = models.ForeignKey('Schedules', on_delete= models.SET_NULL, null=True)
     leavepolicy = models.ForeignKey("LeavePolicies", on_delete=models.CASCADE, null = True, blank = True)
     objects = models.Manager()
     #TODO: things like salary?
@@ -140,12 +140,13 @@ class EmployeeCheckins(models.Model):
 
     check_id = models.BigAutoField(primary_key=True)
     employee = models.ForeignKey('Employees', on_delete=models.CASCADE)
-    date = models.DateField(default=datetime.date.today)
+    
     # attendance = models.ForeignKey('Attendances', on_delete=models.CASCADE)
     checked_in = models.DateTimeField()
     checked_out = models.DateTimeField(blank=True, null=True)
     total_time_elapsed = models.FloatField(blank=True, null=True)
-    is_last_checkout = models.BooleanField(default=False)
+    is_last_session = models.BooleanField(default=False)
+    is_first_session = models.BooleanField(default=False)
     objects = models.Manager()
     class Meta:
         verbose_name = "EmployeeCheckin"
@@ -159,7 +160,7 @@ class LeavePolicies(models.Model):
     leavepolicy_id = models.BigAutoField(primary_key=True)
 
     leave_type = models.ManyToManyField('LeaveType', through= "LeavePolicy_TypeMembership", null = True, blank = True)
-    
+    is_half_day_leave = models.BooleanField(default=False)
     objects = models.Manager()
 
     # leaves_allowed = models.IntegerField()
@@ -251,6 +252,14 @@ class MonthlyReports(models.Model):
     employee = models.ForeignKey('Employees', on_delete=models.CASCADE)
 
     total_time_worked = models.FloatField(default=0, null=True, blank=True)
+
+class Schedules(models.Model):
+    
+    schedule_id = models.AutoField(primary_key=True)
+    total_work_hours = models.FloatField(default=8)
+    workday_start_time = models.TimeField()
+    workday_end_time = models.TimeField()
+    objects = models.Manager()
 
 
 # class Calendar(models.Model):

@@ -95,6 +95,15 @@ class LeavePolicy_TypeMembershipSerializer(serializers.ModelSerializer):
 
         model = LeavePolicy_TypeMembership
         fields = "__all__"
+
+
+class SchedulesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+
+        model = Schedules
+        fields = "__all__"
+
 # class CalendarSerializer(serializers.ModelSerializer):
 
 #     class Meta:

@@ -41,10 +41,16 @@ urlpatterns = [
     path("leaveapplications/delete/", LeaveApplicationsViewSet.as_view({"delete" : "delete_leaveapplications_list"})),
 
 
-    path("leaves/create/", LeaveApplicationsViewSet.as_view({"post" : "post_leaves_list"})),
-    path("leaves/read/", LeaveApplicationsViewSet.as_view({'get' : 'get_leave_list'})),
-    path("leaves/update/", LeaveApplicationsViewSet.as_view({"patch" : 'patch_leaves_list'})),
-    path("leaves/delete/", LeaveApplicationsViewSet.as_view({"delete" : "delete_leave_list"})),
+    path("leaves/create/", LeavesViewSet.as_view({"post" : "post_leaves_list"})),
+    path("leaves/read/", LeavesViewSet.as_view({'get' : 'get_leave_list'})),
+    path("leaves/update/", LeavesViewSet.as_view({"patch" : 'patch_leaves_list'})),
+    path("leaves/delete/", LeavesViewSet.as_view({"delete" : "delete_leave_list"})),
+
+
+    path("schedules/create/<int:des_id>", SchedulesViewSet.as_view({"post" : "post_schedules_list"})),
+    path("schedules/read/", SchedulesViewSet.as_view({'get' : 'get_shedules_list'})),
+    path("schedules/update/", SchedulesViewSet.as_view({"patch" : 'patch_schedules_list'})),
+    path("schedules/delete/", SchedulesViewSet.as_view({"delete" : "delete_schedules_list"})),
 
 
     path("attendances/employee/<uuid:emp_id>", AttendancesViewSet.as_view({'get' : 'get_employee_attendances_list'})),
