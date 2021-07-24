@@ -11,7 +11,7 @@ from datetime import date
 # project imports
 from rest_framework.decorators import action
 
-from .models import *
+from .models import Employees
 from .serializers import *
 
 from drf_yasg.utils import swagger_auto_schema
@@ -19,8 +19,9 @@ from drf_yasg.utils import swagger_auto_schema
 # Create your views here.
 class EmployeeViewSet(viewsets.ViewSet):
 
+
     @swagger_auto_schema(request_body=EmployeesSerializer,responses={200: EmployeesSerializer})
-    def patch_employees_list(self, request):
+    def update_employee(self, request):
         
         try:
             employee = request.data["employee_id"]
@@ -43,7 +44,7 @@ class EmployeeViewSet(viewsets.ViewSet):
     
     # def get_employee(self, request):
     @swagger_auto_schema(responses={200: EmployeesSerializer})
-    def get_employee_list(self, request):
+    def get_employees(self, request):
 
 
         try:
@@ -78,7 +79,7 @@ class EmployeeViewSet(viewsets.ViewSet):
 
     # @action(detail=True, methods=['post'])
     @swagger_auto_schema(request_body=EmployeesSerializer,responses={200: EmployeesSerializer})
-    def post_to_employee_list(self, request):
+    def create_employees(self, request):
         
         
         serialized = EmployeesSerializer(data=request.data, many = True)
@@ -90,9 +91,10 @@ class EmployeeViewSet(viewsets.ViewSet):
 
         return Response(data=serialized.errors, status= status.HTTP_200_OK)
 
-
+    @swagger_auto_schema(request_body=EmployeeDeleteSerializer,responses={200: EmployeeDeleteSerializer})
     def delete_employees(self, request):
 
+        #TODO serializer error handling
         Employees.objects.filter(employee_id__in = request.data["employees"]).delete()
 
         return Response(data=request.data, status= status.HTTP_200_OK)

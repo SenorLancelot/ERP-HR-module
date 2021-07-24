@@ -4,25 +4,15 @@ from rest_framework_recursive.fields import RecursiveField
 from .models import *
 
 class EmployeesSerializer(serializers.ModelSerializer):
-    # parent = sistField(s.ModelSerializerchild=RecursiveField())
     class Meta:
 
-        model = Employees
-        # fields = [
-        #     "employee_id",
-        #     "first_name",
-        #     "last_name",
-        #     "employment_type",
-        #     "gender",
-        #     "date_of_birth",
-        #     "contact_no",
-        #     "company_email",
-        #     "department",
-        #     "employee_group",
-            
-        # ]
-
         fields = "__all__"
+
+class EmployeeDeleteSerializer(serializers.Serializer):
+
+    employees = serializers.ListField(
+        child = serializers.IntegerField()
+    )
 
 class EmployeeGroupSerializer(serializers.ModelSerializer):
 
