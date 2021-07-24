@@ -154,7 +154,7 @@ class EmployeeCheckin(models.Model):
     # attendance = models.ForeignKey('Attendances', on_delete=models.CASCADE)
     checked_in_time = models.DateTimeField()
     checked_out_time = models.DateTimeField(blank=True, null=True)
-    total_time_elapsed_in_hours = models.FloatField(blank=True, null=True)
+    total_time_elapsed = models.FloatField(blank=True, null=True)
     is_last_session = models.BooleanField(default=False)
     is_first_session = models.BooleanField(default=False)
 
@@ -254,7 +254,7 @@ class Leave(models.Model):
     date_of_leave = models.DateField(null=True)
 
 
-#TODO Leaves get created at the start itself when an employee is assigned a designations
+# TODO Leaves get created at the start itself when an employee is assigned a designations
 
 
 class MonthlyReport(models.Model):

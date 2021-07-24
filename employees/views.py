@@ -5,416 +5,431 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from django.db.models import Sum
+
 # from datetime import datetime
 import datetime
 from datetime import date
+
 # project imports
 from rest_framework.decorators import action
 
-from .models import Employees
+from .models import *
 from .serializers import *
 
 from drf_yasg.utils import swagger_auto_schema
 
 # Create your views here.
+# LORAN
 class EmployeeViewSet(viewsets.ViewSet):
-
-
-    @swagger_auto_schema(request_body=EmployeesSerializer,responses={200: EmployeesSerializer})
+    @swagger_auto_schema(
+        request_body=EmployeeSerializer, responses={200: EmployeeSerializer}
+    )
     def update_employee(self, request):
-        
+
         try:
-            employee = request.data["employee_id"]
+            employee = request.data["id"]
 
         except:
 
-            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"Message": "No data"}, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = Employees.objects.get(employee_id = employee)
+        queryset = Employee.objects.get(id=employee)
 
-        serialized = EmployeesSerializer(queryset, request.data, partial = True)
+        serialized = EmployeeSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-
-    
-    # def get_employee(self, request):
-    @swagger_auto_schema(responses={200: EmployeesSerializer})
-    def get_employees(self, request):
-
+    # def read_employee(self, request):
+    @swagger_auto_schema(responses={200: EmployeeSerializer})
+    def read_employees(self, request):
 
         try:
-            queryset = Employees.objects.all()
+            queryset = Employee.objects.all()
         except:
-            return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
-            
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
         try:
-            serialized = EmployeesSerializer(queryset, many = True)
+            serialized = EmployeeSerializer(queryset, many=True)
         except:
-            return Response({"Message" : "Serializer error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR )
-        
-        return Response(data=serialized.data, status= status.HTTP_200_OK)
-        
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-    # @swagger_auto_schema(responses={200: EmployeesSerializer})
-    # def get_all_employees(self, request):
+    # @swagger_auto_schema(responses={200: EmployeeSerializer})
+    # def read_all_employees(self, request):
 
     #     try:
-    #         queryset = Employees.objects.all()
+    #         queryset = Employee.objects.all()
     #     except:
     #         return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
-            
+
     #     try:
-    #         serialized = EmployeesSerializer(queryset, many = True)
+    #         serialized = EmployeeSerializer(queryset, many = True)
     #     except:
     #         return Response({"Message" : "Serializer error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR )
-        
+
     #     return Response(data=serialized.data, status= status.HTTP_200_OK)
 
-
-    # @action(detail=True, methods=['post'])
-    @swagger_auto_schema(request_body=EmployeesSerializer,responses={200: EmployeesSerializer})
+    # @action(detail=True, methods=['create'])
+    @swagger_auto_schema(
+        request_body=EmployeeSerializer, responses={200: EmployeeSerializer}
+    )
     def create_employees(self, request):
-        
-        
-        serialized = EmployeesSerializer(data=request.data, many = True)
-        
-        
+
+        serialized = EmployeeSerializer(data=request.data, many=True)
+
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=EmployeeDeleteSerializer,responses={200: EmployeeDeleteSerializer})
+    @swagger_auto_schema(
+        request_body=EmployeeDeleteSerializer, responses={200: EmployeeDeleteSerializer}
+    )
     def delete_employees(self, request):
 
-        #TODO serializer error handling
-        Employees.objects.filter(employee_id__in = request.data["employees"]).delete()
+        # TODO serializer error handling
+        Employee.objects.filter(id__in=request.data["employees"]).delete()
 
-        return Response(data=request.data, status= status.HTTP_200_OK)
+        return Response(data=request.data, status=status.HTTP_200_OK)
 
 
+# LORAN
 class EmployeeGroupViewSet(viewsets.ViewSet):
-
     @swagger_auto_schema(responses={200: EmployeeGroupSerializer})
-    def get_employeegroup_list(self, request):
-
+    def read_employeegroup(self, request):
 
         try:
             queryset = EmployeeGroup.objects.all()
         except:
-            return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
-            
-        try:
-            serialized = EmployeeGroupSerializer(queryset, many = True)
-        except:
-            return Response({"Message" : "Serializer error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR )
-        
-        return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-    @swagger_auto_schema(request_body=EmployeeGroupSerializer,responses={200: EmployeeGroupSerializer})
-    def post_employeegroup_list(self, request):
+        try:
+            serialized = EmployeeGroupSerializer(queryset, many=True)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        request_body=EmployeeGroupSerializer, responses={200: EmployeeGroupSerializer}
+    )
+    def create_employeegroup(self, request):
 
         serialized = EmployeeGroupSerializer(data=request.data)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
     def delete_employeegroup(self, request):
 
-        EmployeeGroup.objects.filter(group_id__in = request.data["group_ids"]).delete()
+        EmployeeGroup.objects.filter(group_id__in=request.data["group_ids"]).delete()
 
-        return Response(data=request.data, status= status.HTTP_200_OK)
+        return Response(data=request.data, status=status.HTTP_200_OK)
 
 
-class DepartmentsViewSet(viewsets.ViewSet):
+# LORAN
+class DepartmentViewSet(viewsets.ViewSet):
+    def update_departments(self, request):
 
-    def patch_departments_list(self, request):
-        
         try:
             department = request.data["department_id"]
 
         except:
 
-            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"Message": "No data"}, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = Departments.objects.get(department_id = department)
+        queryset = Department.objects.get(department_id=department)
 
-        serialized = DepartmentsSerializer(queryset, request.data, partial = True)
+        serialized = DepartmentSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-
-    @swagger_auto_schema(responses={200: DepartmentsSerializer})
-    def get_department_list(self, request):
+    @swagger_auto_schema(responses={200: DepartmentSerializer})
+    def read_department(self, request):
 
         try:
-            queryset = Departments.objects.all()
+            queryset = Department.objects.all()
         except:
-            return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
-        
-        serialized = DepartmentsSerializer(queryset, many = True)
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = DepartmentSerializer(queryset, many=True)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
-    
-    @swagger_auto_schema(request_body=DepartmentsSerializer,responses={200: DepartmentsSerializer})
-    def post_department_list(self, request):
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-        serialized = DepartmentsSerializer(data = request.data)
+    @swagger_auto_schema(
+        request_body=DepartmentSerializer, responses={200: DepartmentSerializer}
+    )
+    def create_department(self, request):
+
+        serialized = DepartmentSerializer(data=request.data)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-    def delete_department_list(self, request):
+    def delete_department(self, request):
 
-        Departments.objects.filter(department_id__in=request.data["department_ids"]).delete()
+        Department.objects.filter(
+            department_id__in=request.data["department_ids"]
+        ).delete()
 
-        return Response(data=request.data, status= status.HTTP_200_OK)
+        return Response(data=request.data, status=status.HTTP_200_OK)
 
-    
-class DesignationsViewSet(viewsets.ViewSet):
 
-    def patch_designations_list(self, request):
-        
+# LORAN
+class DesignationViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(
+        request_body=DesignationSerializer, responses={200: DesignationSerializer}
+    )
+    def update_designations(self, request):
+
         try:
             designation = request.data["designation_id"]
 
         except:
 
-            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"Message": "No data"}, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = Designations.objects.get(designation_id = designation)
+        queryset = Designation.objects.get(designation_id=designation)
 
-        serialized = DesignationsSerializer(queryset, request.data, partial = True)
+        serialized = DesignationSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: DesignationsSerializer})
-    def get_designations_list(self, request):
+    @swagger_auto_schema(responses={200: DesignationSerializer})
+    def read_designations(self, request):
 
         try:
-            queryset = Designations.objects.all()
+            queryset = Designation.objects.all()
         except:
-            return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
-        
-        serialized = DesignationsSerializer(queryset, many = True)
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = DesignationSerializer(queryset, many=True)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=DesignationsSerializer,responses={200: DesignationsSerializer})
-    def post_designations_list(self, request):
+    @swagger_auto_schema(
+        request_body=DesignationSerializer, responses={200: DesignationSerializer}
+    )
+    def create_designations(self, request):
 
-        serialized = DesignationsSerializer(data = request.data)
+        serialized = DesignationSerializer(data=request.data)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
-        
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-    def delete_designations_list(self, request):
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-        Designations.objects.filter(designation_id__in = request.data["designation_ids"]).delete()
+    def delete_designations(self, request):
 
-        return Response(data=request.data, status= status.HTTP_200_OK)
+        Designation.objects.filter(
+            designation_id__in=request.data["designation_ids"]
+        ).delete()
 
-
-class AttendancesViewSet(viewsets.ViewSet):
-
-
-    # def get_monthly_reports(self, request):
-
-    
+        return Response(data=request.data, status=status.HTTP_200_OK)
 
 
-    @swagger_auto_schema(responses={200: AttendancesSerializer})
-    def get_department_attendances_list(self, request, dept_id):
+# LORAN
+class AttendanceViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: AttendanceSerializer})
+    def read_department_attendances(self, request, dept_id):
         dep_id = dept_id
 
-        if (request.GET.get('filter_by', False)):
-            filter_type = request.GET.get('filter_by', "date")
-            
-            if(filter_type == "date"):
-                date_req = request.GET.get('date', datetime.date.today)
-                queryset = Attendances.objects.filter(employee__department = dep_id, attendance_date = date_req)
-                serialized = AttendancesSerializer(queryset, many = True)
-                return Response(data=serialized.data, status= status.HTTP_200_OK)
+        if request.GET.get("isFilter", False):
 
-            else:
-                month = request.GET.get('month', date.today().month)
-                year = request.GET.get('year', date.today().year)
-                queryset = Attendances.objects.filter(employee__department = dep_id, attendance_date__month = month, attendance_date__year = year)
-                serialized = AttendancesSerializer(queryset, many = True)
-                return Response(data=serialized.data, status= status.HTTP_200_OK)
+            start_date_req = request.GET.get("start_date", datetime.date.today())
+            end_date_req = request.GET.get("end_date", datetime.date.today())
+            queryset = Attendance.objects.filter(
+                employee__department=dep_id,
+                attendance_date__range=[start_date_req, end_date_req],
+            )
+            serialized = AttendanceSerializer(queryset, many=True)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
         else:
-            
-            queryset = Attendances.objects.filter(employee__department = dep_id)
-            serialized = AttendancesSerializer(queryset, many = True)
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
 
-    
+            queryset = Attendance.objects.filter(employee__department=dep_id)
+            serialized = AttendanceSerializer(queryset, many=True)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-    def get_employee_attendances_list(self, request, emp_id):
+    def read_employee_attendances(self, request, emp_id):
         if isinstance(emp_id, uuid.UUID):
 
-            employee_id = emp_id
+            id = emp_id
 
         else:
 
-            return Response({"Message" : "UUID Format wrong"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"Message": "UUID Format wrong"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
-        if(request.GET.get('isFilter',False)):
-                
-            start_date_req = request.GET.get("start_date",datetime.date.today())
+        if request.GET.get("isFilter", False):
+
+            start_date_req = request.GET.get("start_date", datetime.date.today())
             end_date_req = request.GET.get("end_date", datetime.date.today())
-            queryset=Attendances.objects.filter(employee_id=employee_id,attendance_date__range=[start_date_req,end_date_req])
-            serialized = AttendancesSerializer(queryset, many = True)
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            queryset = Attendance.objects.filter(
+                id=id,
+                attendance_date__range=[start_date_req, end_date_req],
+            )
+            serialized = AttendanceSerializer(queryset, many=True)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        
         else:
 
-           queryset = Attendances.objects.filter(employee = employee_id)
-           serialized = AttendancesSerializer(queryset, many = True)
-           return Response(data=serialized.data, status= status.HTTP_200_OK)
+            queryset = Attendance.objects.filter(employee=id)
+            serialized = AttendanceSerializer(queryset, many=True)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        
-        # if (request.GET.get('filter_by', False)):
-        #     filter_type = request.GET.get('filter_by', "date")
-            
-        #     if(filter_type == "date"):
-        #         date_req = request.GET.get('date', datetime.date.today)
-        #         queryset = Attendances.objects.filter(employee_id = employee_id, attendance_date = date_req)
-        #         serialized = AttendancesSerializer(queryset, many = True)
-        #         return Response(data=serialized.data, status= status.HTTP_200_OK)
+    def read_all_attendancest(self, request):
 
-        #     else:
+        queryset = Attendance.objects.all()
+        serialized = AttendanceSerializer(queryset, many=True)
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        #         month = request.GET.get('month', date.today().month)
-        #         year = request.GET.get('year', date.today().year)
-        #         queryset = Attendances.objects.filter(employee_id = employee_id, attendance_date__month = month, attendance_date__year = year)
-        #         serialized = AttendancesSerializer(queryset, many = True)
-        #         return Response(data=serialized.data, status= status.HTTP_200_OK)
-            
-        
+    @swagger_auto_schema(
+        request_body=AttendanceSerializer, responses={200: AttendanceSerializer}
+    )
+    def create_attendances(self, request):
 
-        # else:
-            
-        #     queryset = Attendances.objects.filter(employee = employee_id)
-        #     serialized = AttendancesSerializer(queryset, many = True)
-        #     return Response(data=serialized.data, status= status.HTTP_200_OK)
-
-    def get_attendances_list(self, request):
-
-        queryset = Attendances.objects.all()
-        serialized = AttendancesSerializer(queryset, many = True)
-        return Response(data=serialized.data, status= status.HTTP_200_OK)
-
-    @swagger_auto_schema(request_body=AttendancesSerializer,responses={200: AttendancesSerializer})
-    def post_attendances_list(self, request):
-
-        serialized = AttendancesSerializer(data = request.data)
+        serialized = AttendanceSerializer(data=request.data, many=True)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
-        
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-    def delete_attendances_list(self, request):
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-        Attendances.objects.filter(employee_id  = request.GET.get("employee_id", "")).delete()
+    @swagger_auto_schema(
+        request_body=AttendanceDeleteSerializer,
+        responses={200: AttendanceDeleteSerializer},
+    )
+    def delete_attendances(self, request):
 
-        return Response(data=request.data, status= status.HTTP_200_OK)
+        serialized = AttendanceDeleteSerializer(data=request.data)
+
+        if serialized.is_valid():
+
+            Attendance.objects.filter(id__in=request.data["attendance_ids"]).delete()
+
+            return Response(data=request.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
 
-
-class EmployeeCheckinsViewSet(viewsets.ViewSet):
-
-    
-    @swagger_auto_schema(request_body=EmployeeCheckinsSerializer,responses={200: AttendancesSerializer})
-    def post_employee_checkin(self, request):
+class EmployeeCheckinViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(
+        request_body=EmployeeCheckinSerializer,
+        responses={200: EmployeeCheckinSerializer},
+    )
+    def create_employee_checkin(self, request):
         try:
             employee_id = request.data["employee"]
             checked_in = request.data["checked_in"]
             is_first_session = request.data["is_first_session"]
         except:
-            return Response({"Message" : "body not specified. Please specify employee_id and date"}, status= status.HTTP_400_BAD_REQUEST)
-        employee = Employees.objects.get(employee_id=employee_id)
+            return Response(
+                {"Message": "Request Body incorrect"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        employee = Employee.objects.get(id=employee_id)
 
         date = checked_in[0:10]
         try:
-            attendance = Attendances.objects.get(attendance_date = date, employee_id=employee_id)
-        except Attendances.DoesNotExist:
+            attendance = Attendance.objects.get(
+                attendance_date=date, fk_employee=employee_id
+            )
+        except Attendance.DoesNotExist:
 
-
-            e_check = EmployeeCheckins(checked_in = request.data["checked_in"],employee = employee, is_first_session = is_first_session)
+            e_check = EmployeeCheckin(
+                checked_in=request.data["checked_in"],
+                fk_employee=employee,
+                is_first_session=is_first_session,
+            )
             e_check.save()
-            a = Attendances(employee = employee, attendance_date = date)
+            a = Attendance(fk_employee=employee, attendance_date=date)
             a.save()
-            a.checks.add(e_check)
+            a.fk_checks.add(e_check)
             a.save()
-            return Response(status= status.HTTP_200_OK)
-            
-        serialized = EmployeeCheckinsSerializer(data=request.data)
-            
-        if(serialized.is_valid()):
+            return Response(status=status.HTTP_200_OK)
 
-            a = EmployeeCheckins.objects.filter(employee = employee_id).latest('checked_in')
+        serialized = EmployeeCheckinSerializer(data=request.data)
 
-            if a.checked_out is not None:          
+        if serialized.is_valid():
+
+            a = EmployeeCheckin.objects.filter(employee=employee_id).latest(
+                "checked_in"
+            )
+
+            if a.checked_out is not None:
                 serialized.save()
-                e = EmployeeCheckins.objects.latest('checked_in')
-                attendance.checks.add(e)
-                return Response(data=serialized.data, status= status.HTTP_200_OK)
+                e = EmployeeCheckin.objects.latest("checked_in")
+                attendance.fk_checks.add(e)
+                return Response(data=serialized.data, status=status.HTTP_200_OK)
             else:
 
-                return Response({"Message" : "Check out of existing session"}, status=status.HTTP_200_OK)
+                return Response(
+                    {"Message": "Check out of existing session"},
+                    status=status.HTTP_200_OK,
+                )
 
-
-    def post_employee_checkout(self, request):
+    @swagger_auto_schema(
+        request_body=EmployeeCheckoutSerializer,
+        responses={200: EmployeeCheckoutSerializer},
+    )
+    def create_employee_checkout(self, request):
 
         try:
             employee_id = request.data["employee"]
             checked_out = request.data["checked_out"]
             is_last_session = request.data["is_last_session"]
         except:
-            return Response({"Message" : "Query parameters not specified. Please specify employee_id"}, status= status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"Message": "Request Body incorrect"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         try:
 
-            e = EmployeeCheckins.objects.filter(employee = employee_id).latest('checked_in')
+            e = EmployeeCheckin.objects.filter(employee=employee_id).latest(
+                "checked_in"
+            )
 
-        except EmployeeCheckins.DoesNotExist:
+        except EmployeeCheckin.DoesNotExist:
 
-            return Response({"Message" : "No checkin for the employee found"})
+            return Response({"Message": "No checkin for the employee found"})
 
-
-        if e.checked_out is None:     
+        if e.checked_out is None:
             e.checked_out = checked_out
-            e.total_time_elapsed = 2   # * TODO change variable name to time_elapsed_in_hours
+            e.total_time_elapsed = (
+                2  # * TODO change variable name to time_elapsed_in_hours
+            )
             e.is_last_session = is_last_session
             # print(e.checked_out - e.checked_in)
             e.save()
@@ -425,417 +440,505 @@ class EmployeeCheckinsViewSet(viewsets.ViewSet):
 
                 print(e.checked_in.date())
                 date = e.checked_in.date()
-                
-                employee = Employees.objects.get(employee_id = employee_id)
-                workhours = employee.designation.schedule.total_work_hours
-                a = Attendances.objects.get(attendance_date = date, employee_id=employee_id)
 
-                time_worked = EmployeeCheckins.objects.filter(checked_in__date = date).aggregate(Sum('total_time_elapsed'))
+                employee = Employee.objects.get(id=employee_id)
+                workhours = employee.designation.schedule.total_work_hours
+                a = Attendance.objects.get(
+                    attendance_date=date, fk_employee=employee_id
+                )
+
+                time_worked = EmployeeCheckin.objects.filter(
+                    checked_in__date=date
+                ).aggregate(Sum("total_time_elapsed"))
                 print(time_worked)
 
+                a.total_time = time_worked[
+                    "total_time_elapsed__sum"
+                ]  # change variable name to time_elapsed_in_hours
+                ot = time_worked["total_time_elapsed__sum"] - workhours
 
-
-                a.total_time = time_worked["total_time_elapsed__sum"]  #change variable name to time_elapsed_in_hours
-                ot = time_worked["total_time_elapsed__sum"] - workhours   #1 is supposed to be ideal working time
-            
                 if ot > 0:
 
                     a.total_overtime = ot
 
                 a.save()
 
-            return Response( status= status.HTTP_200_OK)
+            return Response(status=status.HTTP_200_OK)
         else:
 
-            return Response({"Message" : "Already checked out of existing session"}, status=status.HTTP_200_OK)
+            return Response(
+                {"Message": "Already checked out of existing session"},
+                status=status.HTTP_200_OK,
+            )
 
+    @swagger_auto_schema(responses={200: EmployeeCheckinSerializer})
+    def read_employeecheckins(self, request):
 
+        queryset = EmployeeCheckin.objects.filter(id=request.GET.get("id", ""))
+        serialized = EmployeeCheckinSerializer(queryset, many=True)
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        request_body=EmployeeCheckinSerializer,
+        responses={200: EmployeeCheckinSerializer},
+    )
+    def create_employeecheckincheckout(self, request):
 
-    @swagger_auto_schema(responses={200: EmployeeCheckinsSerializer})
-    def get_employeecheckins_list(self, request):
-        
-        queryset = EmployeeCheckins.objects.filter(employee_id = request.GET.get("employee_id", ""))
-        serialized = EmployeeCheckinsSerializer(queryset, many = True)
-        return Response(data=serialized.data, status= status.HTTP_200_OK)
-
-    @swagger_auto_schema(request_body=EmployeeCheckinsSerializer,responses={200: EmployeeCheckinsSerializer})
-    def post_employeecheckins_list(self, request):
-
-        serialized = EmployeeCheckinsSerializer(data = request.data)
+        serialized = EmployeeCheckinCheckoutSerializer(data=request.data)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
-        
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-    def delete_employeecheckins_list(self, request):
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-        EmployeeCheckins.objects.filter(employee_id = request.GET.get("employee_id", "")).delete()
+    @swagger_auto_schema(
+        request_body=EmployeeCheckinCheckoutDeleteSerializer,
+        responses={200: EmployeeCheckinCheckoutDeleteSerializer},
+    )
+    def delete_attendances(self, request):
 
-        return Response(data=request.data, status= status.HTTP_200_OK)
+        serialized = EmployeeCheckinCheckoutDeleteSerializer(data=request.data)
+
+        if serialized.is_valid():
+
+            EmployeeCheckin.objects.filter(
+                id__in=request.data["attendance_ids"]
+            ).delete()
+
+            return Response(data=request.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
 
 ######################################################## Leave Viewsets #################################
 
-class LeavePoliciesViewSet(viewsets.ViewSet):
 
+class LeavePolicyViewSet(viewsets.ViewSet):
     def leave_policy_generation(self, request, designation_id):
 
         des_id = designation_id
 
         try:
-            designation = Designations.objects.get(designation_id = des_id)
+            designation = Designation.objects.get(id=des_id)
         except:
-            return Response({"Message": "No designation found"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"Message": "No designation found"}, status=status.HTTP_400_BAD_REQUEST
+            )
         if designation.leavepolicy is None:
 
-            lp = LeavePolicies()
+            lp = LeavePolicy()
             lp.save()
             designation.leavepolicy = lp
             designation.save()
             # lp_id = lp.leavepolicy_id
             for member in request.data:
                 member["leave_policy"] = lp.leavepolicy_id
-            serialized = LeavePolicy_TypeMembershipSerializer(data = request.data, many = True)
+            serialized = LeavePolicy_TypeMembershipSerializer(
+                data=request.data, many=True
+            )
             if serialized.is_valid():
                 serialized.save()
-                return Response(data = serialized.data, status = status.HTTP_200_OK)
+                return Response(data=serialized.data, status=status.HTTP_200_OK)
             else:
-                return Response(data = serialized.errors, status = status.HTTP_400_BAD_REQUEST)
+                return Response(
+                    data=serialized.errors, status=status.HTTP_400_BAD_REQUEST
+                )
         else:
-            return Response({"Message" : "Leave Policy already exists"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"Message": "Leave Policy already exists"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
-    
-    def patch_leavepolicies_list(self, request):
-        
+    def update_leave_policies(self, request):
+
         try:
             leavepolicy = request.data["leavepolicy_id"]
 
         except:
 
-            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"Message": "No data"}, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = LeavePolicies.objects.get(leavepolicy_id = leavepolicy)
+        queryset = LeavePolicy.objects.get(id=leavepolicy)
 
-        serialized = LeavePoliciesSerializer(queryset, request.data, partial = True)
+        serialized = LeavePolicySerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(responses={200: LeavePolicySerializer})
+    def read_leave_policies(self, request):
 
-    @swagger_auto_schema(responses={200: LeavePoliciesSerializer})
-    def get_leavepolicies_list(self, request):
-    
         try:
-            queryset = LeavePolicies.objects.all()
+            queryset = LeavePolicy.objects.all()
         except:
-            return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
-        
-        serialized = LeavePoliciesSerializer(queryset, many = True)
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = LeavePolicySerializer(queryset, many=True)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=LeavePoliciesSerializer,responses={200: LeavePoliciesSerializer})
-    def post_leavepolicies_list(self, request):
+    @swagger_auto_schema(
+        request_body=LeavePolicySerializer, responses={200: LeavePolicySerializer}
+    )
+    def create_leave_policies(self, request):
 
-        serialized = LeavePoliciesSerializer(data = request.data)
+        serialized = LeavePolicySerializer(data=request.data)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
-        
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-    def delete_leavepolicies_list(self, request):
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-        LeavePolicies.objects.filter(id__in = request.data["leavepolicy_ids"]).delete()
+    @swagger_auto_schema(
+        request_body=LeavePolicyDeleteSerializer,
+        responses={200: LeavePolicyDeleteSerializer},
+    )
+    def delete_leavepolicies(self, request):
 
-        return Response(data=request.data, status= status.HTTP_200_OK)
+        serialized = LeavePolicyDeleteSerializer(data=request.data)
+
+        if serialized.is_valid():
+
+            LeavePolicy.objects.filter(
+                id__in=request.data["leavepolicy_ids"]
+            ).delete()
+
+            return Response(data=request.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
 
-class LeaveApplicationsViewSet(viewsets.ViewSet):
-
-    def accept_applications(self,request):
+# LORAN
+class LeaveApplicationViewSet(viewsets.ViewSet):
+    def accept_applications(self, request):
         try:
             accepted_ids = request.data["accepted_ids"]
         except:
-            return Response({"Message","specify accepted ids"})
-        employee = Employees.objects.get(employee_id=accepted_ids)
-        # aceepted = LeavesApplications.objects.filter(accepted_ids__in=employee.update(status='Approved'))
+            return Response({"Message", "specify accepted ids"})
+        employee = Employee.objects.get(id=accepted_ids)
+        # aceepted = LeaveApplication.objects.filter(accepted_ids__in=employee.update(status='Approved'))
         try:
-            leave_ids = LeavesApplications.objects.filter(employee_id__in=accepted_ids)
-            accept = LeavesApplications.objects.filter(accepted_ids= employee.update(status='Approved'))
-            serialized = LeavesApplicationsSerializer(accept, many=True)
+            leave_ids = LeaveApplication.objects.filter(id__in=accepted_ids)
+            accept = LeaveApplication.objects.filter(
+                accepted_ids=employee.update(status="Approved")
+            )
+            serialized = LeaveApplicationSerializer(accept, many=True)
             return Response(data=serialized.data)
         except:
             return Response(status=status.HTTP_400_BAD_REQUEST)
 
-    def get_leaveapplications_employee(self,request,emp_id):
+    def read_leaveapplications_employee(self, request, emp_id):
         if isinstance(emp_id, uuid.UUID):
 
-            employee_id = emp_id
-            
-            queryset = LeavesApplications.objects.filter(employee = emp_id)
-            serialized = LeavesApplicationsSerializer(queryset,many=True)
+            id = emp_id
+
+            queryset = LeaveApplication.objects.filter(employee=emp_id)
+            serialized = LeaveApplicationSerializer(queryset, many=True)
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
         else:
 
-            return Response({"Message" : "UUID Format wrong"}, status=status.HTTP_400_BAD_REQUEST)
-    
-    def patch_leavesapplications_list(self, request):
-        
+            return Response(
+                {"Message": "UUID Format wrong"}, status=status.HTTP_400_BAD_REQUEST
+            )
+
+    def update_leavesapplications(self, request):
+
         try:
             leaveapplication = request.data["leaveapplication_id"]
 
         except:
 
-            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"Message": "No data"}, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = LeavesApplications.objects.get(leaveapplication_id = leaveapplication)
+        queryset = LeaveApplication.objects.get(leaveapplication_id=leaveapplication)
 
-        serialized = LeavesApplicationsSerializer(queryset, request.data, partial = True)
+        serialized = LeaveApplicationSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: LeavesApplicationsSerializer})
-    def get_leaveapplications_list(self, request):
-    
+    @swagger_auto_schema(responses={200: LeaveApplicationSerializer})
+    def read_leaveapplications(self, request):
+
         try:
-            queryset = LeavesApplications.objects.all()
+            queryset = LeaveApplication.objects.all()
         except:
-            return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
-        
-        serialized = LeavesApplicationsSerializer(queryset, many = True)
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = LeaveApplicationSerializer(queryset, many=True)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=LeavesApplicationsSerializer,responses={200: LeavesApplicationsSerializer})
-    def post_leavesapplications_list(self, request):
+    @swagger_auto_schema(
+        request_body=LeaveApplicationSerializer,
+        responses={200: LeaveApplicationSerializer},
+    )
+    def create_leavesapplications(self, request):
 
-        serialized = LeavesApplicationsSerializer(data = request.data)
+        serialized = LeaveApplicationSerializer(data=request.data)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
-        
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-    def delete_leavesapplications_list(self, request):
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-        LeavesApplications.objects.filter(id__in = request.data["leaveapplication_ids"]).delete()
+    @swagger_auto_schema(
+        request_body=LeaveApplicationDeleteSerializer,
+        responses={200: LeaveApplicationDeleteSerializer},
+    )
+    def delete_leavesapplications(self, request):
 
-        return Response(data=request.data, status= status.HTTP_200_OK)
+        serialized = LeaveApplicationDeleteSerializer(data=request.data)
 
-class LeavesViewSet(viewsets.ViewSet):
+        if serialized.is_valid():
 
-    def patch_leaves_list(self, request):
-        
+            LeaveApplication.objects.filter(
+                id__in=request.data["leaveapplication_ids"]
+            ).delete()
+
+            return Response(data=request.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+
+class LeaveViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(request_body=LeaveSerializer, responses={200: LeaveSerializer})
+    def update_leaves(self, request):
+
         try:
             leave = request.data["leave_id"]
 
         except:
 
-            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"Message": "No data"}, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = Leaves.objects.get(leave_id = leave)
+        queryset = Leave.objects.get(leave_id=leave)
 
-        serialized = LeavesSerializer(queryset, request.data, partial = True)
+        serialized = LeaveSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: LeavesSerializer})
-    def get_leave_list(self, request):
-    
+    @swagger_auto_schema(responses={200: LeaveSerializer})
+    def read_leave(self, request):
+
         try:
-            queryset = Leaves.objects.all()
+            queryset = Leave.objects.all()
         except:
-            return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
-        
-        serialized = LeavesSerializer(queryset, many = True)
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = LeaveSerializer(queryset, many=True)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(request_body=LeavesSerializer,responses={200: LeavesSerializer})
-    def post_leave_list(self, request):
+    @swagger_auto_schema(request_body=LeaveSerializer, responses={200: LeaveSerializer})
+    def create_leave(self, request):
 
-        serialized = LeavesSerializer(data = request.data)
+        serialized = LeaveSerializer(data=request.data)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
-        
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-    def delete_leave_list(self, request):
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-        LeavePolicies.objects.filter(id__in = request.data["leave_ids"]).delete()
+    @swagger_auto_schema(
+        request_body=LeaveDeleteSerializer, responses={200: LeaveDeleteSerializer}
+    )
+    def delete_leave(self, request):
 
-        return Response(data=request.data, status= status.HTTP_200_OK)
-    
-
-class MonthlyReportsViewSet(viewsets.ViewSet):
-
-
-    def patch_monthlyreports_list(self, request):
-        
-        try:
-            monthlyreport = request.data["monthlyreport_id"]
-
-        except:
-
-            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
-
-        queryset = MonthlyReports.objects.get(monthlyreport_id = monthlyreport)
-
-        serialized = MonthlyReportsSerializer(queryset, request.data, partial = True)
+        serialized = LeaveDeleteSerializer(data=request.data)
 
         if serialized.is_valid():
-            serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+            Leave.objects.filter(
+                id__in=request.data["leave_ids"]
+            ).delete()
+
+            return Response(data=request.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
 
-    def get_monthly_reports_list(self, request):
+class ScheduleViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(
+        request_body=ScheduleSerializer, responses={200: ScheduleSerializer}
+    )
+    def update_schedules(self, request):
 
         try:
-            queryset = MonthlyReports.objects.all()
-        except:
-            return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
-        
-        serialized = MonthlyReportsSerializer(queryset, many = True)
-        if serialized.is_valid():
-            serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
-
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
-
-
-    def post_monthly_reports_list(self, request):
-
-        serialized = MonthlyReportsSerializer(data = request.data)
-        if serialized.is_valid():
-            serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
-        
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
-
-    def delete_monthly_reports_list(self, request):
-    
-        MonthlyReports.objects.filter(id__in = request.data["monthlyreport_ids"]).delete()
-
-        return Response(data=request.data, status= status.HTTP_200_OK)
-
-
-    def generate_monthly_report(self, request, emp_id):
-
-        month = request.GET.get('month', date.today().month)
-        year = request.GET.get('year', date.today().year)
-        work_hours = Attendances.objects.filter(employee = emp_id, attendance_date__month = month, attendance_date__year = year ).aggregate(Sum('total_time'))
-        print(work_hours)
-        dt = {"employee": emp_id, "total_time_worked" : work_hours["total_time__sum"]}
-        serialized = MonthlyReportsSerializer(data = dt)
-
-        if serialized.is_valid():
-
-            serialized.save()
-
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
-
-        else:
-
-            return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class SchedulesViewSet(viewsets.ViewSet):
-
-    def patch_schedules_list(self, request):
-        
-        try:
-            schedule = request.data["schedule_id"]
+            schedule = request.data["id"]
 
         except:
 
-            return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
+            return Response({"Message": "No data"}, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = Schedules.objects.get(schedule_id = schedule)
+        queryset = Schedule.objects.get(schedule_id=schedule)
 
-        serialized = SchedulesSerializer(queryset, request.data, partial = True)
+        serialized = ScheduleSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-
-    def get_schedules_list(self, request):
+    @swagger_auto_schema(responses={200: ScheduleSerializer})
+    def read_schedules(self, request):
 
         try:
-            queryset = Schedules.objects.all()
+            queryset = Schedule.objects.all()
         except:
-            return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
-        
-        serialized = SchedulesSerializer(queryset, many = True)
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = ScheduleSerializer(queryset, many=True)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status= status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-
-    def post_schedules_list(self, request, des_id):
+    @swagger_auto_schema(
+        request_body=ScheduleSerializer, responses={200: ScheduleSerializer}
+    )
+    def create_schedules(self, request, des_id):
 
         designation_id = des_id
-        
+
         try:
 
-            designation = Designations.objects.get(designation_id = designation_id)
+            designation = Designation.objects.get(designation_id=designation_id)
 
-        except Designations.DoesNotExist:
+        except Designation.DoesNotExist:
 
-            return Response({{"Message" : "No designation found"}}, status = status.HTTP_400_BAD_REQUEST)
-        
-        serialized = SchedulesSerializer(data= request.data)
+            return Response(
+                {{"Message": "No designation found"}},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serialized = ScheduleSerializer(data=request.data)
 
         if serialized.is_valid():
             print(serialized.data)
-            schedule = Schedules(**serialized.data)
+            schedule = Schedule(**serialized.data)
             schedule.save()
             designation.schedule = schedule
             designation.save()
 
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status= status.HTTP_200_OK)
+    @swagger_auto_schema(
+        request_body=ScheduleDeleteSerializer, responses={200: ScheduleDeleteSerializer}
+    )
+    def delete_schedules(self, request):
 
-    def delete_schedules_list(self, request):
-    
-        Schedules.objects.filter(id__in = request.data["schedule_ids"]).delete()
+        serialized = ScheduleDeleteSerializer(data=request.data)
 
-        return Response(data=request.data, status= status.HTTP_200_OK)
+        if serialized.is_valid():
+
+            Schedule.objects.filter(
+                id__in=request.data["schedule_ids"]
+            ).delete()
+
+            return Response(data=request.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+
+# class MonthlyReportViewSet(viewsets.ViewSet):
+#     def update_monthlyreports(self, request):
+
+#         try:
+#             monthlyreport = request.data["monthlyreport_id"]
+
+#         except:
+
+#             return Response({"Message": "No data"}, status=status.HTTP_400_BAD_REQUEST)
+
+#         queryset = MonthlyReport.objects.get(monthlyreport_id=monthlyreport)
+
+#         serialized = MonthlyReportSerializer(queryset, request.data, partial=True)
+
+#         if serialized.is_valid():
+#             serialized.save()
+#             return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+#         return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+#     def read_monthly_reports(self, request):
+
+#         try:
+#             queryset = MonthlyReport.objects.all()
+#         except:
+#             return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+#         serialized = MonthlyReportSerializer(queryset, many=True)
+#         if serialized.is_valid():
+#             serialized.save()
+#             return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+#         return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+#     def create_monthly_reports(self, request):
+
+#         serialized = MonthlyReportSerializer(data=request.data)
+#         if serialized.is_valid():
+#             serialized.save()
+#             return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+#         return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+#     def delete_monthly_reports(self, request):
+
+#         MonthlyReport.objects.filter(id__in=request.data["monthlyreport_ids"]).delete()
+
+#         return Response(data=request.data, status=status.HTTP_200_OK)
+
+#     def generate_monthly_report(self, request, emp_id):
+
+#         month = request.GET.get("month", date.today().month)
+#         year = request.GET.get("year", date.today().year)
+#         work_hours = Attendance.objects.filter(
+#             employee=emp_id, attendance_date__month=month, attendance_date__year=year
+#         ).aggregate(Sum("total_time"))
+#         print(work_hours)
+#         dt = {"employee": emp_id, "total_time_worked": work_hours["total_time__sum"]}
+#         serialized = MonthlyReportSerializer(data=dt)
+
+#         if serialized.is_valid():
+
+#             serialized.save()
+
+#             return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+#         else:
+
+#             return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 # class CalendarViewSet(viewsets.ViewSet):
 
 
-#     def patch_calendar_list(self, request):
-        
+#     def update_calendar(self, request):
+
 #         try:
 #             date = request.data["date"]
 #         except:
@@ -851,13 +954,13 @@ class SchedulesViewSet(viewsets.ViewSet):
 #         return Response(data=serialized.errors, status= status.HTTP_200_OK)
 
 #     @swagger_auto_schema(responses={200: CalendarSerializer})
-#     def get_calendar_list(self, request):
-    
+#     def read_calendar(self, request):
+
 #         try:
 #             queryset = Calendar.objects.all()
 #         except:
 #             return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
-        
+
 #         serialized = CalendarSerializer(queryset, many = True)
 #         if serialized.is_valid():
 #             serialized.save()
@@ -866,35 +969,34 @@ class SchedulesViewSet(viewsets.ViewSet):
 #         return Response(data=serialized.errors, status= status.HTTP_200_OK)
 
 #     @swagger_auto_schema(request_body=CalendarSerializer,responses={200: CalendarSerializer})
-#     def post_calendar_list(self, request):
+#     def create_calendar(self, request):
 
 #         serialized = CalendarSerializer(data = request.data)
 #         if serialized.is_valid():
 #             serialized.save()
 #             return Response(data=serialized.data, status= status.HTTP_200_OK)
-        
+
 #         return Response(data=serialized.errors, status= status.HTTP_200_OK)
 
-#     def delete_leave_list(self, request):
+#     def delete_leave(self, request):
 
 #         Calendar.objects.filter(date__in = request.data["dates"]).delete()
 
 #         return Response(data=request.data, status= status.HTTP_200_OK)
 
 
-
 # class EventsViewset(viewsets.ViewSet):
-    
 
-#     def patch_events_list(self, request):
-        
+
+#     def update_events(self, request):
+
 #         try:
 #             event_id = request.data["event_id"]
 #         except:
 #             return Response({"Message" : "No data"}, status = status.HTTP_400_BAD_REQUEST)
 #         queryset = Events.objects.get(event_id=event_id)
 
-#         serialized = EventsSerializer(queryset, request.data, partial = True)
+#         serialized = EventSerializer(queryset, request.data, partial = True)
 
 #         if serialized.is_valid():
 #             serialized.save()
@@ -902,46 +1004,44 @@ class SchedulesViewSet(viewsets.ViewSet):
 
 #         return Response(data=serialized.errors, status= status.HTTP_200_OK)
 
-#     @swagger_auto_schema(responses={200: EventsSerializer})
-#     def get_events_list(self, request):
-    
+#     @swagger_auto_schema(responses={200: EventSerializer})
+#     def read_events(self, request):
+
 #         try:
 #             queryset = Events.objects.all()
 #         except:
 #             return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
-        
-#         serialized = EventsSerializer(queryset, many = True)
+
+#         serialized = EventSerializer(queryset, many = True)
 #         if serialized.is_valid():
 #             serialized.save()
 #             return Response(data=serialized.data, status= status.HTTP_200_OK)
 
 #         return Response(data=serialized.errors, status= status.HTTP_200_OK)
 
-#     @swagger_auto_schema(request_body=EventsSerializer,responses={200: EventsSerializer})
-#     def post_events_list(self, request):
+#     @swagger_auto_schema(request_body=EventSerializer,responses={200: EventSerializer})
+#     def create_events(self, request):
 
-#         serialized = EventsSerializer(data = request.data)
+#         serialized = EventSerializer(data = request.data)
 #         if serialized.is_valid():
 #             serialized.save()
 #             return Response(data=serialized.data, status= status.HTTP_200_OK)
-        
+
 #         return Response(data=serialized.errors, status= status.HTTP_200_OK)
 
-#     def delete_events_list(self, request):
+#     def delete_events(self, request):
 
 #         Events.objects.filter(event_id__in = request.data["event_ids"]).delete()
 
 #         return Response(data=request.data, status= status.HTTP_200_OK)
 
 
-
-
 # class LeaveMembershipViewSet(viewsets.ViewSet):
-#     @swagger_auto_schema(responses={200: LeavePoliciesSerializer})
-#     def post_policy(self, request, design_id):
+#     @swagger_auto_schema(responses={200: LeavePolicySerializer})
+#     def create_policy(self, request, design_id):
 #         designation_id = design_id  # ask
-#         serializer_class = LeavePoliciesSerializer
-#         if LeavePolicies.objects.filter(
+#         serializer_class = LeavePolicySerializer
+#         if LeavePolicy.objects.filter(
 #             leave_type=request.data["leavetype_id"],
 #             #designations=design_id,
 #         ):
@@ -949,12 +1049,12 @@ class SchedulesViewSet(viewsets.ViewSet):
 #                 {"message": "Leave Policy exists"}, status=status.HTTP_400_BAD_REQUEST
 #             )
 #         else:
-#             serializer = LeavePoliciesSerializer(data=request.data)
+#             serializer = LeavePolicySerializer(data=request.data)
 #             serializer.is_valid(raise_exception=True)
 #             policy = serializer.save()
 
-#     def post_leave_membership(self, request):
-#         serializer = self.get_serializer(data=request.data, many=True)
+#     def create_leave_membership(self, request):
+#         serializer = self.read_serializer(data=request.data, many=True)
 #         serializer.is_valid(raise_exception=True)
 
 #         for index in serializer.validated_data:
@@ -973,9 +1073,9 @@ class SchedulesViewSet(viewsets.ViewSet):
 #                     total_days_allowed=index["total_days"],
 #                     total_consecutive_days=index["total_cons"],
 #                 )
-#                 membership.save()        
+#                 membership.save()
 
-# Single Employee based attendance views (entries for that particular employee) (get/post) (when check in, see if an existing attendance, if not create) done
+# Single Employee based attendance views (entries for that particular employee) (get/create) (when check in, see if an existing attendance, if not create) done
 
 # All attendees in a Day done
 
@@ -983,49 +1083,29 @@ class SchedulesViewSet(viewsets.ViewSet):
 
 # monthly attendance and hours to see for overtime or absentee hours remaining
 
-# make leave application/get/post employee based should have all deets and all apps, whereas when requesting all, only get open #loran
+# make leave application/get/create employee based should have all deets and all apps, whereas when requesting all, only get open #loran
 
 # accept/reject leave application loran
-
-
-
 
 
 # ask rugved about leave policy problem
 
 # leave generation based on designation's leave policy for each employee
 
-#privileged leave assigned per quarter/ carry forwarding / 
+# privileged leave assigned per quarter/ carry forwarding /
 
 
+# if(request.GET.get('isFilter',False)):
 
-        # if(request.GET.get('isFilter',False)):
-            
-        #     start_date_req = request.GET.get("start_date",datetime.date.today())
-        #     end_date_req = request.GET.get("end_date", datetime.date.today())
-        #     queryset=Attendances.objects.filter(employee_id=employee_id,daterange=["attendance_datedate=start_date_req","attendance_date__date=end_date_req"])
-        #     serialized = AttendancesSerializer(queryset, many = True)
-        #     return Response(data=serialized.data, status= status.HTTP_200_OK)
+#     start_date_req = request.GET.get("start_date",datetime.date.today())
+#     end_date_req = request.GET.get("end_date", datetime.date.today())
+#     queryset=Attendance.objects.filter(id=id,daterange=["attendance_datedate=start_date_req","attendance_date__date=end_date_req"])
+#     serialized = AttendanceSerializer(queryset, many = True)
+#     return Response(data=serialized.data, status= status.HTTP_200_OK)
 
-        #good job on date range
-        # else:
+# good job on date range
+# else:
 
-        #    queryset = Attendances.objects.filter(employee = employee_id)
-        #    serialized = AttendancesSerializer(queryset, many = True)
-        #    return Response(data=serialized.data, status= status.HTTP_200_OK)
-
-
-
-
-
-
-    
-
-
-        
-
-
-
-
-    
-
+#    queryset = Attendance.objects.filter(employee = id)
+#    serialized = AttendanceSerializer(queryset, many = True)
+#    return Response(data=serialized.data, status= status.HTTP_200_OK)
