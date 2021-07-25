@@ -96,10 +96,15 @@ class EmployeeViewSet(viewsets.ViewSet):
     )
     def delete_employees(self, request):
 
-        # TODO serializer error handling
-        Employee.objects.filter(id__in=request.data["employees"]).delete()
+        serialized = EmployeeDeleteSerializer(data=request.data, many=True)
 
-        return Response(data=request.data, status=status.HTTP_200_OK)
+        if serialized.is_valid():
+            Employee.objects.filter(id__in=request.data["employees"]).delete()
+            serialized.save()
+            return Response(data=request.data, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+        # TODO serializer error handling
 
 
 # LORAN
@@ -136,9 +141,13 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
 
     def delete_employeegroup(self, request):
 
-        EmployeeGroup.objects.filter(group_id__in=request.data["group_ids"]).delete()
+        serialized = EmployeeGroupDeleteSerializer(data=request.data, many=True)
 
-        return Response(data=request.data, status=status.HTTP_200_OK)
+        if serialized.is_valid():
+            EmployeeGroup.objects.filter(id__in=request.data["group_ids"]).delete()
+            serialized.save()
+            return Response(data=request.data, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
 
 # LORAN
@@ -152,7 +161,7 @@ class DepartmentViewSet(viewsets.ViewSet):
 
             return Response({"Message": "No data"}, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = Department.objects.get(department_id=department)
+        queryset = Department.objects.get(id=department)
 
         serialized = DepartmentSerializer(queryset, request.data, partial=True)
 
@@ -191,11 +200,13 @@ class DepartmentViewSet(viewsets.ViewSet):
 
     def delete_department(self, request):
 
-        Department.objects.filter(
-            department_id__in=request.data["department_ids"]
-        ).delete()
+        serialized = DepartmentDeleteSerializer(data=request.data, many=True)
 
-        return Response(data=request.data, status=status.HTTP_200_OK)
+        if serialized.is_valid():
+            Department.objects.filter(id__in=request.data["group_ids"]).delete()
+            serialized.save()
+            return Response(data=request.data, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
 
 # LORAN
@@ -212,7 +223,7 @@ class DesignationViewSet(viewsets.ViewSet):
 
             return Response({"Message": "No data"}, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = Designation.objects.get(designation_id=designation)
+        queryset = Designation.objects.get(id=designation)
 
         serialized = DesignationSerializer(queryset, request.data, partial=True)
 
@@ -251,11 +262,13 @@ class DesignationViewSet(viewsets.ViewSet):
 
     def delete_designations(self, request):
 
-        Designation.objects.filter(
-            designation_id__in=request.data["designation_ids"]
-        ).delete()
+        serialized = DesignationDeleteSerializer(data=request.data, many=True)
 
-        return Response(data=request.data, status=status.HTTP_200_OK)
+        if serialized.is_valid():
+            Designation.objects.filter(id__in=request.data["group_ids"]).delete()
+            serialized.save()
+            return Response(data=request.data, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
 
 # LORAN
@@ -265,19 +278,25 @@ class AttendanceViewSet(viewsets.ViewSet):
         dep_id = dept_id
 
         if request.GET.get("isFilter", False):
+            try:
 
-            start_date_req = request.GET.get("start_date", datetime.date.today())
-            end_date_req = request.GET.get("end_date", datetime.date.today())
-            queryset = Attendance.objects.filter(
-                employee__department=dep_id,
-                attendance_date__range=[start_date_req, end_date_req],
-            )
-            serialized = AttendanceSerializer(queryset, many=True)
-            return Response(data=serialized.data, status=status.HTTP_200_OK)
+                start_date_req = request.GET.get("start_date")
+                end_date_req = request.GET.get("end_date")
+                queryset = Attendance.objects.filter(
+                    fk_employee__department=dep_id,
+                    attendance_date__range=[start_date_req, end_date_req],
+                )
+                serialized = AttendanceSerializer(queryset, many=True)
+                return Response(data=serialized.data, status=status.HTTP_200_OK)
+            except:
+                return Response(
+                    {"Message": "Enter start date and end date"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         else:
 
-            queryset = Attendance.objects.filter(employee__department=dep_id)
+            queryset = Attendance.objects.filter(fk_employee__department=dep_id)
             serialized = AttendanceSerializer(queryset, many=True)
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
@@ -293,15 +312,19 @@ class AttendanceViewSet(viewsets.ViewSet):
             )
 
         if request.GET.get("isFilter", False):
-
-            start_date_req = request.GET.get("start_date", datetime.date.today())
-            end_date_req = request.GET.get("end_date", datetime.date.today())
-            queryset = Attendance.objects.filter(
-                id=id,
-                attendance_date__range=[start_date_req, end_date_req],
-            )
-            serialized = AttendanceSerializer(queryset, many=True)
-            return Response(data=serialized.data, status=status.HTTP_200_OK)
+            try:
+                start_date_req = request.GET.get("start_date")
+                end_date_req = request.GET.get("end_date")
+                queryset = Attendance.objects.filter(
+                    id=id, attendance_date__range=[start_date_req, end_date_req]
+                )
+                serialized = AttendanceSerializer(queryset, many=True)
+                return Response(data=serialized.data, status=status.HTTP_200_OK)
+            except:
+                return Response(
+                    {"Message": "Enter start date and end date"},
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         else:
 
@@ -605,9 +628,7 @@ class LeavePolicyViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            LeavePolicy.objects.filter(
-                id__in=request.data["leavepolicy_ids"]
-            ).delete()
+            LeavePolicy.objects.filter(id__in=request.data["leavepolicy_ids"]).delete()
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -622,7 +643,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         except:
             return Response({"Message", "specify accepted ids"})
         employee = Employee.objects.get(id=accepted_ids)
-        # aceepted = LeaveApplication.objects.filter(accepted_ids__in=employee.update(status='Approved'))
+
         try:
             leave_ids = LeaveApplication.objects.filter(id__in=accepted_ids)
             accept = LeaveApplication.objects.filter(
@@ -638,7 +659,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
 
             id = emp_id
 
-            queryset = LeaveApplication.objects.filter(employee=emp_id)
+            queryset = LeaveApplication.objects.filter(fk_employee=emp_id)
             serialized = LeaveApplicationSerializer(queryset, many=True)
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
@@ -657,7 +678,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
 
             return Response({"Message": "No data"}, status=status.HTTP_400_BAD_REQUEST)
 
-        queryset = LeaveApplication.objects.get(leaveapplication_id=leaveapplication)
+        queryset = LeaveApplication.objects.get(id=leaveapplication)
 
         serialized = LeaveApplicationSerializer(queryset, request.data, partial=True)
 
@@ -769,9 +790,7 @@ class LeaveViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            Leave.objects.filter(
-                id__in=request.data["leave_ids"]
-            ).delete()
+            Leave.objects.filter(id__in=request.data["leave_ids"]).delete()
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -825,7 +844,7 @@ class ScheduleViewSet(viewsets.ViewSet):
 
         try:
 
-            designation = Designation.objects.get(designation_id=designation_id)
+            designation = Designation.objects.get(id=designation_id)
 
         except Designation.DoesNotExist:
 
@@ -854,9 +873,7 @@ class ScheduleViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            Schedule.objects.filter(
-                id__in=request.data["schedule_ids"]
-            ).delete()
+            Schedule.objects.filter(id__in=request.data["schedule_ids"]).delete()
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -1093,19 +1110,3 @@ class ScheduleViewSet(viewsets.ViewSet):
 # leave generation based on designation's leave policy for each employee
 
 # privileged leave assigned per quarter/ carry forwarding /
-
-
-# if(request.GET.get('isFilter',False)):
-
-#     start_date_req = request.GET.get("start_date",datetime.date.today())
-#     end_date_req = request.GET.get("end_date", datetime.date.today())
-#     queryset=Attendance.objects.filter(id=id,daterange=["attendance_datedate=start_date_req","attendance_date__date=end_date_req"])
-#     serialized = AttendanceSerializer(queryset, many = True)
-#     return Response(data=serialized.data, status= status.HTTP_200_OK)
-
-# good job on date range
-# else:
-
-#    queryset = Attendance.objects.filter(employee = id)
-#    serialized = AttendanceSerializer(queryset, many = True)
-#    return Response(data=serialized.data, status= status.HTTP_200_OK)

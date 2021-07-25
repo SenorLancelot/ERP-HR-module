@@ -22,6 +22,11 @@ class EmployeeGroupSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class EmployeeGroupDeleteSerializer(serializers.Serializer):
+
+    group_ids = serializers.ListField(child=serializers.IntegerField())
+
+
 class DepartmentSerializer(serializers.ModelSerializer):
     class Meta:
 
@@ -29,11 +34,22 @@ class DepartmentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class DepartmentDeleteSerializer(serializers.Serializer):
+
+    group_ids = serializers.ListField(child=serializers.IntegerField())
+
+
 class DesignationSerializer(serializers.ModelSerializer):
     class Meta:
 
         model = Designation
         fields = "__all__"
+
+class DesignationDeleteSerializer(serializers.Serializer):
+
+    group_ids = serializers.ListField(child=serializers.IntegerField())
+
+
 
 
 class AttendanceSerializer(serializers.ModelSerializer):
@@ -68,6 +84,7 @@ class EmployeeCheckoutSerializer(serializers.ModelSerializer):
         model = EmployeeCheckin
         fields = ["fk_employee", "checked_out_time", "is_last_session"]
 
+
 class EmployeeCheckinCheckoutDeleteSerializer(serializers.Serializer):
 
     check_ids = serializers.ListField(child=serializers.IntegerField())
@@ -79,15 +96,18 @@ class LeavePolicySerializer(serializers.ModelSerializer):
         model = LeavePolicy
         fields = "__all__"
 
+
 class LeavePolicyDeleteSerializer(serializers.Serializer):
 
     leavepolicy_ids = serializers.ListField(child=serializers.IntegerField())
+
 
 class LeaveApplicationSerializer(serializers.ModelSerializer):
     class Meta:
 
         model = LeaveApplication
         fields = "__all__"
+
 
 class LeaveApplicationDeleteSerializer(serializers.Serializer):
 
@@ -100,9 +120,11 @@ class LeaveSerializer(serializers.ModelSerializer):
         model = Leave
         fields = "__all__"
 
+
 class LeaveDeleteSerializer(serializers.Serializer):
 
     leave_ids = serializers.ListField(child=serializers.IntegerField())
+
 
 class MonthlyReportSerializer(serializers.ModelSerializer):
     class Meta:
@@ -124,9 +146,11 @@ class ScheduleSerializer(serializers.ModelSerializer):
         model = Schedule
         fields = "__all__"
 
+
 class ScheduleDeleteSerializer(serializers.Serializer):
 
     schedule_ids = serializers.ListField(child=serializers.IntegerField())
+
 
 # class CalendarSerializer(serializers.ModelSerializer):
 
