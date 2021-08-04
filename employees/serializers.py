@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from rest_framework_recursive.fields import RecursiveField
+
 
 from .models import *
 
@@ -13,6 +13,28 @@ class EmployeeSerializer(serializers.ModelSerializer):
 class EmployeeDeleteSerializer(serializers.Serializer):
 
     employees = serializers.ListField(child=serializers.IntegerField())
+
+
+class IdentificationDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IdentificationDocument
+        fields = "__all__"
+
+
+class IdentificationDocumentDeleteSerializer(serializers.Serializer):
+
+    identificationdocument_ids = serializers.ListField(child=serializers.IntegerField())
+
+
+class IdentificationTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IdentificationType
+        fields = "__all__"
+
+
+class IdentificationTypeDeleteSerializer(serializers.Serializer):
+
+    identificationtype_ids = serializers.ListField(child=serializers.IntegerField())
 
 
 class EmployeeGroupSerializer(serializers.ModelSerializer):
@@ -36,7 +58,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
 
 class DepartmentDeleteSerializer(serializers.Serializer):
 
-    group_ids = serializers.ListField(child=serializers.IntegerField())
+    department_ids = serializers.ListField(child=serializers.IntegerField())
 
 
 class DesignationSerializer(serializers.ModelSerializer):
@@ -45,11 +67,10 @@ class DesignationSerializer(serializers.ModelSerializer):
         model = Designation
         fields = "__all__"
 
+
 class DesignationDeleteSerializer(serializers.Serializer):
 
-    group_ids = serializers.ListField(child=serializers.IntegerField())
-
-
+    designation_ids = serializers.ListField(child=serializers.IntegerField())
 
 
 class AttendanceSerializer(serializers.ModelSerializer):
@@ -64,28 +85,28 @@ class AttendanceDeleteSerializer(serializers.Serializer):
     attendance_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-class EmployeeCheckinCheckoutSerializer(serializers.ModelSerializer):
+class EmployeeSessionSerializer(serializers.ModelSerializer):
     class Meta:
 
-        model = EmployeeCheckin
+        model = EmployeeSession
+        fields = "__all__"
+
+
+class EmployeeSessionCheckinSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = EmployeeSession
         fields = ["fk_employee", "checked_in_time", "is_first_session"]
 
 
-class EmployeeCheckinSerializer(serializers.ModelSerializer):
+class EmployeeSessionCheckoutSerializer(serializers.ModelSerializer):
     class Meta:
 
-        model = EmployeeCheckin
-        fields = ["fk_employee", "checked_in_time", "is_first_session"]
-
-
-class EmployeeCheckoutSerializer(serializers.ModelSerializer):
-    class Meta:
-
-        model = EmployeeCheckin
+        model = EmployeeSession
         fields = ["fk_employee", "checked_out_time", "is_last_session"]
 
 
-class EmployeeCheckinCheckoutDeleteSerializer(serializers.Serializer):
+class EmployeeSessionDeleteSerializer(serializers.Serializer):
 
     check_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -100,6 +121,13 @@ class LeavePolicySerializer(serializers.ModelSerializer):
 class LeavePolicyDeleteSerializer(serializers.Serializer):
 
     leavepolicy_ids = serializers.ListField(child=serializers.IntegerField())
+
+
+# class LeavePolicyTypeMembershipSerializer(serializers.ModelSerializer):
+#     class Meta:
+
+#         model = LeavePolicyTypeMembership
+#         fields = "__all__"
 
 
 class LeaveApplicationSerializer(serializers.ModelSerializer):
@@ -126,17 +154,17 @@ class LeaveDeleteSerializer(serializers.Serializer):
     leave_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-class MonthlyReportSerializer(serializers.ModelSerializer):
+# class MonthlyReportSerializer(serializers.ModelSerializer):
+#     class Meta:
+
+#         model = MonthlyReport
+#         fields = "__all__"
+
+
+class LeavePolicyTypeMembershipSerializer(serializers.ModelSerializer):
     class Meta:
 
-        model = MonthlyReport
-        fields = "__all__"
-
-
-class LeavePolicy_TypeMembershipSerializer(serializers.ModelSerializer):
-    class Meta:
-
-        model = LeavePolicy_Type_Membership
+        model = LeavePolicyTypeMembership
         fields = "__all__"
 
 
