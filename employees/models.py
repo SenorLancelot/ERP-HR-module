@@ -11,12 +11,36 @@ import datetime
 
 
 # Create your models here.
+class Person(models.Model):
 
-class Employee(MPTTModel):
-
-    # employee_id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     first_name = models.CharField(max_length=50)
     last_name = models.CharField(max_length=50)
+    genderChoices = (
+        ("Male", "Male"),
+        ("Female", "Female"),
+        ("Others", "Others"),
+    )
+
+    gender = models.CharField(max_length=30, choices=genderChoices, default="Others")
+    birth_date = models.DateField()
+    primary_contact_no = models.CharField(max_length=15)
+    secondary_contact_no = models.CharField(max_length=15)# Make two fields primary contact secondary contact, and add table for emergency contacts
+    personal_email = models.EmailField() 
+    current_address = models.CharField(
+        max_length=200,
+    )
+    is_current_address_permanent = models.BooleanField(default=True)
+    permanent_address = models.CharField(
+        max_length=200,
+    )
+
+    class Meta:
+        abstract = True
+
+class Employee(Person,MPTTModel):
+
+    # employee_id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+
 
     
     employmentType = (
@@ -39,28 +63,15 @@ class Employee(MPTTModel):
         max_length=50, choices=employmentType, default="Full-Time"
     )
 
-    genderChoices = (
-        ("Male", "Male"),
-        ("Female", "Female"),
-        ("Others", "Others"),
-    )
 
-    gender = models.CharField(max_length=30, choices=genderChoices, default="Others")
-    birth_date = models.DateField()  # req
+      # req
     joining_date = models.DateField(default=datetime.date.today)  # req
     leaving_date = models.DateField(default=datetime.date.today)
     retirement_date = models.DateField(default=datetime.date.today)
-    contact_no = models.CharField(max_length=15)  # Make two fields primary contact secondary contact, and add table for emergency contacts
-    personal_email = models.EmailField()  # req
+ # req
     company_email = models.EmailField()
 
-    current_address = models.CharField(
-        max_length=200,
-    )
-    is_current_address_permanent = models.BooleanField(default=True)
-    permanent_address = models.CharField(
-        max_length=200,
-    )
+    
 
     # TODO: probably new table (make dynamic)
     fk_department = models.ForeignKey(
@@ -77,6 +88,10 @@ class Employee(MPTTModel):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
+class Customer(Person):
+
+    organization = models.CharField(max_length=100)
+    is_guest = models.BooleanField(default=False)
 
 class IdentificationDocument(models.Model):
 
@@ -183,7 +198,7 @@ class EmployeeSession(models.Model):
 class LeavePolicy(models.Model):
 
     fk_leave_type = models.ManyToManyField(
-        "LeaveType", through="LeavePolicyTypeMembership", null=True, blank=True
+        "LeaveType", through="LeavePolicyTypeMembership"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)

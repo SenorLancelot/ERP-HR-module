@@ -6,6 +6,7 @@ from .models import *
 
 
 admin.site.register(Employee)
+admin.site.register(Customer)
 admin.site.register(EmployeeGroup)
 admin.site.register(Department)
 admin.site.register(Designation)
@@ -18,5 +19,6 @@ admin.site.register(LeaveType)
 admin.site.register(Leave)
 admin.site.register(LeavePolicyTypeMembership)
 admin.site.register(Schedule)
+admin.site.register(WorkdayDivision)
 admin.site.register(IdentificationDocument)
 admin.site.register(IdentificationType)

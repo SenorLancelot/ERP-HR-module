@@ -12,7 +12,19 @@ class EmployeeSerializer(serializers.ModelSerializer):
 
 class EmployeeDeleteSerializer(serializers.Serializer):
 
-    employees = serializers.ListField(child=serializers.IntegerField())
+    employee_ids = serializers.ListField(child=serializers.IntegerField())
+
+
+class CustomerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Customer
+        fields = "__all__"
+
+
+class CustomerDeleteSerializer(serializers.Serializer):
+
+    customer_ids = serializers.ListField(child=serializers.IntegerField())
+
 
 
 class IdentificationDocumentSerializer(serializers.ModelSerializer):
@@ -153,6 +165,17 @@ class LeaveDeleteSerializer(serializers.Serializer):
 
     leave_ids = serializers.ListField(child=serializers.IntegerField())
 
+
+class WorkdayDivisionSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = WorkdayDivision
+        fields = "__all__"
+
+
+class WorkdayDivisionDeleteSerializer(serializers.Serializer):
+
+    leave_ids = serializers.ListField(child=serializers.IntegerField())
 
 # class MonthlyReportSerializer(serializers.ModelSerializer):
 #     class Meta:

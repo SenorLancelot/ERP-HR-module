@@ -89,12 +89,84 @@ class EmployeeViewSet(viewsets.ViewSet):
         serialized = EmployeeDeleteSerializer(data=request.data)
 
         if serialized.is_valid():
-            Employee.objects.filter(id__in=request.data["employees"]).delete()
+            Employee.objects.filter(id__in=request.data["employee_ids"]).delete()
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
+class CustomerViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: CustomerSerializer})
+    @action(detail=False, methods=["get"], url_path="read")
+    def read_customers(self, request):
 
+        try:
+            queryset = Customer.objects.all()
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = CustomerSerializer(instance=queryset, many=True)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        request_body=CustomerSerializer, responses={200: CustomerSerializer}
+    )
+    @action(detail=False, methods=["patch"], url_path="update")
+    def update_customers(self, request):
+
+        try:
+            employee = request.data["id"]
+
+        except:
+
+            return Response(
+                {"Message": "Request body incorrect. Please specify ID."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        queryset = Customer.objects.get(id=employee)
+
+        serialized = CustomerSerializer(queryset, request.data, partial=True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["post"], url_path="create")
+    @swagger_auto_schema(
+        request_body=CustomerSerializer, responses={200: CustomerSerializer}
+    )
+    def create_customers(self, request):
+
+        serialized = CustomerSerializer(data=request.data, many=True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["delete"], url_path="delete")
+    @swagger_auto_schema(
+        request_body=CustomerDeleteSerializer, responses={200: CustomerDeleteSerializer}
+    )
+    def delete_customers(self, request):
+
+        serialized = CustomerDeleteSerializer(data=request.data)
+
+        if serialized.is_valid():
+            Customer.objects.filter(id__in=request.data["customer_ids"]).delete()
+
+            return Response(data=request.data, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 # LORAN
 class EmployeeGroupViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["patch"], url_path="update")
@@ -1185,6 +1257,76 @@ class ScheduleViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
 
+
+class WorkdayDivisionViewSet(viewsets.ViewSet):
+    @action(detail=False, methods=["patch"], url_path="update")
+    @swagger_auto_schema(request_body=WorkdayDivisionSerializer, responses={200: WorkdayDivisionSerializer})
+    def update_workdaydivisons(self, request):
+
+        try:
+            leave = request.data["leave_id"]
+
+        except:
+
+            return Response(
+                {"Message": "Request body incorrect. Please specify  ID."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        queryset = WorkdayDivision.objects.get(leave_id=leave)
+
+        serialized = WorkdayDivisionSerializer(queryset, request.data, partial=True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"], url_path="read")
+    @swagger_auto_schema(responses={200: WorkdayDivisionSerializer})
+    def read_workdaydivisons(self, request):
+
+        try:
+            queryset = WorkdayDivision.objects.all()
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = WorkdayDivisionSerializer(instance=queryset, many=True)
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["post"], url_path="create")
+    @swagger_auto_schema(request_body=WorkdayDivisionSerializer, responses={200: WorkdayDivisionSerializer})
+    def create_workdaydivisons(self, request):
+
+        serialized = WorkdayDivisionSerializer(data=request.data, many=True)
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["delete"], url_path="delete")
+    @swagger_auto_schema(
+        request_body=WorkdayDivisionDeleteSerializer, responses={200: WorkdayDivisionDeleteSerializer}
+    )
+    def delete_leaves(self, request):
+
+        serialized = WorkdayDivisionDeleteSerializer(data=request.data)
+
+        if serialized.is_valid():
+
+            WorkdayDivision.objects.filter(id__in=request.data["leave_ids"]).delete()
+
+            return Response(data=request.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+
+
+
+        
 # class MonthlyReportViewSet(viewsets.ViewSet):
 #     def update_monthlyreports(self, request):
 
