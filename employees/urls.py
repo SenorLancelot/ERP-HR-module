@@ -25,7 +25,7 @@ urlpatterns = router.urls
 
 
 
-# TODO Create actions and change naming to whatever the standard practice is
+
 # urlpatterns = [
 #     path(
 #         "employees/create/",

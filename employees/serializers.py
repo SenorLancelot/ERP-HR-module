@@ -96,14 +96,14 @@ class EmployeeSessionCheckinSerializer(serializers.ModelSerializer):
     class Meta:
 
         model = EmployeeSession
-        fields = ["fk_employee", "checked_in_time", "is_first_session"]
+        fields = ["fk_employee", "checked_in_at"]
 
 
 class EmployeeSessionCheckoutSerializer(serializers.ModelSerializer):
     class Meta:
 
         model = EmployeeSession
-        fields = ["fk_employee", "checked_out_time", "is_last_session"]
+        fields = ["fk_employee", "checked_out_at"]
 
 
 class EmployeeSessionDeleteSerializer(serializers.Serializer):

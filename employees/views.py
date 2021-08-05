@@ -8,7 +8,8 @@ from django.db.models import Sum
 
 # from datetime import datetime
 import datetime
-from datetime import date
+
+#default value of detail, methods array,
 
 # project imports
 from rest_framework.decorators import action
@@ -600,7 +601,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
         try:
             employee_id = request.data["fk_employee"]
             checked_in = request.data["checked_in_at"]
-            is_first_session = request.data["is_first_session"]
+            # is_first_session = request.data["is_first_session"]
         except:
             return Response(
                 {"Message": "Request Body incorrect"},
@@ -608,7 +609,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
             )
         employee = Employee.objects.get(id=employee_id)
 
-        date = checked_in[0:10]
+        date = datetime.datetime.strptime(checked_in_at, "%Y-%m-%d %H:%M:%S")
         try:
             attendance = Attendance.objects.get(
                 attendance_date=date, fk_employee=employee_id
@@ -618,27 +619,35 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
             e_check = EmployeeSession(
                 checked_in_at=request.data["checked_in_at"],
                 fk_employee=employee,
-                is_first_session=is_first_session,
+                # is_first_session=is_first_session,
             )
             e_check.save()
             attendance = Attendance(fk_employee=employee, attendance_date=date)
             attendance.save()
-            attendance.fk_checks.add(e_check)
+            attendance.fk_sessions.add(e_check)
             attendance.save()
             return Response(status=status.HTTP_200_OK)
 
         serialized = EmployeeSessionCheckinSerializer(data=request.data)
 
         if serialized.is_valid():
+            try:
+                check = EmployeeSession.objects.filter(fk_employee=employee_id).latest(
+                    "checked_in_at"
+                )
+            except EmployeeSession.DoesNotExist:
 
-            check = EmployeeSession.objects.filter(fk_employee=employee_id).latest(
-                "checked_in_at"
-            )
+                serialized.save()
+                e = EmployeeSession.objects.latest("checked_in_at")
+                attendance.fk_sessions.add(e)
+
+                return Response(data=serialized.data, status=status.HTTP_200_OK)
+
 
             if check.checked_out_at is not None:
                 serialized.save()
                 e = EmployeeSession.objects.latest("checked_in_at")
-                attendance.fk_checks.add(e)
+                attendance.fk_sessions.add(e)
                 return Response(data=serialized.data, status=status.HTTP_200_OK)
             else:
 
@@ -659,7 +668,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
         try:
             employee_id = request.data["fk_employee"]
             checked_out = request.data["checked_out_at"]
-            is_last_session = request.data["is_last_session"]
+            # is_last_session = request.data["is_last_session"]
         except:
             return Response(
                 {"Message": "Request Body incorrect"},
@@ -675,38 +684,59 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
 
             return Response({"Message": "No checkin for the employee found"})
 
-        if e.checked_out_time is None:
-            e.checked_out_time = checked_out
-            e.total_time_elapsed = 8  # TODO do this using TIME DELTA
-            e.is_last_session = is_last_session
+        if e.checked_out_at is None:
 
-            e.save()
+            checked_in_date = datetime.datetime.strptime(e.checked_out_time, "%Y-%m-%d %H:%M:%S")
+            checked_out_date = datetime.datetime.strptime(e.checked_out_time, "%Y-%m-%d %H:%M:%S")
+            if (checked_out_date.day)>(checked_in_date.day):
 
-            if is_last_session:
+                bridgetime = datetime.datetime(checked_out_date.year,checked_out_date.month,checked_out_date.day,0,0,0)
 
-                date = e.checked_in_time.date()
+                e.checked_out_at = bridgetime
 
-                employee = Employee.objects.get(id=employee_id)
-                workhours = employee.fk_designation.fk_schedule.total_work_hours
-                a = Attendance.objects.get(
-                    attendance_date=date, fk_employee=employee_id
-                )
+                e.save()
 
-                time_worked = EmployeeSession.objects.filter(
-                    checked_in_at__date=date
-                ).aggregate(Sum("total_time_elapsed"))
-                print(time_worked)
+                autosession = EmployeeSession(fk_employee = employee_id, checked_in_at = bridgetime, checked_out_at = checked_out_date)
 
-                a.total_time = time_worked[
-                    "total_time_elapsed__sum"
-                ]  # change variable name to time_elapsed_in_hours
-                ot = time_worked["total_time_elapsed__sum"] - workhours
+                autosession.save()
 
-                if ot > 0:
+            else:
 
-                    a.total_overtime = ot
+                e.checked_out_at = checked_out
+                e.save()
 
-                a.save()
+            
+            # e.checked_out_time = checked_out
+            # e.total_time_elapsed = 8  # TODO do this using TIME DELTA
+            # e.is_last_session = is_last_session
+
+            # e.save()
+
+            # if is_last_session:
+
+            #     date = e.checked_in_time.date()
+
+            #     employee = Employee.objects.get(id=employee_id)
+            #     workhours = employee.fk_designation.fk_schedule.total_work_hours
+            #     a = Attendance.objects.get(
+            #         attendance_date=date, fk_employee=employee_id
+            #     )
+
+            #     time_worked = EmployeeSession.objects.filter(
+            #         checked_in_at__date=date
+            #     ).aggregate(Sum("total_time_elapsed"))
+            #     print(time_worked)
+
+            #     a.total_time = time_worked[
+            #         "total_time_elapsed__sum"
+            #     ]  # change variable name to time_elapsed_in_hours
+            #     ot = time_worked["total_time_elapsed__sum"] - workhours
+
+            #     if ot > 0:
+
+            #         a.total_overtime = ot
+
+            #     a.save()
 
             return Response(status=status.HTTP_200_OK)
         else:
