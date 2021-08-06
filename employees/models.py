@@ -3,11 +3,7 @@ from django.db import models
 from mptt.models import MPTTModel, TreeForeignKey
 import datetime
 
-# Add _at instead of _time,
-# Add _date instead of date_of
-# created at and updated at
-# created by modified by
-# change _name to only name
+
 
 
 # Create your models here.
@@ -83,7 +79,7 @@ class Employee(Person,MPTTModel):
     fk_employee_group = models.ForeignKey(
         "EmployeeGroup", on_delete=models.SET_NULL, null=True, blank=True
     )
-    # TODO  add qualification details to this as well as previous workex and history in company_email
+    
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
@@ -233,7 +229,7 @@ class LeaveType(models.Model):
 class LeaveApplication(models.Model):
 
     #Multiple types of leaves in a single application for consecutive days
-    fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
+    fk_leave_type = models.ManyToManyField("LeaveType",through= "LeaveApplicationTypeMembership" )
     fk_employee = models.ForeignKey(
         "Employee", on_delete=models.CASCADE, related_name="employee"
     )
@@ -257,7 +253,15 @@ class LeaveApplication(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     is_auto_generated = models.BooleanField(default=False)
-#TODO flag for auto generated leaveapplication
+
+class LeaveApplicationTypeMembership(models.Model):
+
+    fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
+    fk_leave_application = models.ForeignKey("LeaveApplication", on_delete=models.CASCADE)
+    from_date = models.DateField(default=datetime.date.today)
+    to_date = models.DateField(default=datetime.date.today)
+
+
 
 class Leave(models.Model):
 
@@ -267,11 +271,9 @@ class Leave(models.Model):
 
 
     # leave_application = models.ForeignKey('LeavesApplication', null=True, on_delete = models.CASCADE)
-    leave_date = models.DateField(null=True)
-    duration = models.FloatField(default=1)
-
-
-
+    from_date = models.DateField()
+    to_date = models.DateField()
+    # duration = models.FloatField(default=1)
 
 
 class Schedule(models.Model):
@@ -280,8 +282,7 @@ class Schedule(models.Model):
     workday_start_time = models.TimeField()
     workday_end_time = models.TimeField()
     divisions = models.ManyToManyField('WorkdayDivision')
-    # half_day = models.FloatField(default=6)
-    # quarter_day = models.FloatField(default=3)
+
     # TODO create this
 
 class WorkdayDivision(models.Model):

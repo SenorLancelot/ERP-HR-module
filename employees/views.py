@@ -169,6 +169,21 @@ class CustomerViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_200_OK)
 # LORAN
 class EmployeeGroupViewSet(viewsets.ViewSet):
+
+    @action(detail=True, methods=["get"], url_path="read_employees")
+    @swagger_auto_schema(responses={200: DesignationSerializer})
+    def read_employee_group_employees(self, request, pk):
+
+        try:
+            queryset = Employee.objects.filter(fk_employee_group=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = EmployeeSerializer(instance=queryset, many=True)
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
         request_body=EmployeeGroupSerializer, responses={200: EmployeeGroupSerializer}
@@ -575,54 +590,46 @@ class AttendanceViewSet(viewsets.ViewSet):
     def read_department_attendances(self, request, pk):
         dep_id = pk
 
-        if request.GET.get("isFilter", False):
-            try:
+        
+        try:
 
-                start_date_req = request.GET.get("start_date")
-                end_date_req = request.GET.get("end_date")
-                queryset = Attendance.objects.filter(
-                    fk_employee__department=dep_id,
-                    attendance_date__range=[start_date_req, end_date_req],
-                )
-                serialized = AttendanceSerializer(instance=queryset, many=True)
-                return Response(data=serialized.data, status=status.HTTP_200_OK)
-            except:
-                return Response(
-                    {"Message": "Enter start date and end date"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-        else:
-
-            queryset = Attendance.objects.filter(fk_employee__fk_department=dep_id)
-            serialized = AttendanceSerializer(queryset, many=True)
+            start_date_req = request.GET.get("start_date")
+            end_date_req = request.GET.get("end_date")
+            queryset = Attendance.objects.filter(
+                fk_employee__department=dep_id,
+                attendance_date__range=[start_date_req, end_date_req],
+            )
+            serialized = AttendanceSerializer(instance=queryset, many=True)
             return Response(data=serialized.data, status=status.HTTP_200_OK)
+        except:
+            return Response(
+                {"Message": "Enter start date and end date"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
 
     @action(detail=True, methods=["get"], url_path="employee")
     def read_employee_attendances(self, request, pk):
 
         id = pk
 
-        if request.GET.get("isFilter", False):
-            try:
-                start_date_req = request.GET.get("start_date")
-                end_date_req = request.GET.get("end_date")
-                queryset = Attendance.objects.filter(
-                    id=id, attendance_date__range=[start_date_req, end_date_req]
-                )
-                serialized = AttendanceSerializer(instance=queryset, many=True)
-                return Response(data=serialized.data, status=status.HTTP_200_OK)
-            except:
-                return Response(
-                    {"Message": "Enter start date and end date"},
-                    status=status.HTTP_400_BAD_REQUEST,
-                )
-
-        else:
-
-            queryset = Attendance.objects.filter(employee=id)
-            serialized = AttendanceSerializer(queryset, many=True)
+        
+        try:
+            start_date_req = request.GET.get("start_date")
+            end_date_req = request.GET.get("end_date")
+            queryset = Attendance.objects.filter(
+                id=id, attendance_date__range=[start_date_req, end_date_req]
+            )
+            serialized = AttendanceSerializer(instance=queryset, many=True)
             return Response(data=serialized.data, status=status.HTTP_200_OK)
+        except:
+            return Response(
+                {"Message": "Enter start date and end date"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
 
     @action(detail=False, methods=["get"], url_path="read")
     def read_all_attendances(self, request):
@@ -681,22 +688,22 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
             )
         employee = Employee.objects.get(id=employee_id)
 
-        date = datetime.datetime.strptime(checked_in_at, "%Y-%m-%d %H:%M:%S")
+        date = datetime.datetime.strptime(checked_in, "%Y-%m-%d %H:%M:%S")
         try:
             attendance = Attendance.objects.get(
                 attendance_date=date, fk_employee=employee_id
             )
         except Attendance.DoesNotExist:
 
-            e_check = EmployeeSession(
+            session = EmployeeSession(
                 checked_in_at=request.data["checked_in_at"],
                 fk_employee=employee,
                 # is_first_session=is_first_session,
             )
-            e_check.save()
+            session.save()
             attendance = Attendance(fk_employee=employee, attendance_date=date)
             attendance.save()
-            attendance.fk_sessions.add(e_check)
+            attendance.fk_sessions.add(session)
             attendance.save()
             return Response(status=status.HTTP_200_OK)
 
@@ -748,7 +755,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
             )
         try:
 
-            e = EmployeeSession.objects.filter(fk_employee=employee_id).latest(
+            session = EmployeeSession.objects.filter(fk_employee=employee_id).latest(
                 "checked_in_at"
             )
 
@@ -756,17 +763,17 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
 
             return Response({"Message": "No checkin for the employee found"})
 
-        if e.checked_out_at is None:
+        if session.checked_out_at is None:
 
-            checked_in_date = datetime.datetime.strptime(e.checked_out_time, "%Y-%m-%d %H:%M:%S")
-            checked_out_date = datetime.datetime.strptime(e.checked_out_time, "%Y-%m-%d %H:%M:%S")
+            checked_in_date = datetime.datetime.strptime(session.checked_out_time, "%Y-%m-%d %H:%M:%S")
+            checked_out_date = datetime.datetime.strptime(session.checked_out_time, "%Y-%m-%d %H:%M:%S")
             if (checked_out_date.day)>(checked_in_date.day):
 
                 bridgetime = datetime.datetime(checked_out_date.year,checked_out_date.month,checked_out_date.day,0,0,0)
 
-                e.checked_out_at = bridgetime
+                session.checked_out_at = bridgetime
 
-                e.save()
+                session.save()
 
                 autosession = EmployeeSession(fk_employee = employee_id, checked_in_at = bridgetime, checked_out_at = checked_out_date)
 
@@ -774,8 +781,8 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
 
             else:
 
-                e.checked_out_at = checked_out
-                e.save()
+                session.checked_out_at = checked_out
+                session.save()
 
             
             # e.checked_out_time = checked_out
@@ -881,13 +888,13 @@ class LeavePolicyViewSet(viewsets.ViewSet):
             )
         if designation.fk_leave_policy is None:
 
-            lp = LeavePolicy()
-            lp.save()
-            designation.fk_leave_policy = lp
+            leave_policy = LeavePolicy()
+            leave_policy.save()
+            designation.fk_leave_policy = leave_policy
             designation.save()
-            # lp_id = lp.leavepolicy_id
+            # leave_policy_id = leave_policy.leavepolicy_id
             for member in request.data:
-                member["fk_leave_policy"] = lp.id
+                member["fk_leave_policy"] = leave_policy.id
             serialized = LeavePolicyTypeMembershipSerializer(
                 data=request.data, many=True
             )
@@ -995,12 +1002,17 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # for app_id in accepted_ids:
+        for app_id in accepted_ids:
 
-        #     leave_application = LeaveApplication.objects.get(id=app_id)
+            leaves = LeaveApplicationTypeMembership.objects.filter(fk_leave_application = app_id)
 
-        #     start = leave_application.from_date_time
-        #     end = leave_application.to_date_time
+            for leave in leaves:
+
+                leave = Leave(fk_employee = leave.fk_leave_application.fk_employee, fk_leave_type = leave.fk_leave_type, from_date = leave.from_date, to_date = leave.to_date)
+                leave.save()
+
+        return Response(data = request.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=["post"], url_path="reject_applications")
     def reject_applications(self, request):
         try:
@@ -1071,17 +1083,18 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=LeaveApplicationSerializer,
-        responses={200: LeaveApplicationSerializer},
+        request_body=CreateLeaveApplicationSerializer,
+        responses={200: CreateLeaveApplicationSerializer},
     )
     def create_leave_applications(self, request):
 
-        serialized = LeaveApplicationSerializer(data=request.data, many=True)
+        serialized = CreateLeaveApplicationSerializer(data=request.data, many=True)
         if serialized.is_valid():
             serialized.save()
-            return Response(data=serialized.data, status=status.HTTP_200_OK)
+            
+            return Response(data = request.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data = serialized.errors, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -1104,6 +1117,28 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
 
 
 class LeaveViewSet(viewsets.ViewSet):
+
+    @action(detail=True, methods=["post"], url_path="read_employee_leaves")
+    def read_leaves_employee(self, request, pk):
+       
+        try:
+
+            start_date_req = request.GET.get("start_date")
+            end_date_req = request.GET.get("end_date")
+            queryset = Leave.objects.filter(
+                from_date__range=[start_date_req, end_date_req],
+                to_date__range=[start_date_req, end_date_req],
+                fk_employee = pk
+            )
+            serialized = LeaveSerializer(instance=queryset, many=True)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+        except:
+            return Response(
+                {"Message": "Enter start date and end date"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(request_body=LeaveSerializer, responses={200: LeaveSerializer})
     def update_leaves(self, request):
@@ -1261,7 +1296,7 @@ class ScheduleViewSet(viewsets.ViewSet):
 class WorkdayDivisionViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(request_body=WorkdayDivisionSerializer, responses={200: WorkdayDivisionSerializer})
-    def update_workdaydivisons(self, request):
+    def update_workday_divisons(self, request):
 
         try:
             leave = request.data["leave_id"]
@@ -1285,7 +1320,7 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get"], url_path="read")
     @swagger_auto_schema(responses={200: WorkdayDivisionSerializer})
-    def read_workdaydivisons(self, request):
+    def read_workday_divisons(self, request):
 
         try:
             queryset = WorkdayDivision.objects.all()
@@ -1298,7 +1333,7 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(request_body=WorkdayDivisionSerializer, responses={200: WorkdayDivisionSerializer})
-    def create_workdaydivisons(self, request):
+    def create_workday_divisons(self, request):
 
         serialized = WorkdayDivisionSerializer(data=request.data, many=True)
         if serialized.is_valid():
@@ -1311,7 +1346,7 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
     @swagger_auto_schema(
         request_body=WorkdayDivisionDeleteSerializer, responses={200: WorkdayDivisionDeleteSerializer}
     )
-    def delete_leaves(self, request):
+    def delete_workday_divisions(self, request):
 
         serialized = WorkdayDivisionDeleteSerializer(data=request.data)
 
@@ -1326,7 +1361,7 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
 
 
 
-        
+
 # class MonthlyReportViewSet(viewsets.ViewSet):
 #     def update_monthlyreports(self, request):
 

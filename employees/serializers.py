@@ -26,7 +26,6 @@ class CustomerDeleteSerializer(serializers.Serializer):
     customer_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-
 class IdentificationDocumentSerializer(serializers.ModelSerializer):
     class Meta:
         model = IdentificationDocument
@@ -154,6 +153,56 @@ class LeaveApplicationDeleteSerializer(serializers.Serializer):
     leaveapplication_ids = serializers.ListField(child=serializers.IntegerField())
 
 
+class LeaveApplicationTypeMembershipSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = LeaveApplicationTypeMembership
+        fields = ["fk_leave_type", "from_date", "to_date"]
+
+
+class CreateLeaveApplicationSerializer(serializers.ModelSerializer):
+
+    fk_leave_types = LeaveApplicationTypeMembershipSerializer(many=True)
+
+    class Meta:
+
+        model = LeaveApplication
+        fields = [
+            "fk_leave_types",
+            "fk_employee",
+            "fk_leave_approver",
+            "from_date",
+            "to_date",
+            "status",
+            "post_date",
+        ]
+
+    def create(self, validated_data):
+
+        leave_type_membership = validated_data.pop("fk_leave_types")
+
+        leave_application = LeaveApplication(**validated_data)
+
+        leave_application.save()
+
+        for leave_type in leave_type_membership:
+
+            leave_application_type = LeaveApplicationTypeMembership(
+                fk_leave_application=leave_application, **leave_type
+            )
+
+            leave_application_type.save()
+
+        return leave_application
+
+
+class LeaveApplicationResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = LeaveApplication
+        fields = "__all__"
+
+
 class LeaveSerializer(serializers.ModelSerializer):
     class Meta:
 
@@ -176,6 +225,7 @@ class WorkdayDivisionSerializer(serializers.ModelSerializer):
 class WorkdayDivisionDeleteSerializer(serializers.Serializer):
 
     leave_ids = serializers.ListField(child=serializers.IntegerField())
+
 
 # class MonthlyReportSerializer(serializers.ModelSerializer):
 #     class Meta:
