@@ -3,13 +3,13 @@ from django.shortcuts import render
 from rest_framework import generics, viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-
+from django.db.models import Q
 from django.db.models import Sum
 
 # from datetime import datetime
 import datetime
 
-#default value of detail, methods array,
+# default value of detail, methods array,
 
 # project imports
 from rest_framework.decorators import action
@@ -94,6 +94,7 @@ class EmployeeViewSet(viewsets.ViewSet):
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
+
 class CustomerViewSet(viewsets.ViewSet):
     @swagger_auto_schema(responses={200: CustomerSerializer})
     @action(detail=False, methods=["get"], url_path="read")
@@ -167,9 +168,10 @@ class CustomerViewSet(viewsets.ViewSet):
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+
 # LORAN
 class EmployeeGroupViewSet(viewsets.ViewSet):
-
     @action(detail=True, methods=["get"], url_path="read_employees")
     @swagger_auto_schema(responses={200: DesignationSerializer})
     def read_employee_group_employees(self, request, pk):
@@ -183,6 +185,31 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=["get"], url_path="read_employee_group_presence")
+    @swagger_auto_schema()
+    def read_employee_group_presence(self, request, pk):
+
+        try:
+
+            group = EmployeeGroup.objects.get(id=pk)
+            print(group)
+            employees = group.fk_employee.all()
+            print(employees)
+            sessions = EmployeeSession.objects.filter(
+                fk_employee__in=employees, checked_out_at__isnull=True
+            )
+
+        except ValueError:
+
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        if len(employees) == sessions.count():
+
+            return Response({"Message": "All present"}, status=status.HTTP_200_OK)
+
+        else:
+
+            return Response({"Message": "All not present"}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
@@ -590,7 +617,6 @@ class AttendanceViewSet(viewsets.ViewSet):
     def read_department_attendances(self, request, pk):
         dep_id = pk
 
-        
         try:
 
             start_date_req = request.GET.get("start_date")
@@ -607,14 +633,11 @@ class AttendanceViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-
-
     @action(detail=True, methods=["get"], url_path="employee")
     def read_employee_attendances(self, request, pk):
 
         id = pk
 
-        
         try:
             start_date_req = request.GET.get("start_date")
             end_date_req = request.GET.get("end_date")
@@ -628,8 +651,6 @@ class AttendanceViewSet(viewsets.ViewSet):
                 {"Message": "Enter start date and end date"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-
 
     @action(detail=False, methods=["get"], url_path="read")
     def read_all_attendances(self, request):
@@ -670,7 +691,6 @@ class AttendanceViewSet(viewsets.ViewSet):
 
 
 class EmployeeSessionViewSet(viewsets.ViewSet):
-
     @action(detail=False, methods=["post"], url_path="create_employee_checkin")
     @swagger_auto_schema(
         request_body=EmployeeSessionCheckinSerializer,
@@ -688,7 +708,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
             )
         employee = Employee.objects.get(id=employee_id)
 
-        date = datetime.datetime.strptime(checked_in, "%Y-%m-%d %H:%M:%S")
+        date = datetime.datetime.strptime(checked_in, "%Y-%m-%dT%H:%M:%S")
         try:
             attendance = Attendance.objects.get(
                 attendance_date=date, fk_employee=employee_id
@@ -721,7 +741,6 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
                 attendance.fk_sessions.add(e)
 
                 return Response(data=serialized.data, status=status.HTTP_200_OK)
-
 
             if check.checked_out_at is not None:
                 serialized.save()
@@ -765,17 +784,35 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
 
         if session.checked_out_at is None:
 
-            checked_in_date = datetime.datetime.strptime(session.checked_out_time, "%Y-%m-%d %H:%M:%S")
-            checked_out_date = datetime.datetime.strptime(session.checked_out_time, "%Y-%m-%d %H:%M:%S")
-            if (checked_out_date.day)>(checked_in_date.day):
+            checked_in_date = datetime.datetime.strptime(
+                checked_out, "%Y-%m-%dT%H:%M:%S"
+            )
+            print("787")
+            checked_out_date = datetime.datetime.strptime(
+                checked_out, "%Y-%m-%dT%H:%M:%S"
+            )
+            print("792")
+            if (checked_out_date.day) > (session.checked_in_at.day):
 
-                bridgetime = datetime.datetime(checked_out_date.year,checked_out_date.month,checked_out_date.day,0,0,0)
+                bridgetime = datetime.datetime(
+                    checked_out_date.year,
+                    checked_out_date.month,
+                    checked_out_date.day,
+                    0,
+                    0,
+                    0,
+                )
+                print("797")
 
                 session.checked_out_at = bridgetime
 
                 session.save()
 
-                autosession = EmployeeSession(fk_employee = employee_id, checked_in_at = bridgetime, checked_out_at = checked_out_date)
+                autosession = EmployeeSession(
+                    fk_employee=session.fk_employee,
+                    checked_in_at=bridgetime,
+                    checked_out_at=checked_out_date,
+                )
 
                 autosession.save()
 
@@ -784,7 +821,6 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
                 session.checked_out_at = checked_out
                 session.save()
 
-            
             # e.checked_out_time = checked_out
             # e.total_time_elapsed = 8  # TODO do this using TIME DELTA
             # e.is_last_session = is_last_session
@@ -1004,14 +1040,21 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
 
         for app_id in accepted_ids:
 
-            leaves = LeaveApplicationTypeMembership.objects.filter(fk_leave_application = app_id)
+            leaves = LeaveApplicationTypeMembership.objects.filter(
+                fk_leave_application=app_id
+            )
 
             for leave in leaves:
 
-                leave = Leave(fk_employee = leave.fk_leave_application.fk_employee, fk_leave_type = leave.fk_leave_type, from_date = leave.from_date, to_date = leave.to_date)
+                leave = Leave(
+                    fk_employee=leave.fk_leave_application.fk_employee,
+                    fk_leave_type=leave.fk_leave_type,
+                    from_date=leave.from_date,
+                    to_date=leave.to_date,
+                )
                 leave.save()
 
-        return Response(data = request.data, status=status.HTTP_200_OK)
+        return Response(data=request.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="reject_applications")
     def reject_applications(self, request):
@@ -1032,14 +1075,22 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
                 {"Message": "Bad request, check body"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-    @action(detail=True, methods=["post"], url_path="read_employee_applications")
+
+    @action(detail=True, methods=["get"], url_path="read_employee_applications")
     def read_leave_applications_employee(self, request, pk):
-       
+
         queryset = LeaveApplication.objects.filter(fk_employee=pk)
         serialized = LeaveApplicationSerializer(instance=queryset, many=True)
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        
+
+    @action(detail=True, methods=["get"], url_path="read_department_applications")
+    def read_leave_applications_department(self, request, pk):
+
+        queryset = LeaveApplication.objects.filter(fk_employee__fk_department = pk)
+        serialized = LeaveApplicationSerializer(instance=queryset, many=True)
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
@@ -1091,10 +1142,10 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         serialized = CreateLeaveApplicationSerializer(data=request.data, many=True)
         if serialized.is_valid():
             serialized.save()
-            
-            return Response(data = request.data, status=status.HTTP_200_OK)
 
-        return Response(data = serialized.errors, status=status.HTTP_200_OK)
+            return Response(data=request.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -1117,18 +1168,17 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
 
 
 class LeaveViewSet(viewsets.ViewSet):
-
-    @action(detail=True, methods=["post"], url_path="read_employee_leaves")
+    @action(detail=True, methods=["get"], url_path="read_employee_leaves")
     def read_leaves_employee(self, request, pk):
-       
+
         try:
 
             start_date_req = request.GET.get("start_date")
             end_date_req = request.GET.get("end_date")
             queryset = Leave.objects.filter(
-                from_date__range=[start_date_req, end_date_req],
-                to_date__range=[start_date_req, end_date_req],
-                fk_employee = pk
+                Q(from_date__range=[start_date_req, end_date_req], fk_employee=pk)
+                | Q(to_date__range=[start_date_req, end_date_req], fk_employee=pk)
+                | Q(Q(from_date__lte=start_date_req) & Q(to_date__gte=end_date_req))
             )
             serialized = LeaveSerializer(instance=queryset, many=True)
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -1137,7 +1187,6 @@ class LeaveViewSet(viewsets.ViewSet):
                 {"Message": "Enter start date and end date"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(request_body=LeaveSerializer, responses={200: LeaveSerializer})
@@ -1292,10 +1341,12 @@ class ScheduleViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
 
-
 class WorkdayDivisionViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["patch"], url_path="update")
-    @swagger_auto_schema(request_body=WorkdayDivisionSerializer, responses={200: WorkdayDivisionSerializer})
+    @swagger_auto_schema(
+        request_body=WorkdayDivisionSerializer,
+        responses={200: WorkdayDivisionSerializer},
+    )
     def update_workday_divisons(self, request):
 
         try:
@@ -1332,7 +1383,10 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="create")
-    @swagger_auto_schema(request_body=WorkdayDivisionSerializer, responses={200: WorkdayDivisionSerializer})
+    @swagger_auto_schema(
+        request_body=WorkdayDivisionSerializer,
+        responses={200: WorkdayDivisionSerializer},
+    )
     def create_workday_divisons(self, request):
 
         serialized = WorkdayDivisionSerializer(data=request.data, many=True)
@@ -1344,7 +1398,8 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
-        request_body=WorkdayDivisionDeleteSerializer, responses={200: WorkdayDivisionDeleteSerializer}
+        request_body=WorkdayDivisionDeleteSerializer,
+        responses={200: WorkdayDivisionDeleteSerializer},
     )
     def delete_workday_divisions(self, request):
 
@@ -1357,9 +1412,6 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
             return Response(data=request.data, status=status.HTTP_200_OK)
 
         return Response(data=serialized.errors, status=status.HTTP_200_OK)
-
-
-
 
 
 # class MonthlyReportViewSet(viewsets.ViewSet):

@@ -76,9 +76,9 @@ class Employee(Person,MPTTModel):
     fk_designation = models.ForeignKey(
         "Designation", on_delete=models.CASCADE, null=True, blank=True
     )
-    fk_employee_group = models.ForeignKey(
-        "EmployeeGroup", on_delete=models.SET_NULL, null=True, blank=True
-    )
+    # fk_employee_group = models.ForeignKey(
+    #     "EmployeeGroup", on_delete=models.SET_NULL, null=True, blank=True
+    # )
     
 
     created_at = models.DateTimeField(auto_now_add=True)
@@ -109,6 +109,7 @@ class IdentificationType(models.Model):
 
 class EmployeeGroup(models.Model):
 
+    fk_employee = models.ManyToManyField("Employee")
     name = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
