@@ -1414,6 +1414,206 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_200_OK)
 
 
+class DaysListViewSet(viewsets.ViewSet):
+
+    @action(detail=False, methods=["patch"], url_path="update")
+    @swagger_auto_schema(request_body=DaysListSerializer, responses={200: DaysListSerializer})
+    def update_days_lists(self, request):
+
+        try:
+            leave = request.data["id"]
+
+        except:
+
+            return Response(
+                {"Message": "Request body incorrect. Please specify  ID."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        queryset = DaysList.objects.get(id=leave)
+
+        serialized = DaysListSerializer(queryset, request.data, partial=True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"], url_path="read")
+    @swagger_auto_schema(responses={200: DaysListSerializer})
+    def read_days_lists(self, request):
+
+        try:
+            queryset = DaysList.objects.all()
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = DaysListSerializer(instance=queryset, many=True)
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["post"], url_path="create")
+    @swagger_auto_schema(request_body=DaysListSerializer, responses={200: DaysListSerializer})
+    def create_days_lists(self, request):
+
+        serialized = DaysListSerializer(data=request.data, many=True)
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["delete"], url_path="delete")
+    @swagger_auto_schema(
+        request_body=DaysListDeleteSerializer, responses={200: DaysListDeleteSerializer}
+    )
+    def delete_days_lists(self, request):
+
+        serialized = DaysListDeleteSerializer(data=request.data)
+
+        if serialized.is_valid():
+
+            DaysList.objects.filter(id__in=request.data["days_list_ids"]).delete()
+
+            return Response(data=request.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+class CompanyViewSet(viewsets.ViewSet):
+
+    @action(detail=False, methods=["patch"], url_path="update")
+    @swagger_auto_schema(request_body=CompanySerializer, responses={200: CompanySerializer})
+    def update_companies(self, request):
+
+        try:
+            company= request.data["id"]
+
+        except:
+
+            return Response(
+                {"Message": "Request body incorrect. Please specify  ID."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        queryset = Company.objects.get(id=company)
+
+        serialized = CompanySerializer(queryset, request.data, partial=True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"], url_path="read")
+    @swagger_auto_schema(responses={200: CompanySerializer})
+    def read_companies(self, request):
+
+        try:
+            queryset = Company.objects.all()
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = CompanySerializer(instance=queryset, many=True)
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["post"], url_path="create")
+    @swagger_auto_schema(request_body=CompanySerializer, responses={200: CompanySerializer})
+    def create_companies(self, request):
+
+        serialized = CompanySerializer(data=request.data, many=True)
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["delete"], url_path="delete")
+    @swagger_auto_schema(
+        request_body=CompanyDeleteSerializer, responses={200: CompanyDeleteSerializer}
+    )
+    def delete_companies(self, request):
+
+        serialized = CompanyDeleteSerializer(data=request.data)
+
+        if serialized.is_valid():
+
+            Company.objects.filter(id__in=request.data["company_ids"]).delete()
+
+            return Response(data=request.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+
+class EmployeeGradeViewSet(viewsets.ViewSet):
+
+    @action(detail=False, methods=["patch"], url_path="update")
+    @swagger_auto_schema(request_body=EmployeeGradeSerializer, responses={200: EmployeeGradeSerializer})
+    def update_employee_grades(self, request):
+
+        try:
+            employee_grade= request.data["id"]
+
+        except:
+
+            return Response(
+                {"Message": "Request body incorrect. Please specify  ID."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        queryset = EmployeeGrade.objects.get(id=employee_grade)
+
+        serialized = EmployeeGradeSerializer(queryset, request.data, partial=True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["get"], url_path="read")
+    @swagger_auto_schema(responses={200: EmployeeGradeSerializer})
+    def read_employee_grades(self, request):
+
+        try:
+            queryset = EmployeeGrade.objects.all()
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = EmployeeGradeSerializer(instance=queryset, many=True)
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["post"], url_path="create")
+    @swagger_auto_schema(request_body=EmployeeGradeSerializer, responses={200: EmployeeGradeSerializer})
+    def create_employee_grades(self, request):
+
+        serialized = EmployeeGradeSerializer(data=request.data, many=True)
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["delete"], url_path="delete")
+    @swagger_auto_schema(
+        request_body=EmployeeGradeDeleteSerializer, responses={200: EmployeeGradeDeleteSerializer}
+    )
+    def delete_employee_grades(self, request):
+
+        serialized = EmployeeGradeDeleteSerializer(data=request.data)
+
+        if serialized.is_valid():
+
+            EmployeeGrade.objects.filter(id__in=request.data["employee_grade_ids"]).delete()
+
+            return Response(data=request.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+
+        
 # class MonthlyReportViewSet(viewsets.ViewSet):
 #     def update_monthlyreports(self, request):
 

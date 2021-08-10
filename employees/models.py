@@ -4,8 +4,6 @@ from mptt.models import MPTTModel, TreeForeignKey
 import datetime
 
 
-
-
 # Create your models here.
 class Person(models.Model):
 
@@ -20,8 +18,10 @@ class Person(models.Model):
     gender = models.CharField(max_length=30, choices=genderChoices, default="Others")
     birth_date = models.DateField()
     primary_contact_no = models.CharField(max_length=15)
-    secondary_contact_no = models.CharField(max_length=15)# Make two fields primary contact secondary contact, and add table for emergency contacts
-    personal_email = models.EmailField() 
+    secondary_contact_no = models.CharField(
+        max_length=15
+    )  # Make two fields primary contact secondary contact, and add table for emergency contacts
+    personal_email = models.EmailField()
     current_address = models.CharField(
         max_length=200,
     )
@@ -33,12 +33,11 @@ class Person(models.Model):
     class Meta:
         abstract = True
 
-class Employee(Person,MPTTModel):
+
+class Employee(Person, MPTTModel):
 
     # employee_id = models.UUIDField(primary_key=True, default=uuid.uuid4)
 
-
-    
     employmentType = (
         ("Apprentice", "Apprentice"),
         ("Intern", "Intern"),
@@ -54,20 +53,17 @@ class Employee(Person,MPTTModel):
     parent = TreeForeignKey(
         "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
     )
-    #change
+    # change
     employment_type = models.CharField(
         max_length=50, choices=employmentType, default="Full-Time"
     )
 
-
-      # req
+    # req
     joining_date = models.DateField(default=datetime.date.today)  # req
     leaving_date = models.DateField(default=datetime.date.today)
     retirement_date = models.DateField(default=datetime.date.today)
- # req
+    # req
     company_email = models.EmailField()
-
-    
 
     # TODO: probably new table (make dynamic)
     fk_department = models.ForeignKey(
@@ -79,21 +75,26 @@ class Employee(Person,MPTTModel):
     # fk_employee_group = models.ForeignKey(
     #     "EmployeeGroup", on_delete=models.SET_NULL, null=True, blank=True
     # )
-    
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+
 
 class Customer(Person):
 
     organization = models.CharField(max_length=100)
     is_guest = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
 
 class IdentificationDocument(models.Model):
 
     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
     identification_number = models.CharField(max_length=100, null=False)
-    fk_identification_type = models.ForeignKey("IdentificationType", on_delete=models.CASCADE)
+    fk_identification_type = models.ForeignKey(
+        "IdentificationType", on_delete=models.CASCADE
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -102,7 +103,7 @@ class IdentificationType(models.Model):
 
     name = models.CharField(max_length=100, null=False)
     issuing_authority = models.CharField(max_length=100, null=False)
-    #add total length field (validation)
+    # add total length field (validation)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -113,10 +114,24 @@ class EmployeeGroup(models.Model):
     name = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    #add employee fk
+    # add employee fk
 
+class EmployeeGrade(models.Model):
+
+    name = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+    
 #################### Departments and Designations ############################################
 
+class Company(MPTTModel):
+
+    name = models.CharField(max_length=50)
+    domain = models.CharField(max_length=50)
+    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
 
 class Department(MPTTModel):
 
@@ -127,7 +142,6 @@ class Department(MPTTModel):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-
 
 
 class Designation(models.Model):
@@ -143,7 +157,6 @@ class Designation(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
 
 
-
 ##################  Attendance Models ########################################################
 
 
@@ -157,7 +170,7 @@ class Attendance(models.Model):
         ("Full-Day", "Full-Day"),
         ("Work-From-Home", "Work-From_Home"),
     )
-    #Create a table for type 
+    # Create a table for type
     fk_sessions = models.ManyToManyField("EmployeeSession")
 
     is_late_entry = models.BooleanField(default=False)
@@ -175,18 +188,17 @@ class Attendance(models.Model):
 
 class EmployeeSession(models.Model):
 
-    #See if we can remove this
+    # See if we can remove this
     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
 
     # attendance = models.ForeignKey('Attendances', on_delete=models.CASCADE)
     checked_in_at = models.DateTimeField()
     checked_out_at = models.DateTimeField(blank=True, null=True)
-    #if the system checks the employee out
+    # if the system checks the employee out
     is_flagged_session = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
     # TODO created by, modified by using django default fields
-
 
 
 ##################  Leave models #############################################################
@@ -199,15 +211,15 @@ class LeavePolicy(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+    fk_blocked_leaves = models.ManyToManyField("DaysList")
 
     class Meta:
 
         verbose_name_plural = "Leave Policies"
 
-#Membership table for Leave Policy -> Leave Type
-class LeavePolicyTypeMembership(
-    models.Model
-):  
+
+# Membership table for Leave Policy -> Leave Type
+class LeavePolicyTypeMembership(models.Model):
 
     fk_leave_policy = models.ForeignKey("LeavePolicy", on_delete=models.CASCADE)
     fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
@@ -221,7 +233,7 @@ class LeaveType(models.Model):
     is_paid = models.BooleanField(default=False)
     is_carry_forward = models.BooleanField(default=False)
     is_optional = models.BooleanField(default=False)
-    is_holiday = models.BooleanField(default=False)  
+    is_holiday = models.BooleanField(default=False)
     is_compensatory = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
@@ -229,8 +241,10 @@ class LeaveType(models.Model):
 
 class LeaveApplication(models.Model):
 
-    #Multiple types of leaves in a single application for consecutive days
-    fk_leave_type = models.ManyToManyField("LeaveType",through= "LeaveApplicationTypeMembership" )
+    # Multiple types of leaves in a single application for consecutive days
+    fk_leave_type = models.ManyToManyField(
+        "LeaveType", through="LeaveApplicationTypeMembership"
+    )
     fk_employee = models.ForeignKey(
         "Employee", on_delete=models.CASCADE, related_name="employee"
     )
@@ -255,21 +269,21 @@ class LeaveApplication(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     is_auto_generated = models.BooleanField(default=False)
 
+
 class LeaveApplicationTypeMembership(models.Model):
 
     fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
-    fk_leave_application = models.ForeignKey("LeaveApplication", on_delete=models.CASCADE)
+    fk_leave_application = models.ForeignKey(
+        "LeaveApplication", on_delete=models.CASCADE
+    )
     from_date = models.DateField(default=datetime.date.today)
     to_date = models.DateField(default=datetime.date.today)
-
 
 
 class Leave(models.Model):
 
     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
     fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
-
-
 
     # leave_application = models.ForeignKey('LeavesApplication', null=True, on_delete = models.CASCADE)
     from_date = models.DateField()
@@ -278,18 +292,26 @@ class Leave(models.Model):
 
 
 class Schedule(models.Model):
-    #Naming
+    # Naming
     total_work_hours = models.FloatField(default=8)
     workday_start_time = models.TimeField()
     workday_end_time = models.TimeField()
-    divisions = models.ManyToManyField('WorkdayDivision')
+    divisions = models.ManyToManyField("WorkdayDivision")
 
-    # TODO create this
 
 class WorkdayDivision(models.Model):
 
     name = models.CharField(max_length=50)
     duration_in_hours = models.FloatField(default=1.0)
+
+
+class DaysList(models.Model):
+
+    is_holiday_list = models.BooleanField(default=False)
+    is_blocked_list = models.BooleanField(default=False)
+    from_date = models.DateField()
+    to_date = models.DateField()
+    occasion = models.CharField(max_length=100)
 
 
 # class EmployeeLeaveReport(models.Model):

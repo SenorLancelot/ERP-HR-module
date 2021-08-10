@@ -72,6 +72,29 @@ class DepartmentDeleteSerializer(serializers.Serializer):
     department_ids = serializers.ListField(child=serializers.IntegerField())
 
 
+
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = Company
+        fields = "__all__"
+
+
+class CompanyDeleteSerializer(serializers.Serializer):
+
+    company_ids = serializers.ListField(child=serializers.IntegerField())
+
+class EmployeeGradeSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = EmployeeGrade
+        fields = "__all__"
+
+
+class EmployeeGradeDeleteSerializer(serializers.Serializer):
+
+    employee_grade_ids = serializers.ListField(child=serializers.IntegerField())
+
 class DesignationSerializer(serializers.ModelSerializer):
     class Meta:
 
@@ -251,6 +274,18 @@ class ScheduleSerializer(serializers.ModelSerializer):
 class ScheduleDeleteSerializer(serializers.Serializer):
 
     schedule_ids = serializers.ListField(child=serializers.IntegerField())
+
+
+class DaysListSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = DaysList
+        fields = "__all__"
+
+
+class DaysListDeleteSerializer(serializers.Serializer):
+
+    days_list_ids = serializers.ListField(child=serializers.IntegerField())
 
 
 # class CalendarSerializer(serializers.ModelSerializer):
