@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     "employees",
+    'appraisal',
     "mptt",
     'drf_yasg',
 ]
