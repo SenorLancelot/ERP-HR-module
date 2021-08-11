@@ -4,6 +4,8 @@ from django.urls import path, include
 
 router = routers.DefaultRouter()
 router.register(r"employees", EmployeeViewSet, basename="employees")
+router.register(r"employee_grades", EmployeeGradeViewSet, basename="employee_grades")
+router.register(r"company", CompanyViewSet, basename="company")
 router.register(r"departments", DepartmentViewSet, basename="departments")
 router.register(r"designations", DesignationViewSet, basename="designations")
 router.register(r"employee_groups", EmployeeGroupViewSet, basename="employee_groups")
@@ -14,6 +16,7 @@ router.register(r"identification_docs", IdentificationDocumentViewSet, basename=
 router.register(r"identification_types", IdentificationTypeViewSet, basename="identification_types")
 router.register(r"attendances", AttendanceViewSet, basename="attendances")
 router.register(r"schedules", ScheduleViewSet, basename="schedules")
+router.register(r"day_lists", DaysListViewSet, basename="day_lists")
 router.register(r"employee_sessions", EmployeeSessionViewSet, basename="employee_sessions")
 router.register(r"customers", CustomerViewSet, basename="customers")
 router.register(r"workday_division", WorkdayDivisionViewSet, basename="workday_division")
