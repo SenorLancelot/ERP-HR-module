@@ -10,7 +10,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class EmployeeDeleteSerializer(serializers.Serializer):
+class EmployeeListSerializer(serializers.Serializer):
 
     employee_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -21,7 +21,7 @@ class CustomerSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class CustomerDeleteSerializer(serializers.Serializer):
+class CustomerListSerializer(serializers.Serializer):
 
     customer_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -32,7 +32,7 @@ class IdentificationDocumentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class IdentificationDocumentDeleteSerializer(serializers.Serializer):
+class IdentificationDocumentListSerializer(serializers.Serializer):
 
     identificationdocument_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -43,7 +43,7 @@ class IdentificationTypeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class IdentificationTypeDeleteSerializer(serializers.Serializer):
+class IdentificationTypeListSerializer(serializers.Serializer):
 
     identificationtype_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -55,7 +55,7 @@ class EmployeeGroupSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class EmployeeGroupDeleteSerializer(serializers.Serializer):
+class EmployeeGroupListSerializer(serializers.Serializer):
 
     group_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -67,7 +67,7 @@ class DepartmentSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class DepartmentDeleteSerializer(serializers.Serializer):
+class DepartmentListSerializer(serializers.Serializer):
 
     department_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -80,7 +80,7 @@ class CompanySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class CompanyDeleteSerializer(serializers.Serializer):
+class CompanyListSerializer(serializers.Serializer):
 
     company_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -91,7 +91,7 @@ class EmployeeGradeSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class EmployeeGradeDeleteSerializer(serializers.Serializer):
+class EmployeeGradeListSerializer(serializers.Serializer):
 
     employee_grade_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -102,7 +102,7 @@ class DesignationSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class DesignationDeleteSerializer(serializers.Serializer):
+class DesignationListSerializer(serializers.Serializer):
 
     designation_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -114,7 +114,7 @@ class AttendanceSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class AttendanceDeleteSerializer(serializers.Serializer):
+class AttendanceListSerializer(serializers.Serializer):
 
     attendance_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -140,7 +140,7 @@ class EmployeeSessionCheckoutSerializer(serializers.ModelSerializer):
         fields = ["fk_employee", "checked_out_at"]
 
 
-class EmployeeSessionDeleteSerializer(serializers.Serializer):
+class EmployeeSessionListSerializer(serializers.Serializer):
 
     check_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -152,7 +152,7 @@ class LeavePolicySerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class LeavePolicyDeleteSerializer(serializers.Serializer):
+class LeavePolicyListSerializer(serializers.Serializer):
 
     leavepolicy_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -171,7 +171,7 @@ class LeaveApplicationSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class LeaveApplicationDeleteSerializer(serializers.Serializer):
+class LeaveApplicationListSerializer(serializers.Serializer):
 
     leaveapplication_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -233,7 +233,7 @@ class LeaveSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class LeaveDeleteSerializer(serializers.Serializer):
+class LeaveListSerializer(serializers.Serializer):
 
     leave_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -245,7 +245,7 @@ class WorkdayDivisionSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class WorkdayDivisionDeleteSerializer(serializers.Serializer):
+class WorkdayDivisionListSerializer(serializers.Serializer):
 
     leave_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -271,7 +271,7 @@ class ScheduleSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class ScheduleDeleteSerializer(serializers.Serializer):
+class ScheduleListSerializer(serializers.Serializer):
 
     schedule_ids = serializers.ListField(child=serializers.IntegerField())
 
@@ -283,7 +283,7 @@ class DaysListSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class DaysListDeleteSerializer(serializers.Serializer):
+class DaysListListSerializer(serializers.Serializer):
 
     days_list_ids = serializers.ListField(child=serializers.IntegerField())
 

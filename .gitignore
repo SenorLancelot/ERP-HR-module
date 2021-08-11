@@ -1,9 +1,6 @@
 .sqlite3
-pycache
+__pycache__
 venv/
 static/
-symbols/
-.DS_Store
-symbol_svgs
-kicad-symbols/*
+*.pyc
 migrations
