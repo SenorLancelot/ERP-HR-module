@@ -5,7 +5,7 @@ from django.urls import path, include
 router = routers.DefaultRouter()
 router.register(r"employees", EmployeeViewSet, basename="employees")
 router.register(r"employee_grades", EmployeeGradeViewSet, basename="employee_grades")
-router.register(r"company", CompanyViewSet, basename="company")
+router.register(r"companies", CompanyViewSet, basename="companies")
 router.register(r"departments", DepartmentViewSet, basename="departments")
 router.register(r"designations", DesignationViewSet, basename="designations")
 router.register(r"employee_groups", EmployeeGroupViewSet, basename="employee_groups")
