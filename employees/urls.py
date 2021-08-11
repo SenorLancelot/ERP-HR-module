@@ -21,7 +21,10 @@ router.register(r"employee_sessions", EmployeeSessionViewSet, basename="employee
 router.register(r"customers", CustomerViewSet, basename="customers")
 router.register(r"workday_division", WorkdayDivisionViewSet, basename="workday_division")
 
-urlpatterns = router.urls
+urlpatterns = [
+    path('', include(router.urls)),
+    path('', include('appraisal.urls'))
+]
 
 
 

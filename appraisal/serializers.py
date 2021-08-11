@@ -1,3 +1,4 @@
+from django.db.models import fields
 from rest_framework import serializers
 
 from .models import *
@@ -58,7 +59,6 @@ class AppraisalTemplateSerializer(serializers.ModelSerializer):
         instance.save()
 
         goals_data = validated_data.get("fk_goal")
-        print(goals_data)
         for goal_data in goals_data:
             print (goal_data)  
             goal_id = goal_data.get('id', None)
@@ -81,3 +81,40 @@ class AppraisalTemplateSerializer(serializers.ModelSerializer):
 class AppraisalTemplateDeleteSerializer(serializers.Serializer):
 
     template_ids = serializers.ListField(child=serializers.IntegerField())
+
+class ProjectSerializer(serializers.Serializer):
+
+    class Meta:
+        model=Project
+        fields = [
+            'fk_employee',
+            'name'
+        ]
+
+class AppraisalGoalMembershipSerializer(serializers.Serializer):
+    class Meta:
+        model = AppraisalGoalMembership
+        fields = '__all__'
+
+class AppraisalProjectMembershipSerializer(serializers.Serializer):
+    class Meta:
+        model = AppraisalProjectMembership
+        fields = '__all__'
+
+class AppraisalSerializer(serializers.Serializer):
+    fk_goal = AppraisalGoalMembership()
+    fk_project_ranks = AppraisalProjectMembershipSerializer()
+    class Meta:
+        model = Appraisal
+        fields = [
+            'fk_appraiser',
+            'fk_employee',
+            'fk_appraiser_template',
+            'fk_goal',
+            'fk_project_ranks',
+            'remarks',
+            'created_at',
+            'modified_at'
+        ]
+    
+
