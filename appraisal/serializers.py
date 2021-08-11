@@ -8,11 +8,17 @@ class GoalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Goal
         fields = [
+            "id",
             "key_result_area",
             "weightage",
             "max_score",
         ]
         read_only_field = ['id',]
+
+class GoalListSerializer(serializers.Serializer):
+
+    goal_ids = serializers.ListField(child=serializers.IntegerField())
+
 
 class AppraisalTemplateSerializer(serializers.ModelSerializer):
     fk_goal = GoalSerializer(many=True)

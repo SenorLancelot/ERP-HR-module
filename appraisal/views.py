@@ -92,3 +92,99 @@ class AppraisalViewSet(viewsets.ViewSet):
             return Response(data=request.data, status=status.HTTP_200_OK)
         
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class GoalViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: GoalSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_goal(self, request, pk):
+
+        try:
+            queryset = Goal.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = GoalSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(responses={200: GoalSerializer})
+    @action(detail=False, methods=["get"], url_path="read")
+    def read_goals(self, request):
+
+        try:
+            queryset = Goal.objects.all()
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = GoalSerializer(instance=queryset, many=True)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        request_body=GoalSerializer, responses={200: GoalSerializer}
+    )
+    @action(detail=False, methods=["patch"], url_path="update")
+    def update_goals(self, request):
+
+        try:
+            goal = request.data["id"]
+
+        except:
+
+            return Response(
+                {"Message": "Request body incorrect. Please specify ID."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        queryset = Goal.objects.get(id=goal)
+
+        serialized = GoalSerializer(queryset, request.data, partial=True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["post"], url_path="create")
+    @swagger_auto_schema(
+        request_body=GoalSerializer, responses={200: GoalSerializer}
+    )
+    def create_goals(self, request):
+
+        serialized = GoalSerializer(data=request.data, many=True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["delete"], url_path="delete")
+    @swagger_auto_schema(
+        request_body=GoalListSerializer, responses={200: GoalListSerializer}
+    )
+    def delete_goals(self, request):
+
+        serialized = GoalListSerializer(data=request.data)
+
+        if serialized.is_valid():
+            Goal.objects.filter(id__in=request.data["goal_ids"]).delete()
+
+            return Response(data=request.data, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+

@@ -22,6 +22,25 @@ from drf_yasg.utils import swagger_auto_schema
 
 class EmployeeViewSet(viewsets.ViewSet):
     @swagger_auto_schema(responses={200: EmployeeSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_employee(self, request, pk):
+
+        try:
+            queryset = Employee.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = EmployeeSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(responses={200: EmployeeSerializer})
     @action(detail=False, methods=["get"], url_path="read")
     def read_employees(self, request):
 
@@ -64,7 +83,7 @@ class EmployeeViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
@@ -78,7 +97,7 @@ class EmployeeViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -92,10 +111,29 @@ class EmployeeViewSet(viewsets.ViewSet):
             Employee.objects.filter(id__in=request.data["employee_ids"]).delete()
 
             return Response(data=request.data, status=status.HTTP_200_OK)
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CustomerViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: CustomerSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_customer(self, request, pk):
+
+        try:
+            queryset = Customer.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = CustomerSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
     @swagger_auto_schema(responses={200: CustomerSerializer})
     @action(detail=False, methods=["get"], url_path="read")
     def read_customers(self, request):
@@ -139,7 +177,7 @@ class CustomerViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
@@ -153,7 +191,7 @@ class CustomerViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -167,16 +205,50 @@ class CustomerViewSet(viewsets.ViewSet):
             Customer.objects.filter(id__in=request.data["customer_ids"]).delete()
 
             return Response(data=request.data, status=status.HTTP_200_OK)
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class CompanyViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: CompanySerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_company(self, request, pk):
+
+        try:
+            queryset = Company.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = CompanySerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=["get"], url_path="read_employees")
+    @swagger_auto_schema(responses={200: EmployeeSerializer})
+    def read_company_employees(self, request, pk):
+
+        try:
+            queryset = Employee.objects.filter(fk_company=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = EmployeeSerializer(instance=queryset, many=True)
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["patch"], url_path="update")
-    @swagger_auto_schema(request_body=CompanySerializer, responses={200: CompanySerializer})
+    @swagger_auto_schema(
+        request_body=CompanySerializer, responses={200: CompanySerializer}
+    )
     def update_companies(self, request):
 
         try:
-            company= request.data["id"]
+            company = request.data["id"]
 
         except:
 
@@ -193,7 +265,7 @@ class CompanyViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
     @swagger_auto_schema(responses={200: CompanySerializer})
@@ -209,7 +281,9 @@ class CompanyViewSet(viewsets.ViewSet):
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="create")
-    @swagger_auto_schema(request_body=CompanySerializer, responses={200: CompanySerializer})
+    @swagger_auto_schema(
+        request_body=CompanySerializer, responses={200: CompanySerializer}
+    )
     def create_companies(self, request):
 
         serialized = CompanySerializer(data=request.data, many=True)
@@ -217,7 +291,7 @@ class CompanyViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -233,17 +307,37 @@ class CompanyViewSet(viewsets.ViewSet):
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class EmployeeGradeViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: EmployeeGradeSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_employee_grade(self, request, pk):
+
+        try:
+            queryset = EmployeeGrade.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = EmployeeGradeSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["patch"], url_path="update")
-    @swagger_auto_schema(request_body=EmployeeGradeSerializer, responses={200: EmployeeGradeSerializer})
+    @swagger_auto_schema(
+        request_body=EmployeeGradeSerializer, responses={200: EmployeeGradeSerializer}
+    )
     def update_employee_grades(self, request):
 
         try:
-            employee_grade= request.data["id"]
+            employee_grade = request.data["id"]
 
         except:
 
@@ -260,7 +354,7 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
     @swagger_auto_schema(responses={200: EmployeeGradeSerializer})
@@ -276,7 +370,9 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="create")
-    @swagger_auto_schema(request_body=EmployeeGradeSerializer, responses={200: EmployeeGradeSerializer})
+    @swagger_auto_schema(
+        request_body=EmployeeGradeSerializer, responses={200: EmployeeGradeSerializer}
+    )
     def create_employee_grades(self, request):
 
         serialized = EmployeeGradeSerializer(data=request.data, many=True)
@@ -284,11 +380,12 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
-        request_body=EmployeeGradeListSerializer, responses={200: EmployeeGradeListSerializer}
+        request_body=EmployeeGradeListSerializer,
+        responses={200: EmployeeGradeListSerializer},
     )
     def delete_employee_grades(self, request):
 
@@ -296,13 +393,35 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            EmployeeGrade.objects.filter(id__in=request.data["employee_grade_ids"]).delete()
+            EmployeeGrade.objects.filter(
+                id__in=request.data["employee_grade_ids"]
+            ).delete()
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class EmployeeGroupViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: EmployeeGroupSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_employee_group(self, request, pk):
+
+        try:
+            queryset = EmployeeGroup.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = EmployeeGroupSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["get"], url_path="read_employees")
     @swagger_auto_schema(responses={200: DesignationSerializer})
     def read_employee_group_employees(self, request, pk):
@@ -365,7 +484,7 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
     @swagger_auto_schema(responses={200: EmployeeGroupSerializer})
@@ -397,7 +516,7 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -412,11 +531,30 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
             EmployeeGroup.objects.filter(id__in=request.data["group_ids"]).delete()
 
             return Response(data=request.data, status=status.HTTP_200_OK)
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # LORAN
 class DepartmentViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: DepartmentSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_department(self, request, pk):
+
+        try:
+            queryset = Department.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = DepartmentSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["get"], url_path="read_employees")
     @swagger_auto_schema(responses={200: EmployeeSerializer})
     def read_department_employees(self, request, pk):
@@ -454,7 +592,7 @@ class DepartmentViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
     @swagger_auto_schema(responses={200: DepartmentSerializer})
@@ -480,7 +618,7 @@ class DepartmentViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -495,11 +633,30 @@ class DepartmentViewSet(viewsets.ViewSet):
             Department.objects.filter(id__in=request.data["department_ids"]).delete()
 
             return Response(data=request.data, status=status.HTTP_200_OK)
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # LORAN
 class DesignationViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: DesignationSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_designation(self, request, pk):
+
+        try:
+            queryset = Designation.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = DesignationSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["get"], url_path="read_employees")
     @swagger_auto_schema(responses={200: DesignationSerializer})
     def read_designation_employees(self, request, pk):
@@ -537,7 +694,7 @@ class DesignationViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
     @swagger_auto_schema(responses={200: DesignationSerializer})
@@ -563,7 +720,7 @@ class DesignationViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -578,10 +735,46 @@ class DesignationViewSet(viewsets.ViewSet):
             Designation.objects.filter(id__in=request.data["designation_ids"]).delete()
 
             return Response(data=request.data, status=status.HTTP_200_OK)
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class IdentificationDocumentViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: IdentificationDocumentSerializer})
+    @action(detail=True, methods=["get"], url_path="read_employee_documents")
+    def read_employee_documents(self, request, pk):
+        try:
+            queryset = IdentificationDocument.objects.filter(fk_employee=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = IdentificationDocumentSerializer(instance=queryset, many=True)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(responses={200: IdentificationDocumentSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_identification_document(self, request, pk):
+
+        try:
+            queryset = IdentificationDocument.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = IdentificationDocumentSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
         request_body=IdentificationDocumentSerializer,
@@ -609,7 +802,7 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
     @swagger_auto_schema(responses={200: IdentificationDocumentSerializer})
@@ -642,7 +835,7 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -659,10 +852,29 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
             ).delete()
 
             return Response(data=request.data, status=status.HTTP_200_OK)
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class IdentificationTypeViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: IdentificationTypeSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_identification_type(self, request, pk):
+
+        try:
+            queryset = IdentificationType.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = IdentificationTypeSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
         request_body=IdentificationTypeSerializer,
@@ -688,7 +900,7 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
     @swagger_auto_schema(responses={200: IdentificationTypeSerializer})
@@ -721,7 +933,7 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -738,11 +950,30 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
             ).delete()
 
             return Response(data=request.data, status=status.HTTP_200_OK)
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # LORAN
 class AttendanceViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: AttendanceSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_attendance(self, request, pk):
+
+        try:
+            queryset = Attendance.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = AttendanceSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["get"], url_path="department")
     @swagger_auto_schema(responses={200: AttendanceSerializer})
     def read_department_attendances(self, request, pk):
@@ -754,6 +985,27 @@ class AttendanceViewSet(viewsets.ViewSet):
             end_date_req = request.GET.get("end_date")
             queryset = Attendance.objects.filter(
                 fk_employee__department=dep_id,
+                attendance_date__range=[start_date_req, end_date_req],
+            )
+            serialized = AttendanceSerializer(instance=queryset, many=True)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+        except:
+            return Response(
+                {"Message": "Enter start date and end date"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    @action(detail=True, methods=["get"], url_path="company")
+    @swagger_auto_schema(responses={200: AttendanceSerializer})
+    def read_company_attendances(self, request, pk):
+        dep_id = pk
+
+        try:
+
+            start_date_req = request.GET.get("start_date")
+            end_date_req = request.GET.get("end_date")
+            queryset = Attendance.objects.filter(
+                fk_employee__company=dep_id,
                 attendance_date__range=[start_date_req, end_date_req],
             )
             serialized = AttendanceSerializer(instance=queryset, many=True)
@@ -801,7 +1053,7 @@ class AttendanceViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -818,10 +1070,29 @@ class AttendanceViewSet(viewsets.ViewSet):
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class EmployeeSessionViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: EmployeeSessionSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_employee_session(self, request, pk):
+
+        try:
+            queryset = EmployeeSession.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = EmployeeSessionSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=["post"], url_path="create_employee_checkin")
     @swagger_auto_schema(
         request_body=EmployeeSessionCheckinSerializer,
@@ -1012,7 +1283,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -1031,13 +1302,32 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 ######################################################## Leave Viewsets #################################
 
 
 class LeavePolicyViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: LeavePolicySerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_leave_policy(self, request, pk):
+
+        try:
+            queryset = LeavePolicy.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = LeavePolicySerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["post"], url_path="leave_policy_generation")
     @swagger_auto_schema(
         request_body=LeavePolicyTypeMembershipSerializer,
@@ -1102,7 +1392,7 @@ class LeavePolicyViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
     @swagger_auto_schema(responses={200: LeavePolicySerializer})
@@ -1128,7 +1418,7 @@ class LeavePolicyViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -1145,11 +1435,30 @@ class LeavePolicyViewSet(viewsets.ViewSet):
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # LORAN
 class LeaveApplicationViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: LeaveApplicationSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_leave_application(self, request, pk):
+
+        try:
+            queryset = LeaveApplication.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = LeaveApplicationSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=["post"], url_path="accept_applications")
     def accept_applications(self, request):
         try:
@@ -1214,14 +1523,12 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         serialized = LeaveApplicationSerializer(instance=queryset, many=True)
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-
     @action(detail=True, methods=["get"], url_path="read_department_applications")
     def read_leave_applications_department(self, request, pk):
 
-        queryset = LeaveApplication.objects.filter(fk_employee__fk_department = pk)
+        queryset = LeaveApplication.objects.filter(fk_employee__fk_department=pk)
         serialized = LeaveApplicationSerializer(instance=queryset, many=True)
         return Response(data=serialized.data, status=status.HTTP_200_OK)
-
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
@@ -1248,7 +1555,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
     @swagger_auto_schema(responses={200: LeaveApplicationSerializer})
@@ -1276,7 +1583,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -1295,10 +1602,29 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class LeaveViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: LeaveSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_leave(self, request, pk):
+
+        try:
+            queryset = Leave.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = LeaveSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=["get"], url_path="read_employee_leaves")
     def read_leaves_employee(self, request, pk):
 
@@ -1341,7 +1667,7 @@ class LeaveViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
     @swagger_auto_schema(responses={200: LeaveSerializer})
@@ -1365,7 +1691,7 @@ class LeaveViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -1381,10 +1707,29 @@ class LeaveViewSet(viewsets.ViewSet):
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class ScheduleViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: ScheduleSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_schedule(self, request, pk):
+
+        try:
+            queryset = Schedule.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = ScheduleSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
         request_body=ScheduleSerializer, responses={200: ScheduleSerializer}
@@ -1409,7 +1754,7 @@ class ScheduleViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
     @swagger_auto_schema(responses={200: ScheduleSerializer})
@@ -1453,7 +1798,7 @@ class ScheduleViewSet(viewsets.ViewSet):
             designation.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -1469,10 +1814,29 @@ class ScheduleViewSet(viewsets.ViewSet):
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class WorkdayDivisionViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: WorkdayDivisionSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_workday_division(self, request, pk):
+
+        try:
+            queryset = WorkdayDivision.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = WorkdayDivisionSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
         request_body=WorkdayDivisionSerializer,
@@ -1498,7 +1862,7 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
     @swagger_auto_schema(responses={200: WorkdayDivisionSerializer})
@@ -1525,7 +1889,7 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -1542,13 +1906,33 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class DaysListViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(responses={200: DaysListSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_day_list(self, request, pk):
+
+        try:
+            queryset = DaysList.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = DaysListSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["patch"], url_path="update")
-    @swagger_auto_schema(request_body=DaysListSerializer, responses={200: DaysListSerializer})
+    @swagger_auto_schema(
+        request_body=DaysListSerializer, responses={200: DaysListSerializer}
+    )
     def update_days_lists(self, request):
 
         try:
@@ -1569,7 +1953,7 @@ class DaysListViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
     @swagger_auto_schema(responses={200: DaysListSerializer})
@@ -1585,7 +1969,9 @@ class DaysListViewSet(viewsets.ViewSet):
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="create")
-    @swagger_auto_schema(request_body=DaysListSerializer, responses={200: DaysListSerializer})
+    @swagger_auto_schema(
+        request_body=DaysListSerializer, responses={200: DaysListSerializer}
+    )
     def create_days_lists(self, request):
 
         serialized = DaysListSerializer(data=request.data, many=True)
@@ -1593,7 +1979,7 @@ class DaysListViewSet(viewsets.ViewSet):
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -1609,11 +1995,9 @@ class DaysListViewSet(viewsets.ViewSet):
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
-        return Response(data=serialized.errors, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
-        
 # class MonthlyReportViewSet(viewsets.ViewSet):
 #     def update_monthlyreports(self, request):
 
@@ -1632,7 +2016,7 @@ class DaysListViewSet(viewsets.ViewSet):
 #             serialized.save()
 #             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-#         return Response(data=serialized.errors, status=status.HTTP_200_OK)
+#         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #     def read_monthly_reports(self, request):
 
@@ -1646,7 +2030,7 @@ class DaysListViewSet(viewsets.ViewSet):
 #             serialized.save()
 #             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-#         return Response(data=serialized.errors, status=status.HTTP_200_OK)
+#         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #     def create_monthly_reports(self, request):
 
@@ -1655,7 +2039,7 @@ class DaysListViewSet(viewsets.ViewSet):
 #             serialized.save()
 #             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-#         return Response(data=serialized.errors, status=status.HTTP_200_OK)
+#         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 #     def delete_monthly_reports(self, request):
 
