@@ -1,6 +1,6 @@
 from django.db.models.query import QuerySet
 from django.shortcuts import render
-from rest_framework import generics, viewsets, status
+from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Q
@@ -1707,6 +1707,147 @@ class LeaveViewSet(viewsets.ViewSet):
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class EmployeeLeaveReportViewSet(viewsets.ViewSet):
+    @action(detail=True, methods=["post"], url_path="create_employee_leave_report")
+    def create_employee_leave_report(self, request, pk):
+
+        try:
+
+            employee = Employee.objects.get(id=pk)
+            leave_policy_id = employee.fk_designation.fk_leave_policy
+            leave_policies = LeavePolicyTypeMembership.objects.filter(
+                fk_leave_policy=leave_policy_id
+            )
+        except:
+
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        if employee.fk_leave_report:
+
+            return Response(
+                {"Message": "Report already exists"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        else:
+
+            leave_report = EmployeeLeaveReport(fk_employee=employee)
+            leave_report.save()
+            for policy in leave_policies:
+                # leave_type = Leavetype.objects.get(id = policy.fk_leave_type)
+                leave_record = LeaveReportTypeMembership(
+                    fk_employee_report=leave_report,
+                    fk_leave_type=policy.fk_leave_type,
+                    leaves_taken=0,
+                    leaves_remaining=policy.total_days_allowed,
+                )
+                leave_record.save()
+
+            # employee.fk_leave_report = leave_report.id
+
+            return Response({"Message": "Successful"}, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(responses={200: EmployeeLeaveReportSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_employee_leave_report(self, request, pk):
+
+        try:
+            queryset = EmployeeLeaveReport.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = EmployeeLeaveReportSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(responses={200: EmployeeLeaveReportSerializer})
+    @action(detail=False, methods=["get"], url_path="read")
+    def read_employee_leave_reports(self, request):
+
+        try:
+            queryset = EmployeeLeaveReport.objects.all()
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = EmployeeLeaveReportSerializer(instance=queryset, many=True)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        request_body=EmployeeLeaveReportSerializer,
+        responses={200: EmployeeLeaveReportSerializer},
+    )
+    @action(detail=False, methods=["patch"], url_path="update")
+    def update_employee_leave_reports(self, request):
+
+        try:
+            EmployeeLeaveReport = request.data["id"]
+
+        except:
+
+            return Response(
+                {"Message": "Request body incorrect. Please specify ID."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        queryset = EmployeeLeaveReport.objects.get(id=EmployeeLeaveReport)
+
+        serialized = EmployeeLeaveReportSerializer(queryset, request.data, partial=True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["post"], url_path="create")
+    @swagger_auto_schema(
+        request_body=EmployeeLeaveReportSerializer,
+        responses={200: EmployeeLeaveReportSerializer},
+    )
+    def create_employee_leave_reports(self, request):
+
+        serialized = EmployeeLeaveReportSerializer(data=request.data, many=True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["delete"], url_path="delete")
+    @swagger_auto_schema(
+        request_body=EmployeeLeaveReportListSerializer,
+        responses={200: EmployeeLeaveReportListSerializer},
+    )
+    def delete_employee_leave_reports(self, request):
+
+        serialized = EmployeeLeaveReportListSerializer(data=request.data)
+
+        if serialized.is_valid():
+            EmployeeLeaveReport.objects.filter(
+                id__in=request.data["employee_leave_report_ids"]
+            ).delete()
+
+            return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

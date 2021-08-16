@@ -2,7 +2,7 @@ from django.db import models
 
 from mptt.models import MPTTModel, TreeForeignKey
 import datetime
-
+from django.db.models.signals import post_save
 
 # Create your models here.
 class Person(models.Model):
@@ -75,7 +75,9 @@ class Employee(Person, MPTTModel):
     # fk_employee_group = models.ForeignKey(
     #     "EmployeeGroup", on_delete=models.SET_NULL, null=True, blank=True
     # )
-
+    fk_leave_report = models.ForeignKey(
+        "EmployeeLeaveReport", on_delete=models.CASCADE, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -116,22 +118,28 @@ class EmployeeGroup(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
     # add employee fk
 
+
 class EmployeeGrade(models.Model):
 
     name = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    
+
+
 #################### Departments and Designations ############################################
+
 
 class Company(MPTTModel):
 
     name = models.CharField(max_length=50)
     domain = models.CharField(max_length=50)
-    parent = TreeForeignKey("self", on_delete=models.CASCADE, null=True, blank=True, related_name="children")
+    parent = TreeForeignKey(
+        "self", on_delete=models.CASCADE, null=True, blank=True, related_name="children"
+    )
 
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+
 
 class Department(MPTTModel):
 
@@ -288,6 +296,8 @@ class Leave(models.Model):
     # leave_application = models.ForeignKey('LeavesApplication', null=True, on_delete = models.CASCADE)
     from_date = models.DateField()
     to_date = models.DateField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
     # duration = models.FloatField(default=1)
 
 
@@ -297,12 +307,16 @@ class Schedule(models.Model):
     workday_start_time = models.TimeField()
     workday_end_time = models.TimeField()
     divisions = models.ManyToManyField("WorkdayDivision")
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
 
 
 class WorkdayDivision(models.Model):
 
     name = models.CharField(max_length=50)
     duration_in_hours = models.FloatField(default=1.0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
 
 
 class DaysList(models.Model):
@@ -312,24 +326,59 @@ class DaysList(models.Model):
     from_date = models.DateField()
     to_date = models.DateField()
     occasion = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
 
 
-# class EmployeeLeaveReport(models.Model):
+class EmployeeLeaveReport(models.Model):
 
-#     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
-#     fk_leave_types = models.ManyToManyField("LeaveType")
+    fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
+    fk_leave_types = models.ManyToManyField(
+        "LeaveType", through="LeaveReportTypeMembership"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
 
 
-# class LeaveReport_Membership(models.Model):
+def create_leave_report(sender, instance, created, **kwargs):
 
-#     fk_employee_report = models.ForeignKey(
-#         "EmployeeLeaveReport", on_delete=models.CASCADE
-#     )
-#     fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
-#     leaves_taken = models.IntegerField()
-#     leaves_remaining = models.IntegerField()
-#     blocked_till = models.DateField()
-#     is_compulsory = models.BooleanField(default=False)
+    try:
+        leave_policy_id = instance.fk_designation.fk_leave_policy
+        leave_policies = LeavePolicyTypeMembership.objects.filter(
+            fk_leave_policy=leave_policy_id
+        )
+    except:
+        pass
+
+    leave_report = EmployeeLeaveReport(fk_employee=instance)
+    leave_report.save()
+    for policy in leave_policies:
+        # leave_type = Leavetype.objects.get(id = policy.fk_leave_type)
+        leave_record = LeaveReportTypeMembership(
+            fk_employee_report=leave_report,
+            fk_leave_type=policy.fk_leave_type,
+            leaves_taken=0,
+            leaves_remaining=policy.total_days_allowed,
+        )
+        leave_record.save()
+
+        
+    # instance.fk_leave_report = leave_report.id
+
+
+post_save.connect(create_leave_report, sender=Employee)
+
+
+class LeaveReportTypeMembership(models.Model):
+
+    fk_employee_report = models.ForeignKey(
+        "EmployeeLeaveReport", on_delete=models.CASCADE
+    )
+    fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
+    leaves_taken = models.IntegerField()
+    leaves_remaining = models.IntegerField()
+    blocked_till = models.DateField(null=True, blank=True)
+    is_compulsory = models.BooleanField(default=False)
 
 
 # class Calendar(models.Model):
