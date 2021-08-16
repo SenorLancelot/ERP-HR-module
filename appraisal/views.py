@@ -96,6 +96,10 @@ class AppraisalTemplateViewSet(viewsets.ViewSet):
         serialized = AppraisalTemplateSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
+            total_weightage=0.0
+            for goal in request.data['fk_goal']:
+                total_weightage+=goal['weightage']
+                if goal['']
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
@@ -218,13 +222,13 @@ class AppraisalViewSet(viewsets.ViewSet):
 
         try:
             queryset = Appraisal.objects.all()
-            print(queryset)
+
         except:
             # print(ValueError)
             return Response({'Message': 'DOES NOT EXIST'}, status=status.HTTP_404_NOT_FOUND)
         
         try:
-            serialized = AppraisalTemplateSerializer(queryset, many=True)
+            serialized = AppraisalSerializer(queryset, many=True)
         except:
             return Response(
                 {'Message': 'SERIALIZER ERROR'},
@@ -232,3 +236,18 @@ class AppraisalViewSet(viewsets.ViewSet):
             )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(responses={200: AppraisalSerializer})
+    @action(detail=False, methods=['post'], url_path='create')
+    def create_appraisal(self, request):
+
+        serialized = AppraisalSerializer(data=request.data)
+
+        if serialized.is_valid():
+
+            serialized.save()
+
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+    
