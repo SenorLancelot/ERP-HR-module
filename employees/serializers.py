@@ -14,6 +14,16 @@ class EmployeeListSerializer(serializers.Serializer):
 
     employee_ids = serializers.ListField(child=serializers.IntegerField())
 
+class EmployeeLeaveReportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EmployeeLeaveReport
+        fields = "__all__"
+
+
+class EmployeeLeaveReportListSerializer(serializers.Serializer):
+
+    employee_ids = serializers.ListField(child=serializers.IntegerField())
+
 
 class CustomerSerializer(serializers.ModelSerializer):
     class Meta:
