@@ -22,6 +22,11 @@ class GoalSerializer(serializers.ModelSerializer):
             "id",
         ]
 
+    def validate_max_score(self, max_score):
+        if max_score <= 0:
+            raise serializers.ValidationError("max_score must be positive")
+        return max_score
+
 
 class GoalListSerializer(serializers.Serializer):
 
@@ -64,13 +69,13 @@ class AppraisalTemplateSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get("name", instance.name)
         instance.description = validated_data.get("description", instance.description)
         instance.save()
-
+        goals = (instance.fk_goal).all()
         goals_data = validated_data.get("fk_goal")
+
+        new_fk_ids = []
         for goal_data in goals_data:
-            print(goal_data)
             goal_id = goal_data.get("id", None)
-            print(goal_id)
-            if goal_id:
+            if goal_id and Goal.objects.get(id=goal_id):
                 goal = Goal.objects.get(id=goal_id)
                 goal.key_result_area = goal_data.get(
                     "key_result_area", goal.key_result_area
@@ -78,14 +83,31 @@ class AppraisalTemplateSerializer(serializers.ModelSerializer):
                 goal.weightage = goal_data.get("weightage", goal.weightage)
                 goal.max_score = goal_data.get("max_score", goal.max_score)
                 goal.save()
+                if goal_id not in list(
+                    instance.fk_goal.all().values_list("id", flat=True)
+                ):
+                    instance.fk_goal.add(goal_id)
+                new_fk_ids.append(goal.id)
             else:
                 goal = Goal(**goal_data)
                 goal.save()
+                new_fk_ids.append(goal.id)
                 instance.fk_goal.add(goal)
-
         instance.save()
 
         return instance
+
+    def validate_fk_goal(self, goals_data):
+        total_weightage = 0
+        for goal_data in goals_data:
+            total_weightage += goal_data["weightage"]
+            # if goal_data['max_score']<=0:
+            #     raise serializers.ValidationError("max_score must be positive")
+
+        if total_weightage != 100.0:
+            raise serializers.ValidationError("total weightage must be equal to 100")
+
+        return goals_data
 
 
 class AppraisalTemplateDeleteSerializer(serializers.Serializer):

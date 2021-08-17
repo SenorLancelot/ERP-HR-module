@@ -16,6 +16,7 @@ router.register(r"identification_docs", IdentificationDocumentViewSet, basename=
 router.register(r"identification_types", IdentificationTypeViewSet, basename="identification_types")
 router.register(r"attendances", AttendanceViewSet, basename="attendances")
 router.register(r"schedules", ScheduleViewSet, basename="schedules")
+router.register(r"employee_leave_reports", EmployeeLeaveReportViewSet, basename="employee_leave_reports")
 router.register(r"day_lists", DaysListViewSet, basename="day_lists")
 router.register(r"employee_sessions", EmployeeSessionViewSet, basename="employee_sessions")
 router.register(r"customers", CustomerViewSet, basename="customers")
