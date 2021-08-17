@@ -66,11 +66,11 @@ class AppraisalTemplateViewSet(viewsets.ViewSet):
         
         if serialized.is_valid():
             
-            for goal in request.data['fk_goal']:
-                total_weightage+=goal['weightage']
+            # for goal in request.data['fk_goal']:
+            #     total_weightage+=goal['weightage']
             
-            if total_weightage is not 100:
-                return Response({'Message': 'Summation of all weightages must be equal to 100'})
+            # if total_weightage is not 100:
+            #     return Response({'Message': 'Summation of all weightages must be equal to 100'})
             
             serialized.save()
             
@@ -99,7 +99,10 @@ class AppraisalTemplateViewSet(viewsets.ViewSet):
             total_weightage=0.0
             for goal in request.data['fk_goal']:
                 total_weightage+=goal['weightage']
-                if goal['']
+            if not (total_weightage>=0 and total_weightage<=100):
+                return Response(
+                    {"Message": "weightage cant excede 100%"},
+                )
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 

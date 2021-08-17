@@ -19,6 +19,11 @@ class GoalSerializer(serializers.ModelSerializer):
             "id",
         ]
 
+    def validate_max_score(self, max_score):
+        if max_score<=0:
+            raise serializers.ValidationError("max_score must be positive")
+        return max_score
+
 
 class GoalListSerializer(serializers.Serializer):
 
@@ -62,7 +67,6 @@ class AppraisalTemplateSerializer(serializers.ModelSerializer):
         instance.description = validated_data.get("description", instance.description)
         instance.save()
         goals = (instance.fk_goal).all()
-        print("goals {}", goals)
         goals_data = validated_data.get("fk_goal")
 
         new_fk_ids = []
@@ -91,8 +95,19 @@ class AppraisalTemplateSerializer(serializers.ModelSerializer):
 
         return instance
 
-        # def validate(self, data):
-
+    def validate_fk_goal(self, goals_data):
+        total_weightage=0
+        for goal_data in goals_data:
+            total_weightage+=goal_data['weightage']
+            # if goal_data['max_score']<=0:
+            #     raise serializers.ValidationError("max_score must be positive")
+            
+        if total_weightage != 100.0:
+            raise serializers.ValidationError("total weightage must be equal to 100")
+        
+        return goals_data
+    
+    
 
 
 class AppraisalTemplateDeleteSerializer(serializers.Serializer):
