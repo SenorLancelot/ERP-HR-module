@@ -40,12 +40,12 @@ class Appraisal(models.Model):
     fk_appraiser_template = models.ForeignKey(
         "AppraisalTemplate", on_delete=models.SET_NULL, null=True
     )
-    fk_goal = models.ManyToManyField("Goal", through="AppraisalGoalMembership")
+    fk_goal_score = models.ManyToManyField("Goal", through="AppraisalGoalMembership")
     fk_project_ranks = models.ManyToManyField(
         "Project", through="AppraisalProjectMembership"
     )
     remarks = models.TextField()
-
+    total_score = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -60,3 +60,8 @@ class AppraisalProjectMembership(models.Model):
     fk_appraisal = models.ForeignKey("Appraisal", on_delete=models.CASCADE)
     fk_project = models.ForeignKey("Project", on_delete=models.CASCADE)
     rank = models.PositiveIntegerField()
+
+
+class DemoEmployee(models.Model):
+    name = models.CharField(max_length=255)
+    designation = models.CharField(max_length=255)
