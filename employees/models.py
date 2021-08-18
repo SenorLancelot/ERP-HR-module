@@ -340,33 +340,33 @@ class EmployeeLeaveReport(models.Model):
     modified_at = models.DateTimeField(auto_now=True)
 
 
-def create_leave_report(sender, instance, created, **kwargs):
+# def create_leave_report(sender, instance, created, **kwargs):
 
-    try:
-        leave_policy_id = instance.fk_designation.fk_leave_policy
-        leave_policies = LeavePolicyTypeMembership.objects.filter(
-            fk_leave_policy=leave_policy_id
-        )
-    except:
-        pass
+#     try:
+#         leave_policy_id = instance.fk_designation.fk_leave_policy
+#         leave_policies = LeavePolicyTypeMembership.objects.filter(
+#             fk_leave_policy=leave_policy_id
+#         )
+#     except:
+#         pass
 
-    leave_report = EmployeeLeaveReport(fk_employee=instance)
-    leave_report.save()
-    for policy in leave_policies:
-        # leave_type = Leavetype.objects.get(id = policy.fk_leave_type)
-        leave_record = LeaveReportTypeMembership(
-            fk_employee_report=leave_report,
-            fk_leave_type=policy.fk_leave_type,
-            leaves_taken=0,
-            leaves_remaining=policy.total_days_allowed,
-        )
-        leave_record.save()
+#     leave_report = EmployeeLeaveReport(fk_employee=instance)
+#     leave_report.save()
+#     for policy in leave_policies:
+#         # leave_type = Leavetype.objects.get(id = policy.fk_leave_type)
+#         leave_record = LeaveReportTypeMembership(
+#             fk_employee_report=leave_report,
+#             fk_leave_type=policy.fk_leave_type,
+#             leaves_taken=0,
+#             leaves_remaining=policy.total_days_allowed,
+#         )
+#         leave_record.save()
 
         
-    # instance.fk_leave_report = leave_report.id
+#     # instance.fk_leave_report = leave_report.id
 
 
-post_save.connect(create_leave_report, sender=Employee)
+# post_save.connect(create_leave_report, sender=Employee)
 
 
 class LeaveReportTypeMembership(models.Model):
