@@ -45,7 +45,7 @@ class Appraisal(models.Model):
         "Project", through="AppraisalProjectMembership"
     )
     remarks = models.TextField()
-
+    total_score_percentage = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -60,3 +60,13 @@ class AppraisalProjectMembership(models.Model):
     fk_appraisal = models.ForeignKey("Appraisal", on_delete=models.CASCADE)
     fk_project = models.ForeignKey("Project", on_delete=models.CASCADE)
     rank = models.PositiveIntegerField()
+
+
+class AppraisalResult(models.Model):
+    fk_employee = models.ForeignKey(
+        "employees.Employee", on_delete=models.SET_NULL, null=True
+    )
+    market_salary = models.FloatField(default=0)
+    current_salary = models.FloatField(default=0)
+    compa_ratio = models.FloatField(default=1)
+    standardized_average = models.IntegerField(default=3)
