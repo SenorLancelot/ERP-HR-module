@@ -1753,6 +1753,9 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
 
             return Response({"Message": "Successful"}, status=status.HTTP_200_OK)
 
+    # Yearly basis report
+    # Change it on designation change
+
     @swagger_auto_schema(responses={200: EmployeeLeaveReportSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_employee_leave_report(self, request, pk):
