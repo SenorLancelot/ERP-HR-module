@@ -51,7 +51,6 @@ class AppraisalTemplateSerializer(serializers.ModelSerializer):
         goals_data = validated_data.pop("fk_goal")
 
         appraisal_template = AppraisalTemplate(**validated_data)
-        appraisal_template.save()
         for goal_data in goals_data:
             goal = Goal(**goal_data)
             goal.save()
@@ -69,7 +68,6 @@ class AppraisalTemplateSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get("name", instance.name)
         instance.description = validated_data.get("description", instance.description)
         instance.save()
-        goals = (instance.fk_goal).all()
         goals_data = validated_data.get("fk_goal")
 
         new_fk_ids = []
