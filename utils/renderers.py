@@ -6,6 +6,9 @@ def DictionaryHandler(data, status_code):
 
     response = dict()
     if 'ErrorDetail' in str(data):
+        print(data.__reduce__())
+        print(type(data.__reduce__()), "xyz")
+        
         error_dict =  data.__reduce__()[1][0]
         print(error_dict)
 
@@ -24,8 +27,9 @@ def DictionaryHandler(data, status_code):
         relationships = dict()
         data_dict = data.__reduce__()[1][0]
         print(type(data_dict))
-        for key in data_dict:
 
+        for key in data_dict:
+            
             if "fk_" in str(key):
                 temp = data.pop(key)
                 relationships[key] = temp
