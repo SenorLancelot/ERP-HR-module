@@ -13,26 +13,32 @@ from .serializers import *
 from drf_yasg.utils import swagger_auto_schema
 import math
 
-def standardized_score(employee_id):
-    queryset = Appraisal.objects.filter(fk_employee = employee_id) #get all the appraisals of an employee
-    total_appraisers = 0
-    total_score=0
-    for query in queryset:
-        #for an appraiser get average of the total_percentage_scores that appraiser gave to all the employees
-        mean = Appraisal.objects.filter(fk_appraiser=query.fk_appraiser.id).aggregate(Avg('total_score_percentage'))['total_score_percentage__avg']
-        #for an appraiser get standard deviation the total_percentage_scores that appraiser gave to all the employees
-        std_dev = Appraisal.objects.filter(fk_appraiser=query.fk_appraiser.id).aggregate(StdDev('total_score_percentage'))['total_score_percentage__stddev']
-        #standardized_score for that appraisal
-        z_score = (query.total_score_percentage - mean)/std_dev
-        #z_score to points out of 5
-        standardised_score = .5 * (math.erf(z_score / 2 ** .5) + 1)*10/2
-        
-        total_appraisers+=1
-        total_score+=standardised_score
-        
-        print(query.fk_appraiser.id, mean, std_dev, z_score)
-    print(round(total_score/total_appraisers))
 
+def standardized_score(employee_id):
+    queryset = Appraisal.objects.filter(
+        fk_employee=employee_id
+    )  # get all the appraisals of an employee
+    total_appraisers = 0
+    total_score = 0
+    for query in queryset:
+        # for an appraiser get average of the total_percentage_scores that appraiser gave to all the employees
+        mean = Appraisal.objects.filter(fk_appraiser=query.fk_appraiser.id).aggregate(
+            Avg("total_score_percentage")
+        )["total_score_percentage__avg"]
+        # for an appraiser get standard deviation the total_percentage_scores that appraiser gave to all the employees
+        std_dev = Appraisal.objects.filter(
+            fk_appraiser=query.fk_appraiser.id
+        ).aggregate(StdDev("total_score_percentage"))["total_score_percentage__stddev"]
+        # standardized_score for that appraisal
+        z_score = (query.total_score_percentage - mean) / std_dev
+        # z_score to points out of 5
+        standardised_score = 0.5 * (math.erf(z_score / 2 ** 0.5) + 1) * 10 / 2
+
+        total_appraisers += 1
+        total_score += standardised_score
+
+        print(query.fk_appraiser.id, mean, std_dev, z_score)
+    print(round(total_score / total_appraisers))
 
 
 # def generate_raise(lb, ub, divisions, pay_grade_raise_ratio, performance_raise_ratio):
@@ -43,12 +49,10 @@ def standardized_score(employee_id):
 #     for pay_grade in pay_grade_raise_ratio:
 
 
-
 class AppraisalTemplateViewSet(viewsets.ViewSet):
     @swagger_auto_schema(responses={200: AppraisalTemplateSerializer})
     @action(detail=False, methods=["get"], url_path="read")
     def read_appraisal_templates(self, request):
-
 
         try:
             queryset = AppraisalTemplate.objects.all()
@@ -97,12 +101,7 @@ class AppraisalTemplateViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["post"], url_path="create")
     def create_appraisal_template(self, request):
 
-<<<<<<< HEAD
         print(request.data["fk_goal"])
-        total_weightage = 0
-=======
-        print(request.data['fk_goal'])
->>>>>>> 33be1ca18da1bfae7de9034580a0caf0cba4e0c7
         serialized = AppraisalTemplateSerializer(data=request.data)
 
         if serialized.is_valid():
