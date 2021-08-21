@@ -620,7 +620,7 @@ class DepartmentViewSet(viewsets.ViewSet):
     )
     def create_department(self, request):
 
-        serialized = DepartmentSerializer(data=request.data)
+        serialized = DepartmentSerializer(data=request.data, many =True)
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
