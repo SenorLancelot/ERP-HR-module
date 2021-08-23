@@ -118,6 +118,7 @@ class CustomRenderer(renderers.JSONRenderer):
             print(renderer_context['response'].status_code)
 
         print(type(data))
+        print(data)
 
         if "Dict" in str(type(data)):
             return DictionaryHandler(data, status_code, types)
