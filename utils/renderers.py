@@ -101,6 +101,27 @@ def ListErrorHandler(data, status_code, types):
     return response
 
 
+def AuthenticationThrottleHandler(data, status_code):
+    response = dict()
+    error_dict = data
+    if "ErrorDetail" in str(data):
+        errors = list()
+        for key in error_dict:
+            red = error_dict[key].__reduce__()
+            print("Key", key)
+            print("red", red)
+            error = {
+                "field": str(key),
+                "object": str(1),
+                "detail_code": str(red[2]["code"]),
+                "detail": str(error_dict[key]),
+            }
+            errors.append(error)
+        response = json.dumps({"errors": errors, "status_code": status_code})
+
+    return response
+
+
 def ParseData(data):
 
     temp_data = data.copy()
@@ -195,19 +216,19 @@ def ParseData(data):
 #         final_response["status_code"] = status_code
 #         final_response["types"] = types
 
-        # if "Dict" in str(type(data)):
+# if "Dict" in str(type(data)):
 
-        #     data = data.__reduce__()[1][0]
-        #     print(data)
-        #     print("dict data", type(data))
-        #     final_response["data"] = dict()
+#     data = data.__reduce__()[1][0]
+#     print(data)
+#     print("dict data", type(data))
+#     final_response["data"] = dict()
 
-        # else:
+# else:
 
-        #     data = data.__reduce__()[1][0]
-        #     print(data)
-        #     print("list data", type(data))
-        #     final_response["data"] = list()
+#     data = data.__reduce__()[1][0]
+#     print(data)
+#     print("list data", type(data))
+#     final_response["data"] = list()
 
 
 #         # print(data, "received data")
@@ -232,36 +253,28 @@ class CustomRenderer(renderers.JSONRenderer):
 
         print(type(data))
         print(data)
+        if "dict" in str(type(data)):
+            return AuthenticationThrottleHandler(data, status_code)
 
         if "ErrorDetail" in str(data):
-
             if "Dict" in str(type(data)):
                 return DictionaryErrorHandler(data, status_code, types)
-
             else:
                 return ListErrorHandler(data, status_code, types)
 
         elif "Message" in str(data):
-
             final_response = dict()
             final_response["status_code"] = status_code
             final_response["types"] = types
             final_response["errors"] = data
             return json.dumps(final_response)
-
         else:
-
             final_response = dict()
             final_response["status_code"] = status_code
             final_response["types"] = types
-            
-
             data = data.__reduce__()[1][0]
-
             final_response["data"] = ParseData(data)
-    
             return json.dumps(final_response)
-
 
         # test = dict()
 

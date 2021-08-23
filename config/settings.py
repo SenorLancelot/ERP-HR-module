@@ -129,6 +129,14 @@ USE_TZ = False
 STATIC_URL = "/static/"
 
 REST_FRAMEWORK = {
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
-    'PAGE_SIZE': 5
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "PAGE_SIZE": 5,
+    "DEFAULT_THROTTLE_CLASSES": [
+        # "utils.throttling.Requests100Throttle",
+        "utils.throttling.Requests500Throttle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "burst": "100/day",
+        "sustained": "500/day",
+    },
 }
