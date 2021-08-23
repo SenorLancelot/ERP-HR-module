@@ -3,9 +3,49 @@ from rest_framework import serializers
 
 from .models import *
 
+class DynamicFieldsModelSerializer(serializers.ModelSerializer):
+    """
+    A ModelSerializer that takes an additional `fields` argument that
+    controls which fields should be displayed.
+    """
 
-class EmployeeSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        # Don't pass the 'fields' arg up to the superclass
+        fields = kwargs.pop('fields', None)
 
+        # Instantiate the superclass normally
+        super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            # Drop any fields that are not specified in the `fields` argument.
+            allowed = set(fields)
+            existing = set(self.fields.keys())
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = Department
+        fields = ["name", "parent"]
+
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = Company
+        fields = ["name", "domain", "parent"]
+
+class DesignationSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = Designation
+        fields = ["name", "description", "fk_schedule", "fk_leave_policy"]
+
+class EmployeeSerializer(DynamicFieldsModelSerializer):
+
+    # fk_department = DepartmentSerializer()
+    # fk_designation = DesignationSerializer()
+    # fk_company = CompanySerializer()
     class Meta:
         model = Employee
         fields = [
@@ -25,6 +65,7 @@ class EmployeeSerializer(serializers.ModelSerializer):
             "retirement_date",
             "company_email",
             "parent",
+            "fk_company",
             "fk_department",
             "fk_designation",
             "fk_leave_report",
@@ -57,8 +98,13 @@ class CustomerListSerializer(serializers.Serializer):
 
     customer_ids = serializers.ListField(child=serializers.IntegerField())
 
+class IdentificationTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IdentificationType
+        fields = ["name", "issuing_authority"]
 
 class IdentificationDocumentSerializer(serializers.ModelSerializer):
+    fk_identification_type = IdentificationTypeSerializer()
     class Meta:
         model = IdentificationDocument
         fields = ["identification_number", "fk_employee", "fk_identification_type"]
@@ -92,11 +138,7 @@ class EmployeeGroupListSerializer(serializers.Serializer):
     group_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-class DepartmentSerializer(serializers.ModelSerializer):
-    class Meta:
 
-        model = Department
-        fields = ["name", "parent"]
 
 
 class DepartmentListSerializer(serializers.Serializer):
@@ -104,11 +146,7 @@ class DepartmentListSerializer(serializers.Serializer):
     department_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-class CompanySerializer(serializers.ModelSerializer):
-    class Meta:
 
-        model = Company
-        fields = ["name", "domain", "parent"]
 
 
 class CompanyListSerializer(serializers.Serializer):
@@ -128,11 +166,6 @@ class EmployeeGradeListSerializer(serializers.Serializer):
     employee_grade_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-class DesignationSerializer(serializers.ModelSerializer):
-    class Meta:
-
-        model = Designation
-        fields = ["name", "description", "fk_schedule", "fk_leave_policy"]
 
 
 class DesignationListSerializer(serializers.Serializer):

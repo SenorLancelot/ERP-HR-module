@@ -78,6 +78,7 @@ class Employee(Person, MPTTModel):
     fk_leave_report = models.ForeignKey(
         "EmployeeLeaveReport", on_delete=models.CASCADE, null=True, blank=True
     )
+    fk_company = models.ForeignKey("Company", on_delete=models.CASCADE, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 

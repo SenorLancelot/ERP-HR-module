@@ -105,26 +105,34 @@ def ParseData(data):
 
     temp_data = data.copy()
 
-    
     if "Dict" in str(type(data)) or "dict" in str(type(data)):
         return_data = dict()
         relationships = dict()
         data_dict = temp_data.copy()
+        data_dict2 = temp_data.copy()
         # .__reduce__()[1][0]
 
         for key in data_dict:
 
             key_type = str(type(data[key]))
-            if "dict" in key_type or "list" in key_type or "List" in key_type or "Dict" in key_type:
+            print("key type", key, type)
+            if (
+                "dict" in key_type
+                or "list" in key_type
+                or "List" in key_type
+                or "Dict" in key_type
+            ):
 
                 nested_parse = ParseData(data[key])
-                
+
                 if "fk_" in str(key):
-                    
+
                     relationships[key] = nested_parse
                 else:
-                    return_data[key] = nested_parse 
-                
+                    return_data[key] = nested_parse
+
+            elif "fk_" in str(key):
+                relationships[key] = data_dict2.pop(key)
             else:
                 return_data[key] = temp_data.pop(key)
 
@@ -146,14 +154,19 @@ def ParseData(data):
             for field in object_dict:
 
                 field_type = str(type(object_dict[field]))
-                if "dict" in field_type or "list" in field_type or "List" in field_type or "Dict" in field_type:
+                print(field_type)
+                if (
+                    "dict" in field_type
+                    or "list" in field_type
+                    or "List" in field_type
+                    or "Dict" in field_type
+                ):
+                    # print(data[1]["name"])
+                    nested_parse = ParseData(object_dict[field])
 
-                    nested_parse = ParseData(data[field])
-                
                     if "fk_" in str(field):
-                        
-                        object_dict2[field] = nested_parse
 
+                        object_dict2[field] = nested_parse
 
                     else:
 
@@ -167,7 +180,6 @@ def ParseData(data):
             return_data.append(object_dict2)
 
         return return_data
-    
 
 
 # class CustomRenderer(renderers.JSONRenderer):
@@ -182,50 +194,43 @@ def ParseData(data):
 #         final_response = dict()
 #         final_response["status_code"] = status_code
 #         final_response["types"] = types
-        
-#         if "Dict" in str(type(data)):
 
-#             data = data.__reduce__()[1][0]
-#             print(data)
-#             print("dict data", type(data))
-#             final_response["data"] = dict()
+        # if "Dict" in str(type(data)):
 
-#         else:
-            
-#             data = data.__reduce__()[1][0]
-#             print(data)
-#             print("list data", type(data))
-#             final_response["data"] = list()
+        #     data = data.__reduce__()[1][0]
+        #     print(data)
+        #     print("dict data", type(data))
+        #     final_response["data"] = dict()
+
+        # else:
+
+        #     data = data.__reduce__()[1][0]
+        #     print(data)
+        #     print("list data", type(data))
+        #     final_response["data"] = list()
 
 
-        
 #         # print(data, "received data")
 #         # data = data.__reduce__()[1][0]
 #         # print(data)
-        
 
-        
 
-        
 #         final_response["data"] = ParseData(data)
 
 #         return json.dumps(final_response)
 
-        
-
 
 class CustomRenderer(renderers.JSONRenderer):
-    charset = 'utf-8'
+    charset = "utf-8"
 
     def render(self, data, media_type=None, renderer_context=None):
         if renderer_context is not None:
-            string = str(renderer_context['view']).split(".")
+            string = str(renderer_context["view"]).split(".")
             types = string[2].split("ViewSet")[0]
-            status_code = renderer_context['response'].status_code
-            print(renderer_context['response'].status_code)
+            status_code = renderer_context["response"].status_code
+            print(renderer_context["response"].status_code)
 
         print(type(data))
-
 
         if "ErrorDetail" in str(data):
 
@@ -235,55 +240,30 @@ class CustomRenderer(renderers.JSONRenderer):
             else:
                 return ListErrorHandler(data, status_code, types)
 
+        elif "Message" in str(data):
+
+            final_response = dict()
+            final_response["status_code"] = status_code
+            final_response["types"] = types
+            final_response["errors"] = data
+            return json.dumps(final_response)
+
         else:
 
             final_response = dict()
             final_response["status_code"] = status_code
             final_response["types"] = types
-            print(data, "received data")
+            
+
             data = data.__reduce__()[1][0]
-            print(data)
-            
 
-            
-
-            
             final_response["data"] = ParseData(data)
-
+    
             return json.dumps(final_response)
 
 
+        # test = dict()
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# test = dict()
-        
         # test = {
         #     "name": "string",
         #     "description": "string",

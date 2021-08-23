@@ -22,7 +22,7 @@ from drf_yasg.utils import swagger_auto_schema
 
 class EmployeeViewSet(viewsets.ViewSet):
 
-    renderer_classes = [CustomRenderer]
+    
     @swagger_auto_schema(responses={200: EmployeeSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_employee(self, request, pk):
@@ -45,10 +45,12 @@ class EmployeeViewSet(viewsets.ViewSet):
     @swagger_auto_schema(responses={200: EmployeeSerializer})
     @action(detail=False, methods=["get"], url_path="read")
     def read_employees(self, request):
-
+        # fields = self.request.query_params.getlist('fields', '')
+        # fields = request.GET.get("fields", "")
         try:
             queryset = Employee.objects.all()
         except:
+            
             return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
@@ -76,8 +78,13 @@ class EmployeeViewSet(viewsets.ViewSet):
                 {"Message": "Request body incorrect. Please specify ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        try:
 
-        queryset = Employee.objects.get(id=employee)
+            queryset = Employee.objects.get(id=employee)
+
+        except:
+
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = EmployeeSerializer(queryset, request.data, partial=True)
 
