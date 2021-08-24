@@ -115,12 +115,6 @@ class IdentificationDocumentListSerializer(serializers.Serializer):
     identificationdocument_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-class IdentificationTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = IdentificationType
-        fields = ["name", "issuing_authority"]
-
-
 class IdentificationTypeListSerializer(serializers.Serializer):
 
     identificationtype_ids = serializers.ListField(child=serializers.IntegerField())

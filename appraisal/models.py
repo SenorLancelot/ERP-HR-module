@@ -24,9 +24,7 @@ class Goal(models.Model):
     key_result_area = models.CharField(max_length=20)
     weightage = models.FloatField(default=0)
     max_score = models.FloatField(default=5)
-    fk_project = models.ForeignKey("Project", on_delete=models.CASCADE, null=True,  blank=True) #REMOVE THIS FIELD, CREATED ONLY FOR TEsting
-
-
+    # fk_project = models.ForeignKey("Project", on_delete=models.CASCADE, null=True,  blank=True) #REMOVE THIS FIELD, CREATED ONLY FOR TEsting
 
 
 class Appraisal(models.Model):
