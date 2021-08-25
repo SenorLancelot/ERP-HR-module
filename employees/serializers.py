@@ -127,9 +127,6 @@ class IdentificationDocumentListSerializer(serializers.Serializer):
     identificationdocument_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-
-
-
 class IdentificationTypeListSerializer(serializers.Serializer):
 
     identificationtype_ids = serializers.ListField(child=serializers.IntegerField())
