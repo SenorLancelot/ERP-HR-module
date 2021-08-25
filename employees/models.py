@@ -18,9 +18,7 @@ class Person(models.Model):
     gender = models.CharField(max_length=30, choices=genderChoices, default="Others")
     birth_date = models.DateField()
     primary_contact_no = models.CharField(max_length=15)
-    secondary_contact_no = models.CharField(
-        max_length=15
-    )  # Make two fields primary contact secondary contact, and add table for emergency contacts
+    secondary_contact_no = models.CharField(max_length=15)
     personal_email = models.EmailField()
     current_address = models.CharField(
         max_length=200,
@@ -78,7 +76,9 @@ class Employee(Person, MPTTModel):
     fk_leave_report = models.ForeignKey(
         "EmployeeLeaveReport", on_delete=models.CASCADE, null=True, blank=True
     )
-    fk_company = models.ForeignKey("Company", on_delete=models.CASCADE, null=True, blank=True)
+    fk_company = models.ForeignKey(
+        "Company", on_delete=models.CASCADE, null=True, blank=True
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -89,6 +89,14 @@ class Customer(Person):
     is_guest = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+
+
+class EmergencyContact(models.Model):
+
+    fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
+    primary_contact_no = models.CharField(max_length=50)
+    secondary_contact_no = models.CharField(max_length=50)
+    other_details = models.TextField(max_length=100)
 
 
 class IdentificationDocument(models.Model):
@@ -117,7 +125,6 @@ class EmployeeGroup(models.Model):
     name = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    # add employee fk
 
 
 class EmployeeGrade(models.Model):
@@ -233,7 +240,7 @@ class LeavePolicyTypeMembership(models.Model):
     fk_leave_policy = models.ForeignKey("LeavePolicy", on_delete=models.CASCADE)
     fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
     total_days_allowed = models.FloatField(default=0)
-    total_consecutive_days_allowed = models.FloatField(default=0)
+    consecutive_days_allowed = models.FloatField(default=0)
 
 
 class LeaveType(models.Model):
@@ -337,6 +344,7 @@ class EmployeeLeaveReport(models.Model):
     fk_leave_types = models.ManyToManyField(    #CHANGE fk_leave_types TO fk_leave_type
         "LeaveType", through="LeaveReportTypeMembership"
     )
+
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -363,7 +371,7 @@ class EmployeeLeaveReport(models.Model):
 #         )
 #         leave_record.save()
 
-        
+
 #     # instance.fk_leave_report = leave_report.id
 
 
@@ -378,6 +386,7 @@ class LeaveReportTypeMembership(models.Model):
     fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
     leaves_taken = models.IntegerField()
     leaves_remaining = models.IntegerField()
+    consecutive_days_allowed = models.FloatField(default=0)
     blocked_till = models.DateField(null=True, blank=True)
     is_compulsory = models.BooleanField(default=False)
 
