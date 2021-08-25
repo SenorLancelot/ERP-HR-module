@@ -5,7 +5,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Q
 from django.db.models import Sum
-
+from utils.renderers import CustomRenderer
 # from datetime import datetime
 import datetime
 
@@ -21,6 +21,8 @@ from drf_yasg.utils import swagger_auto_schema
 
 
 class EmployeeViewSet(viewsets.ViewSet):
+
+    renderer_classes = [CustomRenderer]
     @swagger_auto_schema(responses={200: EmployeeSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_employee(self, request, pk):
@@ -534,8 +536,13 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-# LORAN
+
+
+
 class DepartmentViewSet(viewsets.ViewSet):
+
+    renderer_classes = [CustomRenderer]
+
     @swagger_auto_schema(responses={200: DepartmentSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_department(self, request, pk):
@@ -613,7 +620,7 @@ class DepartmentViewSet(viewsets.ViewSet):
     )
     def create_department(self, request):
 
-        serialized = DepartmentSerializer(data=request.data, many=True)
+        serialized = DepartmentSerializer(data=request.data)
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -739,6 +746,8 @@ class DesignationViewSet(viewsets.ViewSet):
 
 
 class IdentificationDocumentViewSet(viewsets.ViewSet):
+
+    renderer_classes = [CustomRenderer]
     @swagger_auto_schema(responses={200: IdentificationDocumentSerializer})
     @action(detail=True, methods=["get"], url_path="read_employee_documents")
     def read_employee_documents(self, request, pk):
@@ -828,9 +837,11 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
         request_body=IdentificationDocumentSerializer,
         responses={200: IdentificationDocumentSerializer},
     )
+    
     def create_identificationdocuments(self, request):
 
-        serialized = IdentificationDocumentSerializer(data=request.data, many=True)
+
+        serialized = IdentificationDocumentSerializer(data=request.data, many = True) #changed
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -1048,7 +1059,7 @@ class AttendanceViewSet(viewsets.ViewSet):
     )
     def create_attendances(self, request):
 
-        serialized = AttendanceSerializer(data=request.data, many=True)
+        serialized = AttendanceSerializer(data=request.data, many = True) #changed
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -1752,6 +1763,9 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
             # employee.fk_leave_report = leave_report.id
 
             return Response({"Message": "Successful"}, status=status.HTTP_200_OK)
+
+    # Yearly basis report
+    # Change it on designation change
 
     @swagger_auto_schema(responses={200: EmployeeLeaveReportSerializer})
     @action(detail=True, methods=["get"], url_path="read")

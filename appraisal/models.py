@@ -29,13 +29,13 @@ class Goal(models.Model):
 class Appraisal(models.Model):
 
     fk_appraiser = models.ForeignKey(
-        "DemoEmployee",
+        "employees.Employee",
         on_delete=models.SET_NULL,
         null=True,
         related_name="appraiser",
     )
     fk_employee = models.ForeignKey(
-        "DemoEmployee", on_delete=models.SET_NULL, null=True
+        "employees.Employee", on_delete=models.SET_NULL, null=True
     )
     fk_appraiser_template = models.ForeignKey(
         "AppraisalTemplate", on_delete=models.SET_NULL, null=True
@@ -60,11 +60,6 @@ class AppraisalProjectMembership(models.Model):
     fk_appraisal = models.ForeignKey("Appraisal", on_delete=models.CASCADE)
     fk_project = models.ForeignKey("Project", on_delete=models.CASCADE)
     rank = models.PositiveIntegerField()
-
-
-class DemoEmployee(models.Model):
-    name = models.CharField(max_length=100)
-    designation = models.CharField(max_length=50)
 
 
 class AppraisalResult(models.Model):

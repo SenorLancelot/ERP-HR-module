@@ -27,7 +27,13 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES': (
+        'utils.renderers.CustomRenderer',
+    ),
+    'EXCEPTION_HANDLER': 'utils.exception_handlers.custom_exception_handler',
 
+}
 # Application definition
 
 INSTALLED_APPS = [
