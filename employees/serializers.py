@@ -76,11 +76,17 @@ class EmployeeListSerializer(serializers.Serializer):
 
     employee_ids = serializers.ListField(child=serializers.IntegerField())
 
+class EmployeeLeaveReportMembershipSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LeaveReportTypeMembership
+        fields = '__all__'
 
 class EmployeeLeaveReportSerializer(serializers.ModelSerializer):
+    fk_leave_types = EmployeeLeaveReportMembershipSerializer(source = 'leavereporttypemembership_set', many=True)
     class Meta:
         model = EmployeeLeaveReport
-        fields = "__all__"
+        fields = '__all__'
 
 
 class EmployeeLeaveReportListSerializer(serializers.Serializer):
@@ -213,12 +219,33 @@ class EmployeeSessionListSerializer(serializers.Serializer):
 
     check_ids = serializers.ListField(child=serializers.IntegerField())
 
+class DaysListSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = DaysList
+        fields = "__all__"
+
+class LeavePolicyTypeMembershipSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LeavePolicyTypeMembership
+        fields = '__all__'
+
+
 
 class LeavePolicySerializer(serializers.ModelSerializer):
+    fk_leave_type = LeavePolicyTypeMembershipSerializer(source = 'leavepolicytypemembership_set',many=True)
+    fk_blocked_leaves = DaysListSerializer(many=True)
+    
     class Meta:
 
         model = LeavePolicy
-        fields = "__all__"
+        fields = [
+            'fk_leave_type',
+            'created_at',
+            'modified_at',
+            'fk_blocked_leaves',
+        ]
 
 
 class LeavePolicyListSerializer(serializers.Serializer):
@@ -326,11 +353,11 @@ class WorkdayDivisionListSerializer(serializers.Serializer):
 #         fields = "__all__"
 
 
-class LeavePolicyTypeMembershipSerializer(serializers.ModelSerializer):
-    class Meta:
+# class LeavePolicyTypeMembershipSerializer(serializers.ModelSerializer):
+#     class Meta:
 
-        model = LeavePolicyTypeMembership
-        fields = "__all__"
+#         model = LeavePolicyTypeMembership
+#         fields = "__all__"
 
 
 class ScheduleSerializer(serializers.ModelSerializer):
@@ -345,11 +372,7 @@ class ScheduleListSerializer(serializers.Serializer):
     schedule_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-class DaysListSerializer(serializers.ModelSerializer):
-    class Meta:
 
-        model = DaysList
-        fields = "__all__"
 
 
 class DaysListListSerializer(serializers.Serializer):

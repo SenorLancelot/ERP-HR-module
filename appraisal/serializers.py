@@ -8,7 +8,6 @@ from .models import *
 
 
 class GoalSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Goal
         fields = [
