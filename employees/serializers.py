@@ -43,9 +43,9 @@ class DesignationSerializer(serializers.ModelSerializer):
 
 class EmployeeSerializer(DynamicFieldsModelSerializer):
 
-    # fk_department = DepartmentSerializer()
-    # fk_designation = DesignationSerializer()
-    # fk_company = CompanySerializer()
+    fk_department = DepartmentSerializer(required=False)
+    fk_designation = DesignationSerializer(required=False)
+    fk_company = CompanySerializer(required=False)
     class Meta:
         model = Employee
         fields = [
@@ -98,13 +98,25 @@ class CustomerListSerializer(serializers.Serializer):
 
     customer_ids = serializers.ListField(child=serializers.IntegerField())
 
+
+class EmergencyContactSerializer(serializers.Serializer):
+
+    class Meta:
+        model = EmergencyContact
+        fields = '__all__'
+
+class EmergencyContactListSerializer(serializers.Serializer):
+
+    emergency_contact_ids = serializers.ListField(child=serializers.IntegerField())
+
+    
 class IdentificationTypeSerializer(serializers.ModelSerializer):
     class Meta:
         model = IdentificationType
         fields = ["name", "issuing_authority"]
 
 class IdentificationDocumentSerializer(serializers.ModelSerializer):
-    fk_identification_type = IdentificationTypeSerializer()
+    fk_identification_type = IdentificationTypeSerializer(many = False)
     class Meta:
         model = IdentificationDocument
         fields = ["identification_number", "fk_employee", "fk_identification_type"]
@@ -115,10 +127,7 @@ class IdentificationDocumentListSerializer(serializers.Serializer):
     identificationdocument_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-class IdentificationTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = IdentificationType
-        fields = ["name", "issuing_authority"]
+
 
 
 class IdentificationTypeListSerializer(serializers.Serializer):
