@@ -1,13 +1,20 @@
 from django.db import models
 
 # Create your models here.
-
+HIDDEN = 0
+DRAFT = 1
+LIVE = 2
+STATUS_CHOICES = (
+    (HIDDEN, 'Hidden'),
+    (DRAFT, 'Draft'),
+    (LIVE, 'Live')
+)
 
 class AppraisalTemplate(models.Model):
     name = models.CharField(max_length=20)
     description = models.TextField()
     fk_goal = models.ManyToManyField("Goal")
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
@@ -21,9 +28,10 @@ class Project(models.Model):
 
 
 class Goal(models.Model):
-    key_result_area = models.CharField(max_length=20)
+    name = models.CharField(max_length=20)
     weightage = models.FloatField(default=0)
     max_score = models.FloatField(default=5)
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     # fk_project = models.ForeignKey("Project", on_delete=models.CASCADE, null=True,  blank=True) #REMOVE THIS FIELD, CREATED ONLY FOR TEsting
 
 

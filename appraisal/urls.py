@@ -7,6 +7,6 @@ router.register(
     r"appraisal_template", AppraisalTemplateViewSet, basename="appraisal_template"
 )
 router.register(r"appraisal", AppraisalViewSet, basename="appraisal")
-router.register(r"goal", GoalViewSet, basename="goal")
+router.register(r"goals", GoalViewSet, basename="goal")
 
 urlpatterns = router.urls

@@ -1,24 +1,27 @@
 from django.core.exceptions import ValidationError
 from django.db.models import fields
 from django.db.models.query_utils import Q
-from rest_framework import serializers
+from rest_framework import serializers, status
 from django.db.models.aggregates import Sum
+from rest_framework.exceptions import NotFound
 from rest_framework.fields import ReadOnlyField
 
 from .models import *
 
 
 class GoalSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(read_only=True, source='get_status_display', required=False)
     class Meta:
         model = Goal
         fields = [
             "id",
-            "key_result_area",
+            "name",
             "weightage",
             "max_score",
+            'status'
         ]
-        read_only_field = [
-            "id",
+        read_only_fields = [
+            "id"
         ]
 
     def validate_weightage(self, weightage):
@@ -37,12 +40,29 @@ class GoalListSerializer(serializers.Serializer):
     goal_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-class AppraisalTemplateReadSerializer(serializers.ModelSerializer):
+class AppraisalTemplateResponseSerializer(serializers.ModelSerializer):
     fk_goal = GoalSerializer(many=True)
+    status = serializers.CharField(read_only=True, source='get_status_display', required=False)
 
     class Meta:
         model = AppraisalTemplate
 
+        fields = [
+            "id",
+            "name",
+            "description",
+            "fk_goal",
+            "status",
+            "created_at",
+            "modified_at",
+        ]
+        read_only_field = ["id", "fk_goal"]
+
+
+class AppraisalTemplateRequestSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = AppraisalTemplate
         fields = [
             "id",
             "name",
@@ -53,29 +73,16 @@ class AppraisalTemplateReadSerializer(serializers.ModelSerializer):
         ]
         read_only_field = ["id", "fk_goal"]
 
-
-class AppraisalTemplateSerializer(serializers.ModelSerializer):
-    # fk_goal = GoalSerializer(many=True, read_only=True)
-    class Meta:
-        model = AppraisalTemplate
-        fields = [
-            "id",
-            "name",
-            "description",
-            "fk_goal",
-            "created_at",
-            "modified_at",
-        ]
-        read_only_field = ["id", "fk_goal"]
 
     def validate_fk_goal(self, fk_goal):
         total_weightage = 0
-        print(type(fk_goal))
-        print(fk_goal)
+
         for goal in fk_goal:
-            print(goal.weightage)
-            print(type(goal.weightage))
             total_weightage += goal.weightage
+            if(goal.status == 0):
+                raise NotFound(  {"fk_goal": [
+                f'Invalid pk \"{goal.id}\" - object does not exist.'
+            ]})
 
         if total_weightage != 100:
             raise ValidationError(
@@ -84,7 +91,7 @@ class AppraisalTemplateSerializer(serializers.ModelSerializer):
 
         return fk_goal
 
-
+        
 #  ================================= CREATION and UPDATE VIA LIST OF GOAL OBJECTS =====================================
 
 # def create(self, validated_data):
