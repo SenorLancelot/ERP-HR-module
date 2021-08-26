@@ -22,7 +22,7 @@ from drf_yasg.utils import swagger_auto_schema
 
 class EmployeeViewSet(viewsets.ViewSet):
 
-    renderer_classes = [CustomRenderer]
+    
     @swagger_auto_schema(responses={200: EmployeeSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_employee(self, request, pk):
@@ -45,14 +45,25 @@ class EmployeeViewSet(viewsets.ViewSet):
     @swagger_auto_schema(responses={200: EmployeeSerializer})
     @action(detail=False, methods=["get"], url_path="read")
     def read_employees(self, request):
-
+        fields = self.request.query_params.getlist('fields', '')
+        
+        
+        
+        
         try:
             queryset = Employee.objects.all()
         except:
+            
             return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            serialized = EmployeeSerializer(instance=queryset, many=True)
+
+            if fields == '':
+            
+                serialized = EmployeeSerializer(instance=queryset, many=True)
+            else:
+                serialized = EmployeeSerializer(instance=queryset, many=True, fields=fields)
+                
         except:
             return Response(
                 {"Message": "Serializer error"},
@@ -76,8 +87,13 @@ class EmployeeViewSet(viewsets.ViewSet):
                 {"Message": "Request body incorrect. Please specify ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        try:
 
-        queryset = Employee.objects.get(id=employee)
+            queryset = Employee.objects.get(id=employee)
+
+        except:
+
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = EmployeeSerializer(queryset, request.data, partial=True)
 
@@ -620,7 +636,7 @@ class DepartmentViewSet(viewsets.ViewSet):
     )
     def create_department(self, request):
 
-        serialized = DepartmentSerializer(data=request.data)
+        serialized = DepartmentSerializer(data=request.data, many =True)
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -744,6 +760,93 @@ class DesignationViewSet(viewsets.ViewSet):
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+class EmergencyContact(viewsets.ViewSet):
+
+    @swagger_auto_schema(responses={200: EmergencyContactSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_emergency_contact(self, request, pk):
+
+        try:
+            queryset = EmergencyContact.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = EmergencyContactSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    
+
+    @action(detail=False, methods=["patch"], url_path="update")
+    @swagger_auto_schema(request_body=EmergencyContactSerializer, responses={200: EmergencyContactSerializer})
+    def update_emergency_contacts(self, request):
+
+        try:
+            emergency_contact = request.data["id"]
+
+        except:
+
+            return Response(
+                {"Message": "Request body incorrect. Please specify  ID."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        queryset = EmergencyContact.objects.get(emergency_contact_id=emergency_contact)
+
+        serialized = EmergencyContactSerializer(queryset, request.data, partial=True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["get"], url_path="read")
+    @swagger_auto_schema(responses={200: EmergencyContactSerializer})
+    def read_emergency_contacts(self, request):
+
+        try:
+            queryset = EmergencyContact.objects.all()
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = EmergencyContactSerializer(instance=queryset, many=True)
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["post"], url_path="create")
+    @swagger_auto_schema(request_body=EmergencyContactSerializer, responses={200: EmergencyContactSerializer})
+    def create_emergency_contacts(self, request):
+
+        serialized = EmergencyContactSerializer(data=request.data, many=True)
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["delete"], url_path="delete")
+    @swagger_auto_schema(
+        request_body=EmergencyContactListSerializer, responses={200: EmergencyContactListSerializer}
+    )
+    def delete_emergency_contacts(self, request):
+
+        serialized = EmergencyContactListSerializer(data=request.data)
+
+        if serialized.is_valid():
+
+            EmergencyContact.objects.filter(id__in=request.data["leave_ids"]).delete()
+
+            return Response(data=request.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class IdentificationDocumentViewSet(viewsets.ViewSet):
 
@@ -1588,11 +1691,61 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
     )
     def create_leave_applications(self, request):
 
-        serialized = CreateLeaveApplicationSerializer(data=request.data, many=True)
+        serialized = CreateLeaveApplicationSerializer(data=request.data)
         if serialized.is_valid():
-            serialized.save()
+            
+            employee_leave_report = EmployeeLeaveReport.objects.get(fk_employee = request.data['fk_employee'])
+            leaves = request.data['fk_leave_types'].copy()
+            print(leaves)
+            total_days = 0
+            is_valid = True
+            leave_details = LeaveReportTypeMembership.objects.filter(fk_employee_report = employee_leave_report.id)
+            for leave in leaves:
 
-            return Response(data=request.data, status=status.HTTP_200_OK)
+                
+                to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
+                from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
+                print(to_date, from_date)
+                leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
+                total_days+=leave_days
+                leave_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
+                allowed_days = leave_obj.leaves_remaining
+                print("allowed days", allowed_days)
+                print("leave_days", leave_days)
+                consecutive_days = leave_obj.consecutive_days_allowed
+                if leave_days > allowed_days or leave_days > consecutive_days:
+                    
+                    is_valid = False
+
+
+                    
+                    
+            net_days = (datetime.datetime.strptime(request.data['to_date'], "%Y-%m-%d"))-(datetime.datetime.strptime(request.data['from_date'], "%Y-%m-%d")) 
+            if total_days > (net_days.days + 1):
+                print("total_days_mismatch")
+                is_valid = False
+
+
+            if is_valid:
+                serialized.save()
+                for leave in leaves:
+
+                    leave_report_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
+
+                    to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
+                    from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
+                    
+                    leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
+                    leave_report_obj.leaves_remaining = leave_report_obj.leaves_remaining - leave_days
+                    leave_report_obj.leaves_taken = leave_report_obj.leaves_taken + leave_days
+                    leave_report_obj.save()
+                return Response(data=request.data, status=status.HTTP_200_OK)
+
+            else:
+
+                return Response({"message" : "Leave durations not valid, please enter valid leaves"}, status=status.HTTP_400_BAD_REQUEST)
+
+            
 
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -1617,24 +1770,6 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
 
 
 class LeaveViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(responses={200: LeaveSerializer})
-    @action(detail=True, methods=["get"], url_path="read")
-    def read_leave(self, request, pk):
-
-        try:
-            queryset = Leave.objects.get(id=pk)
-        except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
-
-        try:
-            serialized = LeaveSerializer(instance=queryset)
-        except:
-            return Response(
-                {"Message": "Serializer error"},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            )
-
-        return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"], url_path="read_employee_leaves")
     def read_leaves_employee(self, request, pk):
@@ -1655,6 +1790,28 @@ class LeaveViewSet(viewsets.ViewSet):
                 {"Message": "Enter start date and end date"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+
+
+    @swagger_auto_schema(responses={200: LeaveSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_leave(self, request, pk):
+
+        try:
+            queryset = Leave.objects.get(id=pk)
+        except:
+            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = LeaveSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(request_body=LeaveSerializer, responses={200: LeaveSerializer})
@@ -1757,6 +1914,7 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
                     fk_leave_type=policy.fk_leave_type,
                     leaves_taken=0,
                     leaves_remaining=policy.total_days_allowed,
+                    consecutive_days_allowed = policy.consecutive_days_allowed,
                 )
                 leave_record.save()
 

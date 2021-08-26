@@ -3,21 +3,90 @@ from rest_framework import serializers
 
 from .models import *
 
+class DynamicFieldsModelSerializer(serializers.ModelSerializer):
+    """
+    A ModelSerializer that takes an additional `fields` argument that
+    controls which fields should be displayed.
+    """
 
-class EmployeeSerializer(serializers.ModelSerializer):
+    def __init__(self, *args, **kwargs):
+        # Don't pass the 'fields' arg up to the superclass
+        fields = kwargs.pop('fields', None)
+
+        # Instantiate the superclass normally
+        super(DynamicFieldsModelSerializer, self).__init__(*args, **kwargs)
+
+        if fields is not None:
+            # Drop any fields that are not specified in the `fields` argument.
+            allowed = set(fields)
+            existing = set(self.fields.keys())
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = Department
+        fields = ["name", "parent"]
+
+class CompanySerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = Company
+        fields = ["name", "domain", "parent"]
+
+class DesignationSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = Designation
+        fields = ["name", "description", "fk_schedule", "fk_leave_policy"]
+
+class EmployeeSerializer(DynamicFieldsModelSerializer):
+
+    fk_department = DepartmentSerializer(required=False)
+    fk_designation = DesignationSerializer(required=False)
+    fk_company = CompanySerializer(required=False)
     class Meta:
         model = Employee
-        fields = "__all__"
+        fields = [
+            "first_name",
+            "last_name",
+            "gender",
+            "birth_date",
+            "primary_contact_no",
+            "secondary_contact_no",
+            "personal_email",
+            "current_address",
+            "is_current_address_permanent",
+            "permanent_address",
+            "employment_type",
+            "joining_date",
+            "leaving_date",
+            "retirement_date",
+            "company_email",
+            "parent",
+            "fk_company",
+            "fk_department",
+            "fk_designation",
+            "fk_leave_report",
+        ]
 
 
 class EmployeeListSerializer(serializers.Serializer):
 
     employee_ids = serializers.ListField(child=serializers.IntegerField())
 
+class EmployeeLeaveReportMembershipSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LeaveReportTypeMembership
+        fields = '__all__'
+
 class EmployeeLeaveReportSerializer(serializers.ModelSerializer):
+    fk_leave_types = EmployeeLeaveReportMembershipSerializer(source = 'leavereporttypemembership_set', many=True)
     class Meta:
         model = EmployeeLeaveReport
-        fields = "__all__"
+        fields = '__all__'
 
 
 class EmployeeLeaveReportListSerializer(serializers.Serializer):
@@ -36,21 +105,32 @@ class CustomerListSerializer(serializers.Serializer):
     customer_ids = serializers.ListField(child=serializers.IntegerField())
 
 
+class EmergencyContactSerializer(serializers.Serializer):
+
+    class Meta:
+        model = EmergencyContact
+        fields = '__all__'
+
+class EmergencyContactListSerializer(serializers.Serializer):
+
+    emergency_contact_ids = serializers.ListField(child=serializers.IntegerField())
+
+    
+class IdentificationTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = IdentificationType
+        fields = ["name", "issuing_authority"]
+
 class IdentificationDocumentSerializer(serializers.ModelSerializer):
+    fk_identification_type = IdentificationTypeSerializer(many = False)
     class Meta:
         model = IdentificationDocument
-        fields = "__all__"
+        fields = ["identification_number", "fk_employee", "fk_identification_type"]
 
 
 class IdentificationDocumentListSerializer(serializers.Serializer):
 
     identificationdocument_ids = serializers.ListField(child=serializers.IntegerField())
-
-
-class IdentificationTypeSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = IdentificationType
-        fields = "__all__"
 
 
 class IdentificationTypeListSerializer(serializers.Serializer):
@@ -62,7 +142,7 @@ class EmployeeGroupSerializer(serializers.ModelSerializer):
     class Meta:
 
         model = EmployeeGroup
-        fields = "__all__"
+        fields = ["name", "fk_employee"]
 
 
 class EmployeeGroupListSerializer(serializers.Serializer):
@@ -70,11 +150,7 @@ class EmployeeGroupListSerializer(serializers.Serializer):
     group_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-class DepartmentSerializer(serializers.ModelSerializer):
-    class Meta:
 
-        model = Department
-        fields = "__all__"
 
 
 class DepartmentListSerializer(serializers.Serializer):
@@ -83,16 +159,12 @@ class DepartmentListSerializer(serializers.Serializer):
 
 
 
-class CompanySerializer(serializers.ModelSerializer):
-    class Meta:
-
-        model = Company
-        fields = "__all__"
 
 
 class CompanyListSerializer(serializers.Serializer):
 
     company_ids = serializers.ListField(child=serializers.IntegerField())
+
 
 class EmployeeGradeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -105,11 +177,7 @@ class EmployeeGradeListSerializer(serializers.Serializer):
 
     employee_grade_ids = serializers.ListField(child=serializers.IntegerField())
 
-class DesignationSerializer(serializers.ModelSerializer):
-    class Meta:
 
-        model = Designation
-        fields = "__all__"
 
 
 class DesignationListSerializer(serializers.Serializer):
@@ -121,7 +189,16 @@ class AttendanceSerializer(serializers.ModelSerializer):
     class Meta:
 
         model = Attendance
-        fields = "__all__"
+        fields = [
+            "attendance_date",
+            "is_late_entry",
+            "is_early_exit",
+            "comment",
+            "total_time",
+            "total_overtime",
+            "fk_employee",
+            "fk_sessions",
+        ]
 
 
 class AttendanceListSerializer(serializers.Serializer):
@@ -154,12 +231,33 @@ class EmployeeSessionListSerializer(serializers.Serializer):
 
     check_ids = serializers.ListField(child=serializers.IntegerField())
 
+class DaysListSerializer(serializers.ModelSerializer):
+    class Meta:
+
+        model = DaysList
+        fields = "__all__"
+
+class LeavePolicyTypeMembershipSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = LeavePolicyTypeMembership
+        fields = '__all__'
+
+
 
 class LeavePolicySerializer(serializers.ModelSerializer):
+    fk_leave_type = LeavePolicyTypeMembershipSerializer(source = 'leavepolicytypemembership_set',many=True)
+    fk_blocked_leaves = DaysListSerializer(many=True)
+    
     class Meta:
 
         model = LeavePolicy
-        fields = "__all__"
+        fields = [
+            'fk_leave_type',
+            'created_at',
+            'modified_at',
+            'fk_blocked_leaves',
+        ]
 
 
 class LeavePolicyListSerializer(serializers.Serializer):
@@ -240,7 +338,7 @@ class LeaveSerializer(serializers.ModelSerializer):
     class Meta:
 
         model = Leave
-        fields = "__all__"
+        fields = ["from_date", "to_date", "fk_employee", "fk_leave_type"]
 
 
 class LeaveListSerializer(serializers.Serializer):
@@ -267,11 +365,11 @@ class WorkdayDivisionListSerializer(serializers.Serializer):
 #         fields = "__all__"
 
 
-class LeavePolicyTypeMembershipSerializer(serializers.ModelSerializer):
-    class Meta:
+# class LeavePolicyTypeMembershipSerializer(serializers.ModelSerializer):
+#     class Meta:
 
-        model = LeavePolicyTypeMembership
-        fields = "__all__"
+#         model = LeavePolicyTypeMembership
+#         fields = "__all__"
 
 
 class ScheduleSerializer(serializers.ModelSerializer):
@@ -286,11 +384,7 @@ class ScheduleListSerializer(serializers.Serializer):
     schedule_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-class DaysListSerializer(serializers.ModelSerializer):
-    class Meta:
 
-        model = DaysList
-        fields = "__all__"
 
 
 class DaysListListSerializer(serializers.Serializer):

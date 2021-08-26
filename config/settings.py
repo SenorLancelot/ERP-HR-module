@@ -28,11 +28,10 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 REST_FRAMEWORK = {
-    'DEFAULT_RENDERER_CLASSES': (
-        'utils.renderers.CustomRenderer',
-    ),
-    'EXCEPTION_HANDLER': 'utils.exception_handlers.custom_exception_handler',
-
+    # "DEFAULT_RENDERER_CLASSES": ("utils.renderers.CustomRenderer",),
+    "EXCEPTION_HANDLER": "utils.exceptionhandlers.custom_exception_handler",
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "PAGE_SIZE": 2,
 }
 # Application definition
 
@@ -128,3 +127,16 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = "/static/"
+
+REST_FRAMEWORK = {
+    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
+    "PAGE_SIZE": 5,
+    "DEFAULT_THROTTLE_CLASSES": [
+        # "utils.throttling.Requests100Throttle",
+        "utils.throttling.Requests500Throttle",
+    ],
+    "DEFAULT_THROTTLE_RATES": {
+        "burst": "100/day",
+        "sustained": "500/day",
+    },
+}
