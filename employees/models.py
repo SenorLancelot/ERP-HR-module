@@ -4,6 +4,14 @@ from mptt.models import MPTTModel, TreeForeignKey
 import datetime
 from django.db.models.signals import post_save
 
+HIDDEN = 0
+DRAFT = 1
+LIVE = 2
+STATUS_CHOICES = (
+    (HIDDEN, 'Hidden'),
+    (DRAFT, 'Draft'),
+    (LIVE, 'Live')
+)
 # Create your models here.
 class Person(models.Model):
 
@@ -27,7 +35,7 @@ class Person(models.Model):
     permanent_address = models.CharField(
         max_length=200,
     )
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     class Meta:
         abstract = True
 
@@ -92,7 +100,7 @@ class Customer(Person):
 
 
 class EmergencyContact(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
     primary_contact_no = models.CharField(max_length=50)
     secondary_contact_no = models.CharField(max_length=50)
@@ -100,7 +108,7 @@ class EmergencyContact(models.Model):
 
 
 class IdentificationDocument(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
     identification_number = models.CharField(max_length=100, null=False)
     fk_identification_type = models.ForeignKey(
@@ -111,7 +119,7 @@ class IdentificationDocument(models.Model):
 
 
 class IdentificationType(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     name = models.CharField(max_length=100, null=False)
     issuing_authority = models.CharField(max_length=100, null=False)
     # add total length field (validation)
@@ -120,7 +128,7 @@ class IdentificationType(models.Model):
 
 
 class EmployeeGroup(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     fk_employee = models.ManyToManyField("Employee")
     name = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -128,7 +136,7 @@ class EmployeeGroup(models.Model):
 
 
 class EmployeeGrade(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     name = models.CharField(max_length=50)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
@@ -138,7 +146,7 @@ class EmployeeGrade(models.Model):
 
 
 class Company(MPTTModel):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     name = models.CharField(max_length=50)
     domain = models.CharField(max_length=50)
     parent = TreeForeignKey(
@@ -150,7 +158,7 @@ class Company(MPTTModel):
 
 
 class Department(MPTTModel):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     name = models.CharField(max_length=30)
 
     parent = TreeForeignKey(
@@ -161,7 +169,7 @@ class Department(MPTTModel):
 
 
 class Designation(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     name = models.CharField(max_length=30)
 
     description = models.CharField(max_length=300)
@@ -177,7 +185,7 @@ class Designation(models.Model):
 
 
 class Attendance(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
     attendance_date = models.DateField()
 
@@ -203,7 +211,7 @@ class Attendance(models.Model):
 
 
 class EmployeeSession(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     # See if we can remove this
     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
 
@@ -221,7 +229,7 @@ class EmployeeSession(models.Model):
 
 
 class LeavePolicy(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     fk_leave_type = models.ManyToManyField(
         "LeaveType", through="LeavePolicyTypeMembership"
     )
@@ -236,7 +244,7 @@ class LeavePolicy(models.Model):
 
 # Membership table for Leave Policy -> Leave Type
 class LeavePolicyTypeMembership(models.Model):
-
+    
     fk_leave_policy = models.ForeignKey("LeavePolicy", on_delete=models.CASCADE)
     fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
     total_days_allowed = models.FloatField(default=0)
@@ -244,7 +252,7 @@ class LeavePolicyTypeMembership(models.Model):
 
 
 class LeaveType(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     name = models.CharField(max_length=30)
     is_paid = models.BooleanField(default=False)
     is_carry_forward = models.BooleanField(default=False)
@@ -256,7 +264,7 @@ class LeaveType(models.Model):
 
 
 class LeaveApplication(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     # Multiple types of leaves in a single application for consecutive days
     fk_leave_type = models.ForeignKey(
         "LeaveType", on_delete=models.CASCADE
@@ -297,7 +305,7 @@ class LeaveApplicationTypeMembership(models.Model):
 
 
 class Leave(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
     fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
 
@@ -310,7 +318,7 @@ class Leave(models.Model):
 
 
 class Schedule(models.Model):
-    # Naming
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     total_work_hours = models.FloatField(default=8)
     workday_start_time = models.TimeField()
     workday_end_time = models.TimeField()
@@ -320,7 +328,7 @@ class Schedule(models.Model):
 
 
 class WorkdayDivision(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     name = models.CharField(max_length=50)
     duration_in_hours = models.FloatField(default=1.0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -328,7 +336,7 @@ class WorkdayDivision(models.Model):
 
 
 class DaysList(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     is_holiday_list = models.BooleanField(default=False)
     is_blocked_list = models.BooleanField(default=False)
     from_date = models.DateField()
@@ -339,7 +347,7 @@ class DaysList(models.Model):
 
 
 class EmployeeLeaveReport(models.Model):
-
+    status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
     fk_leave_types = models.ManyToManyField(    #CHANGE fk_leave_types TO fk_leave_type
         "LeaveType", through="LeaveReportTypeMembership"

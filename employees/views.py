@@ -133,7 +133,7 @@ class EmployeeViewSet(viewsets.ViewSet):
         serialized = EmployeeListSerializer(data=request.data)
 
         if serialized.is_valid():
-            Employee.objects.filter(id__in=request.data["employee_ids"]).delete()
+            Employee.objects.filter(id__in=request.data["employee_ids"]).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -239,7 +239,7 @@ class CustomerViewSet(viewsets.ViewSet):
         serialized = CustomerListSerializer(data=request.data)
 
         if serialized.is_valid():
-            Customer.objects.filter(id__in=request.data["customer_ids"]).delete()
+            Customer.objects.filter(id__in=request.data["customer_ids"]).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -373,7 +373,7 @@ class CompanyViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            Company.objects.filter(id__in=request.data["company_ids"]).delete()
+            Company.objects.filter(id__in=request.data["company_ids"]).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -487,7 +487,7 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
 
             EmployeeGrade.objects.filter(
                 id__in=request.data["employee_grade_ids"]
-            ).delete()
+            ).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -650,7 +650,7 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
         serialized = EmployeeGroupListSerializer(data=request.data)
 
         if serialized.is_valid():
-            EmployeeGroup.objects.filter(id__in=request.data["group_ids"]).delete()
+            EmployeeGroup.objects.filter(id__in=request.data["group_ids"]).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -793,7 +793,7 @@ class DepartmentViewSet(viewsets.ViewSet):
         serialized = DepartmentListSerializer(data=request.data)
 
         if serialized.is_valid():
-            Department.objects.filter(id__in=request.data["department_ids"]).delete()
+            Department.objects.filter(id__in=request.data["department_ids"]).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -931,7 +931,7 @@ class DesignationViewSet(viewsets.ViewSet):
         serialized = DesignationListSerializer(data=request.data)
 
         if serialized.is_valid():
-            Designation.objects.filter(id__in=request.data["designation_ids"]).delete()
+            Designation.objects.filter(id__in=request.data["designation_ids"]).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -1040,7 +1040,7 @@ class EmergencyContactViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            EmergencyContact.objects.filter(id__in=request.data["leave_ids"]).delete()
+            EmergencyContact.objects.filter(id__in=request.data["leave_ids"]).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -1185,7 +1185,7 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
         if serialized.is_valid():
             IdentificationDocument.objects.filter(
                 id__in=request.data["identificationdocument_ids"]
-            ).delete()
+            ).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -1299,7 +1299,7 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
         if serialized.is_valid():
             IdentificationType.objects.filter(
                 id__in=request.data["identificationtype_ids"]
-            ).delete()
+            ).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -1418,7 +1418,7 @@ class AttendanceViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            Attendance.objects.filter(id__in=request.data["attendance_ids"]).delete()
+            Attendance.objects.filter(id__in=request.data["attendance_ids"]).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -1672,7 +1672,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
 
             EmployeeSession.objects.filter(
                 id__in=request.data["attendance_ids"]
-            ).delete()
+            ).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -1805,7 +1805,7 @@ class LeavePolicyViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            LeavePolicy.objects.filter(id__in=request.data["leavepolicy_ids"]).delete()
+            LeavePolicy.objects.filter(id__in=request.data["leavepolicy_ids"]).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -2108,7 +2108,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
 
             LeaveApplication.objects.filter(
                 id__in=request.data["leaveapplication_ids"]
-            ).delete()
+            ).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -2253,7 +2253,7 @@ class LeaveViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            Leave.objects.filter(id__in=request.data["leave_ids"]).delete()
+            Leave.objects.filter(id__in=request.data["leave_ids"]).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -2399,7 +2399,7 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
         if serialized.is_valid():
             EmployeeLeaveReport.objects.filter(
                 id__in=request.data["employee_leave_report_ids"]
-            ).delete()
+            ).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -2527,7 +2527,7 @@ class ScheduleViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            Schedule.objects.filter(id__in=request.data["schedule_ids"]).delete()
+            Schedule.objects.filter(id__in=request.data["schedule_ids"]).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -2641,7 +2641,7 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            WorkdayDivision.objects.filter(id__in=request.data["leave_ids"]).delete()
+            WorkdayDivision.objects.filter(id__in=request.data["leave_ids"]).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -2752,7 +2752,7 @@ class DaysListViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            DaysList.objects.filter(id__in=request.data["days_list_ids"]).delete()
+            DaysList.objects.filter(id__in=request.data["days_list_ids"]).update(status = 'Hidden')
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -2804,7 +2804,7 @@ class DaysListViewSet(viewsets.ViewSet):
 
 #     def delete_monthly_reports(self, request):
 
-#         MonthlyReport.objects.filter(id__in=request.data["monthlyreport_ids"]).delete()
+#         MonthlyReport.objects.filter(id__in=request.data["monthlyreport_ids"]).update(status = 'Hidden')
 
 #         return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -2876,7 +2876,7 @@ class DaysListViewSet(viewsets.ViewSet):
 
 #     def delete_leave(self, request):
 
-#         Calendar.objects.filter(date__in = request.data["dates"]).delete()
+#         Calendar.objects.filter(date__in = request.data["dates"]).update(status = 'Hidden')
 
 #         return Response(data=request.data, status= status.HTTP_200_OK)
 
@@ -2927,7 +2927,7 @@ class DaysListViewSet(viewsets.ViewSet):
 
 #     def delete_events(self, request):
 
-#         Events.objects.filter(event_id__in = request.data["event_ids"]).delete()
+#         Events.objects.filter(event_id__in = request.data["event_ids"]).update(status = 'Hidden')
 
 #         return Response(data=request.data, status= status.HTTP_200_OK)
 

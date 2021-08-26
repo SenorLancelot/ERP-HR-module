@@ -487,7 +487,7 @@ class ScheduleResponseSerializer(DynamicFieldsModelSerializer):
 
 
 
-class ScheduleListRequestSerializer(serializers.Serializer):
+class ScheduleListSerializer(serializers.Serializer):
 
     schedule_ids = serializers.ListField(child=serializers.IntegerField())
 
