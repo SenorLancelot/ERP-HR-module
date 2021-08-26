@@ -258,8 +258,8 @@ class LeaveType(models.Model):
 class LeaveApplication(models.Model):
 
     # Multiple types of leaves in a single application for consecutive days
-    fk_leave_type = models.ManyToManyField(
-        "LeaveType", through="LeaveApplicationTypeMembership"
+    fk_leave_type = models.ForeignKey(
+        "LeaveType", on_delete=models.CASCADE
     )
     fk_employee = models.ForeignKey(
         "Employee", on_delete=models.CASCADE, related_name="employee"

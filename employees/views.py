@@ -23,29 +23,35 @@ from drf_yasg.utils import swagger_auto_schema
 class EmployeeViewSet(viewsets.ViewSet):
 
     
-    @swagger_auto_schema(responses={200: EmployeeSerializer})
+    @swagger_auto_schema(responses={200: EmployeeResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_employee(self, request, pk):
 
         try:
             queryset = Employee.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = EmployeeSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = EmployeeResponseSerializer(instance=queryset)
+            else:
+                serialized = EmployeeResponseSerializer(instance=queryset, fields=fields)
         except:
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: EmployeeSerializer})
+    @swagger_auto_schema(responses={200: EmployeeResponseSerializer})
     @action(detail=False, methods=["get"], url_path="read")
     def read_employees(self, request):
-        fields = self.request.query_params.getlist('fields', '')
+        
         
         
         
@@ -54,26 +60,27 @@ class EmployeeViewSet(viewsets.ViewSet):
             queryset = Employee.objects.all()
         except:
             
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
 
             if fields == '':
             
-                serialized = EmployeeSerializer(instance=queryset, many=True)
+                serialized = EmployeeResponseSerializer(instance=queryset, many=True)
             else:
-                serialized = EmployeeSerializer(instance=queryset, many=True, fields=fields)
+                serialized = EmployeeResponseSerializer(instance=queryset, many=True, fields=fields)
                 
         except:
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
-        request_body=EmployeeSerializer, responses={200: EmployeeSerializer}
+        request_body=EmployeeRequestSerializer, responses={200: EmployeeRequestSerializer}
     )
     @action(detail=False, methods=["patch"], url_path="update")
     def update_employees(self, request):
@@ -84,7 +91,7 @@ class EmployeeViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify ID."},
+                {"message": "Request body incorrect. Please specify ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
@@ -93,9 +100,9 @@ class EmployeeViewSet(viewsets.ViewSet):
 
         except:
 
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = EmployeeSerializer(queryset, request.data, partial=True)
+        serialized = EmployeeRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -105,11 +112,11 @@ class EmployeeViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=EmployeeSerializer, responses={200: EmployeeSerializer}
+        request_body=EmployeeRequestSerializer, responses={200: EmployeeRequestSerializer}
     )
     def create_employees(self, request):
 
-        serialized = EmployeeSerializer(data=request.data, many=True)
+        serialized = EmployeeRequestSerializer(data=request.data, many=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -133,46 +140,58 @@ class EmployeeViewSet(viewsets.ViewSet):
 
 
 class CustomerViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(responses={200: CustomerSerializer})
+    @swagger_auto_schema(responses={200: CustomerResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_customer(self, request, pk):
 
         try:
             queryset = Customer.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = CustomerSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = CustomerResponseSerializer(instance=queryset)
+            else:
+                serialized = CustomerResponseSerializer(instance=queryset, fields=fields)
         except:
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: CustomerSerializer})
+    @swagger_auto_schema(responses={200: CustomerResponseSerializer})
     @action(detail=False, methods=["get"], url_path="read")
     def read_customers(self, request):
 
         try:
             queryset = Customer.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = CustomerSerializer(instance=queryset, many=True)
+
+            if fields == '':
+            
+                serialized = CustomerResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = CustomerResponseSerializer(instance=queryset, many=True, fields=fields)
         except:
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
-        request_body=CustomerSerializer, responses={200: CustomerSerializer}
+        request_body=CustomerRequestSerializer, responses={200: CustomerRequestSerializer}
     )
     @action(detail=False, methods=["patch"], url_path="update")
     def update_customers(self, request):
@@ -183,13 +202,13 @@ class CustomerViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify ID."},
+                {"message": "Request body incorrect. Please specify ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         queryset = Customer.objects.get(id=employee)
 
-        serialized = CustomerSerializer(queryset, request.data, partial=True)
+        serialized = CustomerRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -199,11 +218,11 @@ class CustomerViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=CustomerSerializer, responses={200: CustomerSerializer}
+        request_body=CustomerRequestSerializer, responses={200: CustomerRequestSerializer}
     )
     def create_customers(self, request):
 
-        serialized = CustomerSerializer(data=request.data, many=True)
+        serialized = CustomerRequestSerializer(data=request.data, many=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -227,41 +246,60 @@ class CustomerViewSet(viewsets.ViewSet):
 
 
 class CompanyViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(responses={200: CompanySerializer})
+    @swagger_auto_schema(responses={200: CompanyResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_company(self, request, pk):
 
         try:
             queryset = Company.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = CompanySerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = CompanyResponseSerializer(instance=queryset)
+            else:
+                serialized = CompanyResponseSerializer(instance=queryset, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"], url_path="read_employees")
-    @swagger_auto_schema(responses={200: EmployeeSerializer})
+    @swagger_auto_schema(responses={200: EmployeeResponseSerializer})
     def read_company_employees(self, request, pk):
 
         try:
             queryset = Employee.objects.filter(fk_company=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
 
-        serialized = EmployeeSerializer(instance=queryset, many=True)
+            if fields == '':
+            
+                serialized = EmployeeResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = EmployeeResponseSerializer(instance=queryset, many=True, fields=fields)
+        except:
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
-        request_body=CompanySerializer, responses={200: CompanySerializer}
+        request_body=CompanyRequestSerializer, responses={200: CompanyRequestSerializer}
     )
     def update_companies(self, request):
 
@@ -271,13 +309,13 @@ class CompanyViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify  ID."},
+                {"message": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         queryset = Company.objects.get(id=company)
 
-        serialized = CompanySerializer(queryset, request.data, partial=True)
+        serialized = CompanyRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -286,25 +324,39 @@ class CompanyViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: CompanySerializer})
+    @swagger_auto_schema(responses={200: CompanyResponseSerializer})
     def read_companies(self, request):
 
         try:
             queryset = Company.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = CompanySerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = CompanyResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = CompanyResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=CompanySerializer, responses={200: CompanySerializer}
+        request_body=CompanyRequestSerializer, responses={200: CompanyRequestSerializer}
     )
     def create_companies(self, request):
 
-        serialized = CompanySerializer(data=request.data, many=True)
+        serialized = CompanyRequestSerializer(data=request.data, many=True)
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -329,20 +381,28 @@ class CompanyViewSet(viewsets.ViewSet):
 
 
 class EmployeeGradeViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(responses={200: EmployeeGradeSerializer})
+    @swagger_auto_schema(responses={200: EmployeeGradeResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_employee_grade(self, request, pk):
 
         try:
             queryset = EmployeeGrade.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = EmployeeGradeSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = EmployeeGradeResponseSerializer(instance=queryset)
+            else:
+                serialized = EmployeeGradeResponseSerializer(instance=queryset, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -350,7 +410,7 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
-        request_body=EmployeeGradeSerializer, responses={200: EmployeeGradeSerializer}
+        request_body=EmployeeGradeRequestSerializer, responses={200: EmployeeGradeRequestSerializer}
     )
     def update_employee_grades(self, request):
 
@@ -360,13 +420,13 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify  ID."},
+                {"message": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         queryset = EmployeeGrade.objects.get(id=employee_grade)
 
-        serialized = EmployeeGradeSerializer(queryset, request.data, partial=True)
+        serialized = EmployeeGradeRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -375,25 +435,39 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: EmployeeGradeSerializer})
+    @swagger_auto_schema(responses={200: EmployeeGradeResponseSerializer})
     def read_employee_grades(self, request):
 
         try:
             queryset = EmployeeGrade.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = EmployeeGradeSerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = EmployeeGradeResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = EmployeeGradeResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=EmployeeGradeSerializer, responses={200: EmployeeGradeSerializer}
+        request_body=EmployeeGradeRequestSerializer, responses={200: EmployeeGradeRequestSerializer}
     )
     def create_employee_grades(self, request):
 
-        serialized = EmployeeGradeSerializer(data=request.data, many=True)
+        serialized = EmployeeGradeRequestSerializer(data=request.data, many=True)
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -421,35 +495,57 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
 
 
 class EmployeeGroupViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(responses={200: EmployeeGroupSerializer})
+    @swagger_auto_schema(responses={200: EmployeeGroupResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_employee_group(self, request, pk):
 
         try:
             queryset = EmployeeGroup.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = EmployeeGroupSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = EmployeeGroupResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = EmployeeGroupResponseSerializer(instance=queryset, many=True, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"], url_path="read_employees")
-    @swagger_auto_schema(responses={200: DesignationSerializer})
+    @swagger_auto_schema(responses={200: EmployeeResponseSerializer})
     def read_employee_group_employees(self, request, pk):
 
         try:
             queryset = Employee.objects.filter(fk_employee_group=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = EmployeeSerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = EmployeeResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = EmployeeResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
@@ -473,15 +569,15 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
 
         if len(employees) == sessions.count():
 
-            return Response({"Message": "All present"}, status=status.HTTP_200_OK)
+            return Response({"message": "All present"}, status=status.HTTP_200_OK)
 
         else:
 
-            return Response({"Message": "All not present"}, status=status.HTTP_200_OK)
+            return Response({"message": "All not present"}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
-        request_body=EmployeeGroupSerializer, responses={200: EmployeeGroupSerializer}
+        request_body=EmployeeGroupRequestSerializer, responses={200: EmployeeGroupRequestSerializer}
     )
     def update_employee_group(self, request):
 
@@ -491,12 +587,12 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "No ID in request data"}, status=status.HTTP_400_BAD_REQUEST
+                {"message": "No ID in request data"}, status=status.HTTP_400_BAD_REQUEST
             )
 
         queryset = EmployeeGroup.objects.get(id=employeegroup)
 
-        serialized = EmployeeGroupSerializer(queryset, request.data, partial=True)
+        serialized = EmployeeGroupRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -505,19 +601,27 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: EmployeeGroupSerializer})
-    def read_employee_group(self, request):
+    @swagger_auto_schema(responses={200: EmployeeGroupResponseSerializer})
+    def read_employee_groups(self, request):
 
         try:
             queryset = EmployeeGroup.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = EmployeeGroupSerializer(instance=queryset, many=True)
+
+            if fields == '':
+            
+                serialized = EmployeeGroupResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = EmployeeGroupResponseSerializer(instance=queryset, many=True, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -525,11 +629,11 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=EmployeeGroupSerializer, responses={200: EmployeeGroupSerializer}
+        request_body=EmployeeGroupRequestSerializer, responses={200: EmployeeGroupRequestSerializer}
     )
     def create_employee_group(self, request):
 
-        serialized = EmployeeGroupSerializer(data=request.data, many=True)
+        serialized = EmployeeGroupRequestSerializer(data=request.data, many=True)
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -557,43 +661,65 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
 
 class DepartmentViewSet(viewsets.ViewSet):
 
-    renderer_classes = [CustomRenderer]
+    # renderer_classes = [CustomRenderer]
 
-    @swagger_auto_schema(responses={200: DepartmentSerializer})
+    @swagger_auto_schema(responses={200: DepartmentResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_department(self, request, pk):
 
         try:
             queryset = Department.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = DepartmentSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = DepartmentResponseSerializer(instance=queryset)
+            else:
+                serialized = DepartmentResponseSerializer(instance=queryset, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"], url_path="read_employees")
-    @swagger_auto_schema(responses={200: EmployeeSerializer})
+    @swagger_auto_schema(responses={200: EmployeeResponseSerializer})
     def read_department_employees(self, request, pk):
 
         try:
             queryset = Employee.objects.filter(fk_department=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = EmployeeSerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = EmployeeResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = EmployeeResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
-        request_body=DepartmentSerializer, responses={200: DepartmentSerializer}
+        request_body=DepartmentRequestSerializer, responses={200: DepartmentRequestSerializer}
     )
     def update_departments(self, request):
 
@@ -603,13 +729,13 @@ class DepartmentViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify  ID."},
+                {"message": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         queryset = Department.objects.get(id=department)
 
-        serialized = DepartmentSerializer(queryset, request.data, partial=True)
+        serialized = DepartmentRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -618,25 +744,39 @@ class DepartmentViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: DepartmentSerializer})
-    def read_department(self, request):
+    @swagger_auto_schema(responses={200: DepartmentResponseSerializer})
+    def read_departments(self, request):
 
         try:
             queryset = Department.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = DepartmentSerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = DepartmentResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = DepartmentResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=DepartmentSerializer, responses={200: DepartmentSerializer}
+        request_body=DepartmentRequestSerializer, responses={200: DepartmentRequestSerializer}
     )
     def create_department(self, request):
 
-        serialized = DepartmentSerializer(data=request.data, many =True)
+        serialized = DepartmentRequestSerializer(data=request.data, many =True)
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -661,41 +801,63 @@ class DepartmentViewSet(viewsets.ViewSet):
 
 # LORAN
 class DesignationViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(responses={200: DesignationSerializer})
+    @swagger_auto_schema(responses={200: DesignationResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_designation(self, request, pk):
 
         try:
             queryset = Designation.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = DesignationSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = DesignationResponseSerializer(instance=queryset)
+            else:
+                serialized = DesignationResponseSerializer(instance=queryset, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"], url_path="read_employees")
-    @swagger_auto_schema(responses={200: DesignationSerializer})
+    @swagger_auto_schema(responses={200: EmployeeResponseSerializer})
     def read_designation_employees(self, request, pk):
 
         try:
             queryset = Employee.objects.filter(fk_designation=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = EmployeeSerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = EmployeeResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = EmployeeResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
-        request_body=DesignationSerializer, responses={200: DesignationSerializer}
+        request_body=DesignationRequestSerializer, responses={200: DesignationRequestSerializer}
     )
     def update_designations(self, request):
 
@@ -705,13 +867,13 @@ class DesignationViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify  ID."},
+                {"message": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         queryset = Designation.objects.get(id=designation)
 
-        serialized = DesignationSerializer(queryset, request.data, partial=True)
+        serialized = DesignationRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -720,25 +882,39 @@ class DesignationViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: DesignationSerializer})
+    @swagger_auto_schema(responses={200: DesignationResponseSerializer})
     def read_designations(self, request):
 
         try:
             queryset = Designation.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = DesignationSerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = DesignationResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = DesignationResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=DesignationSerializer, responses={200: DesignationSerializer}
+        request_body=DesignationRequestSerializer, responses={200: DesignationRequestSerializer}
     )
     def create_designations(self, request):
 
-        serialized = DesignationSerializer(data=request.data, many=True)
+        serialized = DesignationRequestSerializer(data=request.data, many=True)
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -761,22 +937,30 @@ class DesignationViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class EmergencyContact(viewsets.ViewSet):
+class EmergencyContactViewSet(viewsets.ViewSet):
 
-    @swagger_auto_schema(responses={200: EmergencyContactSerializer})
+    @swagger_auto_schema(responses={200: EmergencyContactResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_emergency_contact(self, request, pk):
 
         try:
             queryset = EmergencyContact.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = EmergencyContactSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = EmergencyContactResponseSerializer(instance=queryset)
+            else:
+                serialized = EmergencyContactResponseSerializer(instance=queryset, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -785,7 +969,7 @@ class EmergencyContact(viewsets.ViewSet):
     
 
     @action(detail=False, methods=["patch"], url_path="update")
-    @swagger_auto_schema(request_body=EmergencyContactSerializer, responses={200: EmergencyContactSerializer})
+    @swagger_auto_schema(request_body=EmergencyContactRequestSerializer, responses={200: EmergencyContactRequestSerializer})
     def update_emergency_contacts(self, request):
 
         try:
@@ -794,13 +978,13 @@ class EmergencyContact(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify  ID."},
+                {"message": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         queryset = EmergencyContact.objects.get(emergency_contact_id=emergency_contact)
 
-        serialized = EmergencyContactSerializer(queryset, request.data, partial=True)
+        serialized = EmergencyContactRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -809,23 +993,37 @@ class EmergencyContact(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: EmergencyContactSerializer})
+    @swagger_auto_schema(responses={200: EmergencyContactResponseSerializer})
     def read_emergency_contacts(self, request):
 
         try:
             queryset = EmergencyContact.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = EmergencyContactSerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = EmergencyContactResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = EmergencyContactResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="create")
-    @swagger_auto_schema(request_body=EmergencyContactSerializer, responses={200: EmergencyContactSerializer})
+    @swagger_auto_schema(request_body=EmergencyContactRequestSerializer, responses={200: EmergencyContactRequestSerializer})
     def create_emergency_contacts(self, request):
 
-        serialized = EmergencyContactSerializer(data=request.data, many=True)
+        serialized = EmergencyContactRequestSerializer(data=request.data, many=True)
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -850,38 +1048,54 @@ class EmergencyContact(viewsets.ViewSet):
 
 class IdentificationDocumentViewSet(viewsets.ViewSet):
 
-    renderer_classes = [CustomRenderer]
-    @swagger_auto_schema(responses={200: IdentificationDocumentSerializer})
+    
+    @swagger_auto_schema(responses={200: IdentificationDocumentResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read_employee_documents")
     def read_employee_documents(self, request, pk):
         try:
             queryset = IdentificationDocument.objects.filter(fk_employee=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = IdentificationDocumentSerializer(instance=queryset, many=True)
+
+            if fields == '':
+            
+                serialized = IdentificationDocumentResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = IdentificationDocumentResponseSerializer(instance=queryset, many=True, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: IdentificationDocumentSerializer})
+    @swagger_auto_schema(responses={200: IdentificationDocumentResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_identification_document(self, request, pk):
 
         try:
             queryset = IdentificationDocument.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = IdentificationDocumentSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = IdentificationDocumentResponseSerializer(instance=queryset)
+            else:
+                serialized = IdentificationDocumentResponseSerializer(instance=queryset, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -889,10 +1103,10 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
-        request_body=IdentificationDocumentSerializer,
-        responses={200: IdentificationDocumentSerializer},
+        request_body=IdentificationDocumentRequestSerializer,
+        responses={200: IdentificationDocumentRequestSerializer},
     )
-    def update_identificationdocuments(self, request):
+    def update_identification_documents(self, request):
 
         try:
             identificationdoc = request.data["id"]
@@ -900,13 +1114,13 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify  ID."},
+                {"message": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         queryset = IdentificationDocument.objects.get(id=identificationdoc)
 
-        serialized = IdentificationDocumentSerializer(
+        serialized = IdentificationDocumentRequestSerializer(
             queryset, request.data, partial=True
         )
 
@@ -917,19 +1131,27 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: IdentificationDocumentSerializer})
-    def read_identificationdocuments(self, request):
+    @swagger_auto_schema(responses={200: IdentificationDocumentResponseSerializer})
+    def read_identification_documents(self, request):
 
         try:
             queryset = IdentificationDocument.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = IdentificationDocumentSerializer(instance=queryset, many=True)
+
+            if fields == '':
+            
+                serialized = IdentificationDocumentResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = IdentificationDocumentResponseSerializer(instance=queryset, many=True, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -937,14 +1159,14 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=IdentificationDocumentSerializer,
-        responses={200: IdentificationDocumentSerializer},
+        request_body=IdentificationDocumentRequestSerializer,
+        responses={200: IdentificationDocumentRequestSerializer},
     )
     
-    def create_identificationdocuments(self, request):
+    def create_identification_documents(self, request):
 
 
-        serialized = IdentificationDocumentSerializer(data=request.data, many = True) #changed
+        serialized = IdentificationDocumentRequestSerializer(data=request.data, many = True) #changed
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -956,7 +1178,7 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
         request_body=IdentificationDocumentListSerializer,
         responses={200: IdentificationDocumentListSerializer},
     )
-    def delete_identificationdocuments(self, request):
+    def delete_identification_documents(self, request):
 
         serialized = IdentificationDocumentListSerializer(data=request.data)
 
@@ -970,20 +1192,28 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
 
 
 class IdentificationTypeViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(responses={200: IdentificationTypeSerializer})
+    @swagger_auto_schema(responses={200: IdentificationTypeResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_identification_type(self, request, pk):
 
         try:
             queryset = IdentificationType.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = IdentificationTypeSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = IdentificationTypeResponseSerializer(instance=queryset)
+            else:
+                serialized = IdentificationTypeResponseSerializer(instance=queryset, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -991,10 +1221,10 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
-        request_body=IdentificationTypeSerializer,
-        responses={200: IdentificationTypeSerializer},
+        request_body=IdentificationTypeRequestSerializer,
+        responses={200: IdentificationTypeRequestSerializer},
     )
-    def update_identificationtypes(self, request):
+    def update_identification_types(self, request):
 
         try:
             designation = request.data["designation_id"]
@@ -1002,13 +1232,13 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify  ID."},
+                {"message": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         queryset = IdentificationType.objects.get(id=designation)
 
-        serialized = IdentificationTypeSerializer(queryset, request.data, partial=True)
+        serialized = IdentificationTypeRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -1017,19 +1247,27 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: IdentificationTypeSerializer})
-    def read_identificationtypes(self, request):
+    @swagger_auto_schema(responses={200: IdentificationTypeResponseSerializer})
+    def read_identification_types(self, request):
 
         try:
             queryset = IdentificationType.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = IdentificationTypeSerializer(instance=queryset, many=True)
+
+            if fields == '':
+            
+                serialized = IdentificationTypeResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = IdentificationTypeResponseSerializer(instance=queryset, many=True, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1037,12 +1275,12 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=IdentificationTypeSerializer,
-        responses={200: IdentificationTypeSerializer},
+        request_body=IdentificationTypeRequestSerializer,
+        responses={200: IdentificationTypeRequestSerializer},
     )
-    def create_identificationtypes(self, request):
+    def create_identification_types(self, request):
 
-        serialized = IdentificationTypeSerializer(data=request.data, many=True)
+        serialized = IdentificationTypeRequestSerializer(data=request.data, many=True)
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -1076,13 +1314,13 @@ class AttendanceViewSet(viewsets.ViewSet):
         try:
             queryset = Attendance.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             serialized = AttendanceSerializer(instance=queryset)
         except:
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1105,7 +1343,7 @@ class AttendanceViewSet(viewsets.ViewSet):
             return Response(data=serialized.data, status=status.HTTP_200_OK)
         except:
             return Response(
-                {"Message": "Enter start date and end date"},
+                {"message": "Enter start date and end date"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -1126,7 +1364,7 @@ class AttendanceViewSet(viewsets.ViewSet):
             return Response(data=serialized.data, status=status.HTTP_200_OK)
         except:
             return Response(
-                {"Message": "Enter start date and end date"},
+                {"message": "Enter start date and end date"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -1145,7 +1383,7 @@ class AttendanceViewSet(viewsets.ViewSet):
             return Response(data=serialized.data, status=status.HTTP_200_OK)
         except:
             return Response(
-                {"Message": "Enter start date and end date"},
+                {"message": "Enter start date and end date"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -1188,20 +1426,28 @@ class AttendanceViewSet(viewsets.ViewSet):
 
 
 class EmployeeSessionViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(responses={200: EmployeeSessionSerializer})
+    @swagger_auto_schema(responses={200: EmployeeSessionResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_employee_session(self, request, pk):
 
         try:
             queryset = EmployeeSession.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = EmployeeSessionSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = EmployeeSessionResponseSerializer(instance=queryset)
+            else:
+                serialized = EmployeeSessionResponseSerializer(instance=queryset, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1219,7 +1465,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
             # is_first_session = request.data["is_first_session"]
         except:
             return Response(
-                {"Message": "Request Body incorrect"},
+                {"message": "Request Body incorrect"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         employee = Employee.objects.get(id=employee_id)
@@ -1266,7 +1512,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
             else:
 
                 return Response(
-                    {"Message": "Check out of existing session"},
+                    {"message": "Check out of existing session"},
                     status=status.HTTP_200_OK,
                 )
 
@@ -1285,7 +1531,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
             # is_last_session = request.data["is_last_session"]
         except:
             return Response(
-                {"Message": "Request Body incorrect"},
+                {"message": "Request Body incorrect"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
@@ -1296,7 +1542,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
 
         except EmployeeSession.DoesNotExist:
 
-            return Response({"Message": "No checkin for the employee found"})
+            return Response({"message": "No checkin for the employee found"})
 
         if session.checked_out_at is None:
 
@@ -1373,26 +1619,40 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
         else:
 
             return Response(
-                {"Message": "Already checked out of existing session"},
+                {"message": "Already checked out of existing session"},
                 status=status.HTTP_200_OK,
             )
 
     @action(detail=False, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: EmployeeSessionSerializer})
-    def read_employee_sessions(self, request):
+    @swagger_auto_schema(responses={200: EmployeeSessionResponseSerializer})
+    def read_employee_sessions(self, request, pk):
 
-        queryset = EmployeeSession.objects.filter(id=request.GET.get("id", ""))
-        serialized = EmployeeSessionCheckoutSerializer(instance=queryset, many=True)
+        queryset = EmployeeSession.objects.filter(fk_employee = pk)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = EmployeeSessionResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = EmployeeSessionResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=EmployeeSessionSerializer,
-        responses={200: EmployeeSessionSerializer},
+        request_body=EmployeeSessionRequestSerializer,
+        responses={200: EmployeeSessionRequestSerializer},
     )
     def create_employee_sessions(self, request):
 
-        serialized = EmployeeSessionSerializer(data=request.data, many=True)
+        serialized = EmployeeSessionRequestSerializer(data=request.data, many=True)
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -1430,13 +1690,13 @@ class LeavePolicyViewSet(viewsets.ViewSet):
         try:
             queryset = LeavePolicy.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             serialized = LeavePolicySerializer(instance=queryset)
         except:
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1455,7 +1715,7 @@ class LeavePolicyViewSet(viewsets.ViewSet):
             designation = Designation.objects.get(id=des_id)
         except:
             return Response(
-                {"Message": "No designation found"}, status=status.HTTP_400_BAD_REQUEST
+                {"message": "No designation found"}, status=status.HTTP_400_BAD_REQUEST
             )
         if designation.fk_leave_policy is None:
 
@@ -1478,7 +1738,7 @@ class LeavePolicyViewSet(viewsets.ViewSet):
                 )
         else:
             return Response(
-                {"Message": "Leave Policy already exists"},
+                {"message": "Leave Policy already exists"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -1494,7 +1754,7 @@ class LeavePolicyViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify  ID."},
+                {"message": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -1515,7 +1775,7 @@ class LeavePolicyViewSet(viewsets.ViewSet):
         try:
             queryset = LeavePolicy.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = LeavePolicySerializer(instance=queryset, many=True)
 
@@ -1554,20 +1814,28 @@ class LeavePolicyViewSet(viewsets.ViewSet):
 
 # LORAN
 class LeaveApplicationViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(responses={200: LeaveApplicationSerializer})
+    @swagger_auto_schema(responses={200: LeaveApplicationResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_leave_application(self, request, pk):
 
         try:
             queryset = LeaveApplication.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = LeaveApplicationSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = LeaveApplicationResponseSerializer(instance=queryset)
+            else:
+                serialized = LeaveApplicationResponseSerializer(instance=queryset, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1578,7 +1846,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         try:
             accepted_ids = request.data["accepted_ids"]
         except:
-            return Response({"Message": "specify accepted ids"})
+            return Response({"message": "specify accepted ids"})
 
         try:
             LeaveApplication.objects.filter(id__in=accepted_ids).update(
@@ -1588,25 +1856,45 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         except ValueError:
             print(ValueError)
             return Response(
-                {"Message": "Bad request, check body"},
+                {"message": "Bad request, check body"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        leave_applications = LeaveApplication.objects.filter(id__in=accepted_ids)
         for app_id in accepted_ids:
 
-            leaves = LeaveApplicationTypeMembership.objects.filter(
-                fk_leave_application=app_id
+            leave_application = leave_applications.get(app_id = app_id)
+            leave_report = LeaveReportTypeMembership.objects.filter(fk_employee = leave_application.fk_employee)
+            leave_details = LeaveReportTypeMembership.objects.get(fk_employee_report = leave_report.id)
+
+            leave = Leave(
+                fk_employee=leave_application.fk_employee,
+                fk_leave_type=leave_application.fk_leave_type,
+                from_date=leave_application.from_date,
+                to_date=leave_application.to_date,
             )
+            leave.save()
+            
+            leave_days = (leave_application.to_date - leave_application.from_date).days + 1 #USE TIME DELTA
+            leave_details.leaves_remaining = leave_details.leaves_remaining - leave_days
+            leave_details.leaves_taken = leave_details.leaves_taken + leave_days
+            leave_details.save()
 
-            for leave in leaves:
 
-                leave = Leave(
-                    fk_employee=leave.fk_leave_application.fk_employee,
-                    fk_leave_type=leave.fk_leave_type,
-                    from_date=leave.from_date,
-                    to_date=leave.to_date,
-                )
-                leave.save()
+
+            # leaves = LeaveApplicationTypeMembership.objects.filter(
+            #     fk_leave_application=app_id
+            # )
+
+            # for leave in leaves:
+
+            #     leave = Leave(
+            #         fk_employee=leave.fk_leave_application.fk_employee,
+            #         fk_leave_type=leave.fk_leave_type,
+            #         from_date=leave.from_date,
+            #         to_date=leave.to_date,
+            #     )
+            #     leave.save()
 
         return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -1615,7 +1903,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         try:
             rejected_ids = request.data["rejected_ids"]
         except:
-            return Response({"Message": "specify rejected ids"})
+            return Response({"message": "specify rejected ids"})
 
         try:
             LeaveApplication.objects.filter(id__in=rejected_ids).update(
@@ -1626,7 +1914,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         except ValueError:
             print(ValueError)
             return Response(
-                {"Message": "Bad request, check body"},
+                {"message": "Bad request, check body"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -1634,20 +1922,48 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
     def read_leave_applications_employee(self, request, pk):
 
         queryset = LeaveApplication.objects.filter(fk_employee=pk)
-        serialized = LeaveApplicationSerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = LeaveApplicationResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = LeaveApplicationResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"], url_path="read_department_applications")
     def read_leave_applications_department(self, request, pk):
 
         queryset = LeaveApplication.objects.filter(fk_employee__fk_department=pk)
-        serialized = LeaveApplicationSerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = LeaveApplicationResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = LeaveApplicationResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
-        request_body=LeaveApplicationSerializer,
-        responses={200: LeaveApplicationSerializer},
+        request_body=LeaveApplicationRequestSerializer,
+        responses={200: LeaveApplicationRequestSerializer},
     )
     def update_leave_applications(self, request):
 
@@ -1657,13 +1973,13 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify  ID."},
+                {"message": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         queryset = LeaveApplication.objects.get(id=leaveapplication)
 
-        serialized = LeaveApplicationSerializer(queryset, request.data, partial=True)
+        serialized = LeaveApplicationRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -1672,15 +1988,29 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: LeaveApplicationSerializer})
+    @swagger_auto_schema(responses={200: LeaveApplicationResponseSerializer})
     def read_leave_applications(self, request):
 
         try:
             queryset = LeaveApplication.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = LeaveApplicationSerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = LeaveApplicationResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = LeaveApplicationResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
@@ -1693,53 +2023,69 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
 
         serialized = CreateLeaveApplicationSerializer(data=request.data)
         if serialized.is_valid():
-            
             employee_leave_report = EmployeeLeaveReport.objects.get(fk_employee = request.data['fk_employee'])
-            leaves = request.data['fk_leave_types'].copy()
-            print(leaves)
-            total_days = 0
             is_valid = True
-            leave_details = LeaveReportTypeMembership.objects.filter(fk_employee_report = employee_leave_report.id)
-            for leave in leaves:
+            leave_details = LeaveReportTypeMembership.objects.filter(fk_employee_report = employee_leave_report.id, fk_leave_type = request.data['fk_leave_type'])
+            to_date = datetime.datetime.strptime(request.data['to_date'], "%Y-%m-%d")
+            from_date = datetime.datetime.strptime(request.data['from_date'], "%Y-%m-%d")
+            leave_days = (to_date - from_date).days + 1
+            allowed_days = leave_details.leaves_remaining
+            consecutive_days = leave_details.consecutive_days_allowed
 
-                
-                to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
-                from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
-                print(to_date, from_date)
-                leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
-                total_days+=leave_days
-                leave_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
-                allowed_days = leave_obj.leaves_remaining
-                print("allowed days", allowed_days)
-                print("leave_days", leave_days)
-                consecutive_days = leave_obj.consecutive_days_allowed
-                if leave_days > allowed_days or leave_days > consecutive_days:
+            if leave_days > allowed_days or leave_days > consecutive_days:
                     
                     is_valid = False
 
-
-                    
-                    
-            net_days = (datetime.datetime.strptime(request.data['to_date'], "%Y-%m-%d"))-(datetime.datetime.strptime(request.data['from_date'], "%Y-%m-%d")) 
-            if total_days > (net_days.days + 1):
-                print("total_days_mismatch")
-                is_valid = False
-
-
             if is_valid:
-                serialized.save()
-                for leave in leaves:
+                serialized.save()    
 
-                    leave_report_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
 
-                    to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
-                    from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
+            # employee_leave_report = EmployeeLeaveReport.objects.get(fk_employee = request.data['fk_employee'])
+            # leaves = request.data['fk_leave_types'].copy()
+            # print(leaves)
+            # total_days = 0
+            # is_valid = True
+            # leave_details = LeaveReportTypeMembership.objects.filter(fk_employee_report = employee_leave_report.id)
+            # for leave in leaves:
+
+                
+                # to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
+                # from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
+            #     print(to_date, from_date)
+            #     leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
+            #     total_days+=leave_days
+            #     leave_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
+            #     allowed_days = leave_obj.leaves_remaining
+            #     print("allowed days", allowed_days)
+            #     print("leave_days", leave_days)
+            #     consecutive_days = leave_obj.consecutive_days_allowed
+            #     if leave_days > allowed_days or leave_days > consecutive_days:
                     
-                    leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
-                    leave_report_obj.leaves_remaining = leave_report_obj.leaves_remaining - leave_days
-                    leave_report_obj.leaves_taken = leave_report_obj.leaves_taken + leave_days
-                    leave_report_obj.save()
-                return Response(data=request.data, status=status.HTTP_200_OK)
+            #         is_valid = False
+
+
+                    
+                    
+            # net_days = (datetime.datetime.strptime(request.data['to_date'], "%Y-%m-%d"))-(datetime.datetime.strptime(request.data['from_date'], "%Y-%m-%d")) 
+            # if total_days > (net_days.days + 1):
+            #     print("total_days_mismatch")
+            #     is_valid = False
+
+
+            # if is_valid:
+            #     serialized.save()
+            #     for leave in leaves:
+
+            #         leave_report_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
+
+            #         to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
+            #         from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
+                    
+            #         leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
+            #         leave_report_obj.leaves_remaining = leave_report_obj.leaves_remaining - leave_days
+            #         leave_report_obj.leaves_taken = leave_report_obj.leaves_taken + leave_days
+            #         leave_report_obj.save()
+            #     return Response(data=request.data, status=status.HTTP_200_OK)
 
             else:
 
@@ -1783,29 +2129,51 @@ class LeaveViewSet(viewsets.ViewSet):
                 | Q(to_date__range=[start_date_req, end_date_req], fk_employee=pk)
                 | Q(Q(from_date__lte=start_date_req) & Q(to_date__gte=end_date_req))
             )
-            serialized = LeaveSerializer(instance=queryset, many=True)
+            fields = self.request.query_params.getlist('fields', '')
+            try:
+
+                if fields == '':
+                
+                    serialized = LeaveResponseSerializer(instance=queryset, many=True)
+                else:
+                    serialized = LeaveResponseSerializer(instance=queryset, many=True, fields=fields)
+
+            except:
+
+                return Response(
+                    {"message": "Serializer error"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                )
             return Response(data=serialized.data, status=status.HTTP_200_OK)
         except:
             return Response(
-                {"Message": "Enter start date and end date"},
+                {"message": "Enter start date and end date"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
 
-    @swagger_auto_schema(responses={200: LeaveSerializer})
+    @swagger_auto_schema(responses={200: LeaveResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_leave(self, request, pk):
 
         try:
             queryset = Leave.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = LeaveSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = LeaveResponseSerializer(instance=queryset)
+            else:
+                serialized = LeaveResponseSerializer(instance=queryset, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1814,7 +2182,7 @@ class LeaveViewSet(viewsets.ViewSet):
     
 
     @action(detail=False, methods=["patch"], url_path="update")
-    @swagger_auto_schema(request_body=LeaveSerializer, responses={200: LeaveSerializer})
+    @swagger_auto_schema(request_body=LeaveRequestSerializer, responses={200: LeaveRequestSerializer})
     def update_leaves(self, request):
 
         try:
@@ -1823,13 +2191,13 @@ class LeaveViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify  ID."},
+                {"message": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         queryset = Leave.objects.get(leave_id=leave)
 
-        serialized = LeaveSerializer(queryset, request.data, partial=True)
+        serialized = LeaveRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -1838,23 +2206,37 @@ class LeaveViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: LeaveSerializer})
+    @swagger_auto_schema(responses={200: LeaveResponseSerializer})
     def read_leaves(self, request):
 
         try:
             queryset = Leave.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = LeaveSerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = LeaveResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = LeaveResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="create")
-    @swagger_auto_schema(request_body=LeaveSerializer, responses={200: LeaveSerializer})
+    @swagger_auto_schema(request_body=LeaveRequestSerializer, responses={200: LeaveRequestSerializer})
     def create_leaves(self, request):
 
-        serialized = LeaveSerializer(data=request.data, many=True)
+        serialized = LeaveRequestSerializer(data=request.data, many=True)
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -1892,14 +2274,14 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         if employee.fk_leave_report:
 
             return Response(
-                {"Message": "Report already exists"},
+                {"message": "Report already exists"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -1920,7 +2302,7 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
 
             # employee.fk_leave_report = leave_report.id
 
-            return Response({"Message": "Successful"}, status=status.HTTP_200_OK)
+            return Response({"message": "Successful"}, status=status.HTTP_200_OK)
 
     # Yearly basis report
     # Change it on designation change
@@ -1932,13 +2314,13 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
         try:
             queryset = EmployeeLeaveReport.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             serialized = EmployeeLeaveReportSerializer(instance=queryset)
         except:
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1951,13 +2333,13 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
         try:
             queryset = EmployeeLeaveReport.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             serialized = EmployeeLeaveReportSerializer(instance=queryset, many=True)
         except:
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1976,7 +2358,7 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify ID."},
+                {"message": "Request body incorrect. Please specify ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -2024,20 +2406,28 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
 
 
 class ScheduleViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(responses={200: ScheduleSerializer})
+    @swagger_auto_schema(responses={200: ScheduleResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_schedule(self, request, pk):
 
         try:
             queryset = Schedule.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = ScheduleSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = ScheduleResponseSerializer(instance=queryset)
+            else:
+                serialized = ScheduleResponseSerializer(instance=queryset, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2045,7 +2435,7 @@ class ScheduleViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
-        request_body=ScheduleSerializer, responses={200: ScheduleSerializer}
+        request_body=ScheduleRequestSerializer, responses={200: ScheduleRequestSerializer}
     )
     def update_schedules(self, request):
 
@@ -2055,13 +2445,13 @@ class ScheduleViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify  ID."},
+                {"message": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         queryset = Schedule.objects.get(id=schedule)
 
-        serialized = ScheduleSerializer(queryset, request.data, partial=True)
+        serialized = ScheduleRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -2070,21 +2460,35 @@ class ScheduleViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: ScheduleSerializer})
+    @swagger_auto_schema(responses={200: ScheduleResponseSerializer})
     def read_schedules(self, request):
 
         try:
             queryset = Schedule.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = ScheduleSerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = ScheduleResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = ScheduleResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=ScheduleSerializer, responses={200: ScheduleSerializer}
+        request_body=ScheduleRequestSerializer, responses={200: ScheduleRequestSerializer}
     )
     def create_schedules(self, request, des_id):
 
@@ -2097,11 +2501,11 @@ class ScheduleViewSet(viewsets.ViewSet):
         except Designation.DoesNotExist:
 
             return Response(
-                {{"Message": "No designation found"}},
+                {{"message": "No designation found"}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        serialized = ScheduleSerializer(data=request.data)
+        serialized = ScheduleRequestSerializer(data=request.data)
 
         if serialized.is_valid():
             print(serialized.data)
@@ -2131,20 +2535,28 @@ class ScheduleViewSet(viewsets.ViewSet):
 
 
 class WorkdayDivisionViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(responses={200: WorkdayDivisionSerializer})
+    @swagger_auto_schema(responses={200: WorkdayDivisionResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_workday_division(self, request, pk):
 
         try:
             queryset = WorkdayDivision.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = WorkdayDivisionSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = WorkdayDivisionResponseSerializer(instance=queryset)
+            else:
+                serialized = WorkdayDivisionResponseSerializer(instance=queryset, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2152,8 +2564,8 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
-        request_body=WorkdayDivisionSerializer,
-        responses={200: WorkdayDivisionSerializer},
+        request_body=WorkdayDivisionRequestSerializer,
+        responses={200: WorkdayDivisionRequestSerializer},
     )
     def update_workday_divisons(self, request):
 
@@ -2163,13 +2575,13 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify  ID."},
+                {"message": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         queryset = WorkdayDivision.objects.get(leave_id=leave)
 
-        serialized = WorkdayDivisionSerializer(queryset, request.data, partial=True)
+        serialized = WorkdayDivisionRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -2178,26 +2590,40 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: WorkdayDivisionSerializer})
+    @swagger_auto_schema(responses={200: WorkdayDivisionResponseSerializer})
     def read_workday_divisons(self, request):
 
         try:
             queryset = WorkdayDivision.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = WorkdayDivisionSerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = WorkdayDivisionResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = WorkdayDivisionResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=WorkdayDivisionSerializer,
-        responses={200: WorkdayDivisionSerializer},
+        request_body=WorkdayDivisionRequestSerializer,
+        responses={200: WorkdayDivisionRequestSerializer},
     )
     def create_workday_divisons(self, request):
 
-        serialized = WorkdayDivisionSerializer(data=request.data, many=True)
+        serialized = WorkdayDivisionRequestSerializer(data=request.data, many=True)
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -2223,20 +2649,28 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
 
 
 class DaysListViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(responses={200: DaysListSerializer})
+    @swagger_auto_schema(responses={200: DaysListResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_day_list(self, request, pk):
 
         try:
             queryset = DaysList.objects.get(id=pk)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
+        fields = self.request.query_params.getlist('fields', '')
         try:
-            serialized = DaysListSerializer(instance=queryset)
+
+            if fields == '':
+            
+                serialized = DaysListResponseSerializer(instance=queryset)
+            else:
+                serialized = DaysListResponseSerializer(instance=queryset, fields=fields)
+
         except:
+
             return Response(
-                {"Message": "Serializer error"},
+                {"message": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2244,7 +2678,7 @@ class DaysListViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
-        request_body=DaysListSerializer, responses={200: DaysListSerializer}
+        request_body=DaysListRequestSerializer, responses={200: DaysListRequestSerializer}
     )
     def update_days_lists(self, request):
 
@@ -2254,13 +2688,13 @@ class DaysListViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify  ID."},
+                {"message": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
         queryset = DaysList.objects.get(id=leave)
 
-        serialized = DaysListSerializer(queryset, request.data, partial=True)
+        serialized = DaysListRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -2269,25 +2703,39 @@ class DaysListViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: DaysListSerializer})
+    @swagger_auto_schema(responses={200: DaysListResponseSerializer})
     def read_days_lists(self, request):
 
         try:
             queryset = DaysList.objects.all()
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = DaysListSerializer(instance=queryset, many=True)
+        fields = self.request.query_params.getlist('fields', '')
+        try:
+
+            if fields == '':
+            
+                serialized = DaysListResponseSerializer(instance=queryset, many=True)
+            else:
+                serialized = DaysListResponseSerializer(instance=queryset, many=True, fields=fields)
+
+        except:
+
+            return Response(
+                {"message": "Serializer error"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=DaysListSerializer, responses={200: DaysListSerializer}
+        request_body=DaysListRequestSerializer, responses={200: DaysListRequestSerializer}
     )
     def create_days_lists(self, request):
 
-        serialized = DaysListSerializer(data=request.data, many=True)
+        serialized = DaysListRequestSerializer(data=request.data, many=True)
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -2319,7 +2767,7 @@ class DaysListViewSet(viewsets.ViewSet):
 
 #         except:
 
-#             return Response({"Message": "Request body incorrect. Please specify  ID."}, status=status.HTTP_400_BAD_REQUEST)
+#             return Response({"message": "Request body incorrect. Please specify  ID."}, status=status.HTTP_400_BAD_REQUEST)
 
 #         queryset = MonthlyReport.objects.get(monthlyreport_id=monthlyreport)
 
@@ -2336,7 +2784,7 @@ class DaysListViewSet(viewsets.ViewSet):
 #         try:
 #             queryset = MonthlyReport.objects.all()
 #         except:
-#             return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+#             return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
 #         serialized = MonthlyReportSerializer(queryset, many=True)
 #         if serialized.is_valid():
@@ -2390,7 +2838,7 @@ class DaysListViewSet(viewsets.ViewSet):
 #         try:
 #             date = request.data["date"]
 #         except:
-#             return Response({"Message" : "Request body incorrect. Please specify  ID."}, status = status.HTTP_400_BAD_REQUEST)
+#             return Response({"message" : "Request body incorrect. Please specify  ID."}, status = status.HTTP_400_BAD_REQUEST)
 #         queryset = Calendar.objects.get(date=date)
 
 #         serialized = CalendarSerializer(queryset, request.data, partial = True)
@@ -2407,7 +2855,7 @@ class DaysListViewSet(viewsets.ViewSet):
 #         try:
 #             queryset = Calendar.objects.all()
 #         except:
-#             return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
+#             return Response({"message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
 
 #         serialized = CalendarSerializer(queryset, many = True)
 #         if serialized.is_valid():
@@ -2441,7 +2889,7 @@ class DaysListViewSet(viewsets.ViewSet):
 #         try:
 #             event_id = request.data["event_id"]
 #         except:
-#             return Response({"Message" : "Request body incorrect. Please specify  ID."}, status = status.HTTP_400_BAD_REQUEST)
+#             return Response({"message" : "Request body incorrect. Please specify  ID."}, status = status.HTTP_400_BAD_REQUEST)
 #         queryset = Events.objects.get(event_id=event_id)
 
 #         serialized = EventSerializer(queryset, request.data, partial = True)
@@ -2458,7 +2906,7 @@ class DaysListViewSet(viewsets.ViewSet):
 #         try:
 #             queryset = Events.objects.all()
 #         except:
-#             return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
+#             return Response({"message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
 
 #         serialized = EventSerializer(queryset, many = True)
 #         if serialized.is_valid():
@@ -2549,12 +2997,12 @@ class DaysListViewSet(viewsets.ViewSet):
 #     try:
 #         queryset = Employee.objects.all()
 #     except:
-#         return Response({"Message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
+#         return Response({"message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
 
 #     try:
 #         serialized = EmployeeSerializer(queryset, many = True)
 #     except:
-#         return Response({"Message" : "Serializer error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR )
+#         return Response({"message" : "Serializer error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR )
 
 #     return Response(data=serialized.data, status= status.HTTP_200_OK)
 
