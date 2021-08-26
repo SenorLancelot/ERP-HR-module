@@ -41,12 +41,13 @@ class Appraisal(models.Model):
     fk_appraiser_template = models.ForeignKey(
         "AppraisalTemplate", on_delete=models.SET_NULL, null=True
     )
-    fk_goal = models.ManyToManyField("Goal", through="AppraisalGoalMembership")
+    fk_goal_score = models.ManyToManyField("Goal", through="AppraisalGoalMembership")
     fk_project_ranks = models.ManyToManyField(
         "Project", through="AppraisalProjectMembership"
     )
     remarks = models.TextField()
     total_score_percentage = models.FloatField(default=0)
+    standardized_score_percentage = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 

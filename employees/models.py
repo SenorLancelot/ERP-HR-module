@@ -341,7 +341,7 @@ class DaysList(models.Model):
 class EmployeeLeaveReport(models.Model):
 
     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
-    fk_leave_types = models.ManyToManyField(
+    fk_leave_types = models.ManyToManyField(    #CHANGE fk_leave_types TO fk_leave_type
         "LeaveType", through="LeaveReportTypeMembership"
     )
 
