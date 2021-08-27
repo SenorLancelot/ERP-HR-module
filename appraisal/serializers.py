@@ -278,7 +278,7 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
                     or goal_data["score"] > goal_data["fk_goal"].max_score
                 ):
                     goal_data["score"] = 0
-                    # appraisal.status=0 #invalid
+                    appraisal.status = DRAFT
                     pass
 
                 appraisal_goal = AppraisalGoalMembership(
@@ -321,7 +321,6 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # template_goal_length =
         total_score_percentage = 0
 
         goals_data = validated_data.get("fk_goal_score")
@@ -329,15 +328,13 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
 
         if query.values_list("fk_goal__id", flat=True).count() == len(goals_data):
             for goal_data in goals_data:
-                # goal_id =
-                # print(goal_id)
                 if goal_data["fk_goal"].id:
                     if (
                         goal_data["score"] < 0
                         or goal_data["score"] > goal_data["fk_goal"].max_score
                     ):
                         goal_data["score"] = 0
-                        # instance.status=0
+                        instance.status = DRAFT
                         pass
 
                     try:
