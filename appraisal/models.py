@@ -21,7 +21,7 @@ class Project(models.Model):
 
 
 class Goal(models.Model):
-    key_result_area = models.CharField(max_length=20)
+    name = models.CharField(max_length=20)
     weightage = models.FloatField(default=0)
     max_score = models.FloatField(default=5)
     # fk_project = models.ForeignKey("Project", on_delete=models.CASCADE, null=True,  blank=True) #REMOVE THIS FIELD, CREATED ONLY FOR TEsting
@@ -41,26 +41,28 @@ class Appraisal(models.Model):
     fk_appraiser_template = models.ForeignKey(
         "AppraisalTemplate", on_delete=models.SET_NULL, null=True
     )
-    fk_goal_score = models.ManyToManyField("Goal", through="AppraisalGoalMembership")
+    fk_goal_score = models.ManyToManyField(
+        "Goal", through="AppraisalGoalMembership"
+    )  # Check for Naming
     fk_project_ranks = models.ManyToManyField(
         "Project", through="AppraisalProjectMembership"
     )
     remarks = models.TextField()
     total_score_percentage = models.FloatField(default=0)
-    standardized_score_percentage = models.FloatField(default=0)
+    normalized_score_percentage = models.FloatField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
 
 
 class AppraisalGoalMembership(models.Model):
-    fk_appraisal = models.ForeignKey("Appraisal", on_delete=models.CASCADE)
-    fk_goal = models.ForeignKey("Goal", on_delete=models.CASCADE)
+    fk_appraisal = models.ForeignKey("Appraisal", on_delete=models.DO_NOTHING)
+    fk_goal = models.ForeignKey("Goal", on_delete=models.DO_NOTHING)
     score = models.FloatField()
 
 
 class AppraisalProjectMembership(models.Model):
-    fk_appraisal = models.ForeignKey("Appraisal", on_delete=models.CASCADE)
-    fk_project = models.ForeignKey("Project", on_delete=models.CASCADE)
+    fk_appraisal = models.ForeignKey("Appraisal", on_delete=models.DO_NOTHING)
+    fk_project = models.ForeignKey("Project", on_delete=models.DO_NOTHING)
     rank = models.PositiveIntegerField()
 
 

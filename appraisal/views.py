@@ -234,6 +234,28 @@ class AppraisalViewSet(viewsets.ViewSet):
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
+    @swagger_auto_schema(responses={200: AppraisalReadSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_appraisal(self, request, pk):
+
+        try:
+            queryset = Appraisal.objects.get(id=pk)
+        except:
+            # print(ValueError)
+            return Response(
+                {"Message": "DOES NOT EXIST"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        try:
+            serialized = AppraisalReadSerializer(instance=queryset)
+        except:
+            return Response(
+                {"Message": "SERIALIZER ERROR"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
     @swagger_auto_schema(
         request_body=AppraisalCreateSerializer,
         responses={200: AppraisalCreateSerializer},
@@ -254,7 +276,7 @@ class AppraisalViewSet(viewsets.ViewSet):
         responses={200: AppraisalCreateSerializer},
     )
     @action(detail=False, methods=["patch"], url_path="update")
-    def update_appraisal_template(self, request):
+    def update_appraisal(self, request):
 
         try:
             template_id = request.data["id"]
