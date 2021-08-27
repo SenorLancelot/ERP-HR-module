@@ -4,6 +4,13 @@ from mptt.models import MPTTModel, TreeForeignKey
 import datetime
 from django.db.models.signals import post_save
 
+def year_choices():
+    return [(r,r) for r in range(1984, datetime.date.today().year+1)]
+
+def current_year():
+    return datetime.date.today().year
+
+
 HIDDEN = 0
 DRAFT = 1
 LIVE = 2
@@ -81,9 +88,9 @@ class Employee(Person, MPTTModel):
     # fk_employee_group = models.ForeignKey(
     #     "EmployeeGroup", on_delete=models.SET_NULL, null=True, blank=True
     # )
-    fk_leave_report = models.ForeignKey(
-        "EmployeeLeaveReport", on_delete=models.CASCADE, null=True, blank=True
-    )
+    # fk_leave_report = models.ForeignKey(
+    #     "EmployeeLeaveReport", on_delete=models.CASCADE, null=True, blank=True
+    # )
     fk_company = models.ForeignKey(
         "Company", on_delete=models.CASCADE, null=True, blank=True
     )
@@ -347,6 +354,8 @@ class DaysList(models.Model):
 
 
 class EmployeeLeaveReport(models.Model):
+    year = models.IntegerField( choices=[(r,r) for r in range(1984, datetime.date.today().year+1)], default=current_year)
+    fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
     status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
     fk_leave_types = models.ManyToManyField(    #CHANGE fk_leave_types TO fk_leave_type
@@ -398,7 +407,9 @@ class LeaveReportTypeMembership(models.Model):
     blocked_till = models.DateField(null=True, blank=True)
     is_compulsory = models.BooleanField(default=False)
 
-
+class CompensateLeaveApplication(models.Model):
+    fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
+    fk_leave_type = models.ManyToManyField("LeaveType")
 # class Calendar(models.Model):
 #
 #     date = models.DateField()
