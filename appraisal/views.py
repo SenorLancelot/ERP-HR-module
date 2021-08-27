@@ -1,3 +1,4 @@
+from django.db.models import query
 from django.shortcuts import render
 from rest_framework import generics, viewsets, status
 from rest_framework.permissions import IsAuthenticated
@@ -9,56 +10,55 @@ from drf_yasg.utils import swagger_auto_schema
 
 
 class AppraisalTemplateViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(responses={200: AppraisalTemplateSerializer})
+    @swagger_auto_schema(responses={200: AppraisalTemplateResponseSerializer})
     @action(detail=False, methods=["get"], url_path="read")
     def read_appraisal_templates(self, request):
 
         try:
-            queryset = AppraisalTemplate.objects.all()
-            print(queryset)
+            queryset = AppraisalTemplate.objects.filter(status=2)
         except:
 
             return Response(
-                {"Message": "DOES NOT EXIST"}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "DOES NOT EXIST"}, status=status.HTTP_404_NOT_FOUND
             )
 
         try:
-            serialized = AppraisalTemplateReadSerializer(queryset, many=True)
+            serialized = AppraisalTemplateResponseSerializer(queryset, many=True)
         except:
             return Response(
-                {"Message": "SERIALIZER ERROR"},
+                {"detail": "SERIALIZER ERROR"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=["get"], url_path="read")
-    @swagger_auto_schema(responses={200: AppraisalTemplateSerializer})
+    @swagger_auto_schema(responses={200: AppraisalTemplateResponseSerializer})
     def read_appraisal_template(self, request, pk):
 
         try:
-            queryset = AppraisalTemplate.objects.get(id=pk)
+            queryset = AppraisalTemplate.objects.get(id=pk, status=2)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            serialized = AppraisalTemplateReadSerializer(instance=queryset)
+            serialized = AppraisalTemplateResponseSerializer(instance=queryset)
 
         except:
             return Response(
-                {"Message": "Serializer Error"},
+                {"detail": "Serializer Error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
-        request_body=AppraisalTemplateSerializer,
-        responses={200: AppraisalTemplateSerializer},
+        request_body=AppraisalTemplateRequestSerializer,
+        responses={200: AppraisalTemplateRequestSerializer},
     )
     @action(detail=False, methods=["post"], url_path="create")
     def create_appraisal_template(self, request):
 
-        serialized = AppraisalTemplateSerializer(data=request.data)
+        serialized = AppraisalTemplateRequestSerializer(data=request.data)
 
         if serialized.is_valid():
 
@@ -66,15 +66,15 @@ class AppraisalTemplateViewSet(viewsets.ViewSet):
 
             queryset = AppraisalTemplate.objects.get(id=serialized.data["id"])
 
-            serialized_response = AppraisalTemplateReadSerializer(queryset)
+            serialized_response = AppraisalTemplateResponseSerializer(queryset)
 
             return Response(data=serialized_response.data, status=status.HTTP_200_OK)
 
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
-        request_body=AppraisalTemplateSerializer,
-        responses={200: AppraisalTemplateSerializer},
+        request_body=AppraisalTemplateRequestSerializer,
+        responses={200: AppraisalTemplateRequestSerializer},
     )
     @action(detail=False, methods=["patch"], url_path="update")
     def update_appraisal_template(self, request):
@@ -84,19 +84,27 @@ class AppraisalTemplateViewSet(viewsets.ViewSet):
 
         except:
             return Response(
-                {"Message": "Request body incorrect. Please specify ID."},
+                {"detail": "Request body incorrect. Please specify ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        try:
+            queryset = AppraisalTemplate.objects.get(id=template, status=2)
 
-        queryset = AppraisalTemplate.objects.get(id=template)
-        serialized = AppraisalTemplateSerializer(queryset, request.data, partial=True)
+        except:
+            return Response(
+                {"detail": "id does not exist"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        serialized = AppraisalTemplateRequestSerializer(
+            queryset, request.data, partial=True
+        )
 
         if serialized.is_valid():
             serialized.save()
 
             queryset = AppraisalTemplate.objects.get(id=template)
 
-            serialized_response = AppraisalTemplateReadSerializer(queryset)
+            serialized_response = AppraisalTemplateResponseSerializer(queryset)
 
             return Response(data=serialized_response.data, status=status.HTTP_200_OK)
 
@@ -114,7 +122,7 @@ class AppraisalTemplateViewSet(viewsets.ViewSet):
         if serialized.is_valid():
             AppraisalTemplate.objects.filter(
                 id__in=request.data["template_ids"]
-            ).delete()
+            ).update(status=0)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -127,15 +135,15 @@ class GoalViewSet(viewsets.ViewSet):
     def read_goal(self, request, pk):
 
         try:
-            queryset = Goal.objects.get(id=pk)
+            queryset = Goal.objects.get(id=pk, status=2)
         except:
-            return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             serialized = GoalSerializer(instance=queryset)
         except:
             return Response(
-                {"Message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -146,7 +154,7 @@ class GoalViewSet(viewsets.ViewSet):
     def read_goals(self, request):
 
         try:
-            queryset = Goal.objects.all()
+            queryset = Goal.objects.filter(status=2)
         except:
             return Response({"Message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -154,7 +162,7 @@ class GoalViewSet(viewsets.ViewSet):
             serialized = GoalSerializer(instance=queryset, many=True)
         except:
             return Response(
-                {"Message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -170,11 +178,17 @@ class GoalViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"Message": "Request body incorrect. Please specify ID."},
+                {"detail": "Request body incorrect. Please specify ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        queryset = Goal.objects.get(id=goal)
+        try:
+            queryset = Goal.objects.get(id=goal, status=2)
+
+        except:
+            return Response(
+                {"detail": "id does not exist"}, status=status.HTTP_404_NOT_FOUND
+            )
 
         serialized = GoalSerializer(queryset, request.data, partial=True)
 
@@ -205,65 +219,136 @@ class GoalViewSet(viewsets.ViewSet):
         serialized = GoalListSerializer(data=request.data)
 
         if serialized.is_valid():
-            Goal.objects.filter(id__in=request.data["goal_ids"]).delete()
+            Goal.objects.filter(id__in=request.data["goal_ids"]).update(status=0)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# * Appraisal Viewsets
 class AppraisalViewSet(viewsets.ViewSet):
-    @swagger_auto_schema(responses={200: AppraisalReadSerializer})
+    @swagger_auto_schema(responses={200: AppraisalResponseSerializer})
     @action(detail=False, methods=["get"], url_path="read")
     def read_appraisals(self, request):
 
         try:
-            queryset = Appraisal.objects.all()
+            queryset = Appraisal.objects.filter(status=LIVE)
         except:
             # print(ValueError)
-            return Response(
-                {"Message": "DOES NOT EXIST"}, status=status.HTTP_404_NOT_FOUND
-            )
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
-            serialized = AppraisalReadSerializer(queryset, many=True)
+            serialized = AppraisalResponseSerializer(queryset, many=True)
         except:
             return Response(
-                {"Message": "SERIALIZER ERROR"},
+                {"detail": "SERIALIZER ERROR"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
-    @swagger_auto_schema(responses={200: AppraisalReadSerializer})
+    @swagger_auto_schema(responses={200: AppraisalResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_appraisal(self, request, pk):
 
         try:
-            queryset = Appraisal.objects.get(id=pk)
+            queryset = Appraisal.objects.get(id=pk, status=LIVE)
         except:
-            # print(ValueError)
             return Response(
-                {"Message": "DOES NOT EXIST"}, status=status.HTTP_404_NOT_FOUND
+                {"detail": "ID NOT FOUND"}, status=status.HTTP_404_NOT_FOUND
             )
 
         try:
-            serialized = AppraisalReadSerializer(instance=queryset)
+            serialized = AppraisalResponseSerializer(instance=queryset)
         except:
             return Response(
-                {"Message": "SERIALIZER ERROR"},
+                {"detail": "SERIALIZER ERROR"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(
-        request_body=AppraisalCreateSerializer,
-        responses={200: AppraisalCreateSerializer},
+        request_body=AppraisalRequestSerializer,
+        responses={200: AppraisalRequestSerializer},
     )
     @action(detail=False, methods=["post"], url_path="create")
     def create_appraisal(self, request):
 
-        serialized = AppraisalCreateSerializer(data=request.data)
+        serialized = AppraisalRequestSerializer(data=request.data)
+
+        if serialized.is_valid():
+            serialized.save()
+
+            queryset = Appraisal.objects.get(id=serialized.data["id"])
+            serialized_response = AppraisalResponseSerializer(queryset)
+
+            return Response(data=serialized_response.data, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        request_body=AppraisalRequestSerializer,
+        responses={200: AppraisalRequestSerializer},
+    )
+    @action(detail=False, methods=["patch"], url_path="update")
+    def update_appraisal(self, request):
+
+        try:
+            appraisal_id = request.data["id"]
+
+        except:
+            return Response(
+                {"detail": "Request body incorrect. Please specify ID."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            queryset = Appraisal.objects.get(id=appraisal_id, status=LIVE)
+        except:
+            return Response(
+                {"detail": "id Doesn't Exist"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        serialized = AppraisalRequestSerializer(queryset, request.data, partial=True)
+
+        if serialized.is_valid():
+            serialized.save()
+
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=["delete"], url_path="delete")
+    @swagger_auto_schema(
+        request_body=AppraisalListSerializer, responses={200: AppraisalListSerializer}
+    )
+    def delete_appraisals(self, request):
+
+        serialized = AppraisalListSerializer(data=request.data)
+
+        if serialized.is_valid():
+            try:
+                Appraisal.objects.filter(id__in=request.data["appraisal_ids"]).update(
+                    status=HIDDEN
+                )
+                return Response(data=request.data, status=status.HTTP_200_OK)
+            except:
+                return Response(
+                    {"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND
+                )
+
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# * Other Contribution Viewsets
+class OtherContributionViewset(viewsets.ViewSet):
+    @swagger_auto_schema(
+        request_body=OtherContributionSerializer,
+        responses={200: OtherContributionSerializer},
+    )
+    @action(detail=False, methods=["post"], url_path="create")
+    def create_other_contribution(self, request):
+
+        serialized = OtherContributionSerializer(data=request.data)
 
         if serialized.is_valid():
             serialized.save()
@@ -271,58 +356,98 @@ class AppraisalViewSet(viewsets.ViewSet):
 
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @swagger_auto_schema(
-        request_body=AppraisalCreateSerializer,
-        responses={200: AppraisalCreateSerializer},
-    )
-    @action(detail=False, methods=["patch"], url_path="update")
-    def update_appraisal(self, request):
+    @swagger_auto_schema(responses={200: OtherContributionSerializer})
+    @action(detail=False, methods=["get"], url_path="read")
+    def read_other_contributions(self, request):
 
         try:
-            template_id = request.data["id"]
+            queryset = OtherContribution.objects.filter(status=LIVE)
+
+        except:
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = OtherContributionSerializer(queryset, many=True)
 
         except:
             return Response(
-                {"Message": "Request body incorrect. Please specify ID."},
-                status=status.HTTP_400_BAD_REQUEST,
+                {"detail": "SERIALIZER ERROR"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
-        queryset = Appraisal.objects.get(id=template_id)
-        serialized = AppraisalCreateSerializer(queryset, request.data, partial=True)
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(responses={200: OtherContributionSerializer})
+    @action(detail=True, methods=["get"], url_path="read")
+    def read_other_contribution(self, request, pk):
+
+        try:
+            query = OtherContribution.objects.get(id=pk, status=LIVE)
+
+        except:
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            serialized = OtherContributionSerializer(instance=query)
+
+        except:
+            return Response(
+                {"detail": "SERIALIZER ERROR"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        request_body=OtherContributionSerializer,
+        responses={200: OtherContributionSerializer},
+    )
+    @action(detail=False, methods=["patch"], url_path="update")
+    def update_other_contribution(self, request):
+
+        try:
+            pk = request.data["id"]
+
+        except:
+            return Response(
+                {"detail": "Request body incorrect. Please specify ID."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            queryset = OtherContribution.objects.get(id=pk, status=LIVE)
+
+        except:
+            return Response(
+                {"detail": "id does not exist"}, status=status.HTTP_404_NOT_FOUND
+            )
+
+        serialized = OtherContributionSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
 
-            queryset = Appraisal.objects.get(id=template_id)
-            serialized_response = AppraisalCreateSerializer(queryset)
-
-            return Response(data=serialized_response.data, status=status.HTTP_200_OK)
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
 
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=["delete"], url_path="delete")
+    @swagger_auto_schema(
+        request_body=OtherContributionListSerializers,
+        responses={200: OtherContributionListSerializers},
+    )
+    def delete_other_contributions(self, request):
 
-# class AppraisalGoal(viewsets.ViewSet):
-#     @swagger_auto_schema(responses={200: AppraisalGoalMembershipSerializer})
-#     @action(detail=False, methods=["get"], url_path="read")
-#     def read_goal_score(self, request, ap=1):
+        serialized = OtherContributionListSerializers(data=request.data)
 
-#         try:
-#             queryset = AppraisalGoalMembership.objects.filter(fk_appraisal=ap)
-#             # queryset = AppraisalGoalMembership.objects.all()
-#             print(queryset)
+        if serialized.is_valid():
+            try:
+                OtherContribution.objects.filter(
+                    id__in=request.data["contribution_ids"]
+                ).update(status=HIDDEN)
+                return Response(data=request.data, status=status.HTTP_200_OK)
+            except:
+                return Response(
+                    {"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND
+                )
 
-#         except:
-#             # print(ValueError)
-#             return Response(
-#                 {"Message": "DOES NOT EXIST"}, status=status.HTTP_404_NOT_FOUND
-#             )
-
-#         try:
-#             serialized = AppraisalGoalMembershipSerializer(queryset, many=True)
-#         except:
-#             return Response(
-#                 {"Message": "SERIALIZER ERROR"},
-#                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
-#             )
-
-#         return Response(data=serialized.data, status=status.HTTP_200_OK)
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)

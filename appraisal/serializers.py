@@ -1,8 +1,9 @@
 from django.core.exceptions import ValidationError
 from django.db.models import fields
 from django.db.models.query_utils import Q
-from rest_framework import serializers
+from rest_framework import serializers, status
 from django.db.models.aggregates import Sum
+from rest_framework.exceptions import NotFound
 from rest_framework.fields import ReadOnlyField
 from rest_framework.response import Response
 from rest_framework import status
@@ -11,17 +12,14 @@ from .models import *
 
 
 class GoalSerializer(serializers.ModelSerializer):
+    status = serializers.CharField(
+        read_only=True, source="get_status_display", required=False
+    )
+
     class Meta:
         model = Goal
-        fields = [
-            "id",
-            "name",
-            "weightage",
-            "max_score",
-        ]
-        read_only_field = [
-            "id",
-        ]
+        fields = ["id", "name", "weightage", "max_score", "status"]
+        read_only_fields = ["id"]
 
     def validate_weightage(self, weightage):
         if weightage < 0 or weightage > 100:
@@ -39,8 +37,11 @@ class GoalListSerializer(serializers.Serializer):
     goal_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-class AppraisalTemplateReadSerializer(serializers.ModelSerializer):
+class AppraisalTemplateResponseSerializer(serializers.ModelSerializer):
     fk_goal = GoalSerializer(many=True)
+    status = serializers.CharField(
+        read_only=True, source="get_status_display", required=False
+    )
 
     class Meta:
         model = AppraisalTemplate
@@ -50,14 +51,14 @@ class AppraisalTemplateReadSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "fk_goal",
+            "status",
             "created_at",
             "modified_at",
         ]
         read_only_field = ["id", "fk_goal"]
 
 
-class AppraisalTemplateSerializer(serializers.ModelSerializer):
-    # fk_goal = GoalSerializer(many=True, read_only=True)
+class AppraisalTemplateRequestSerializer(serializers.ModelSerializer):
     class Meta:
         model = AppraisalTemplate
         fields = [
@@ -72,12 +73,14 @@ class AppraisalTemplateSerializer(serializers.ModelSerializer):
 
     def validate_fk_goal(self, fk_goal):
         total_weightage = 0
-        print(type(fk_goal))
-        print(fk_goal)
+
         for goal in fk_goal:
-            print(goal.weightage)
-            print(type(goal.weightage))
+            print(goal)
             total_weightage += goal.weightage
+            if goal.status == 0:
+                raise NotFound(
+                    {"fk_goal": [f'Invalid pk "{goal.id}" - object does not exist.']}
+                )
 
         if total_weightage != 100:
             raise ValidationError(
@@ -108,7 +111,6 @@ class AppraisalTemplateSerializer(serializers.ModelSerializer):
 
 #     # goals = (instance.fk_goal).all()
 #     # goals = list(goals)
-
 #     instance.name = validated_data.get("name", instance.name)
 #     instance.description = validated_data.get("description", instance.description)
 #     instance.save()
@@ -179,12 +181,30 @@ class AppraisalProjectMembershipSerializer(serializers.ModelSerializer):
         fields = ["fk_project", "rank"]
 
 
-class AppraisalReadSerializer(serializers.ModelSerializer):
+class OtherContributionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OtherContribution
+        fields = ["id", "name", "description", "reference_link"]
+
+
+class OtherContributionListSerializers(serializers.Serializer):
+    contribution_ids = serializers.ListField(child=serializers.IntegerField())
+
+
+class AppraisalListSerializer(serializers.Serializer):
+    appraisal_ids = serializers.ListField(child=serializers.IntegerField())
+
+
+class AppraisalResponseSerializer(serializers.ModelSerializer):
     fk_goal_score = AppraisalGoalMembershipSerializer(
         source="appraisalgoalmembership_set", many=True
     )
     fk_project_ranks = AppraisalProjectMembershipSerializer(
         source="appraisalprojectmembership_set", many=True
+    )
+    fk_other_contribution = OtherContributionSerializer(many=True)
+    status = serializers.CharField(
+        read_only=True, source="get_status_display", required=False
     )
 
     class Meta:
@@ -196,48 +216,50 @@ class AppraisalReadSerializer(serializers.ModelSerializer):
             "fk_appraiser_template",
             "fk_goal_score",
             "fk_project_ranks",
+            "fk_other_contribution",
             "remarks",
             "total_score_percentage",
+            "status",
             "created_at",
             "modified_at",
         ]
 
-        read_only_field = ["id"]
-        # depth = 1
-
-        # def score_objects(self,id):
-        #     obj = AppraisalGoalMembership.objects.filter(fk_appraisal=id)
-        #     fk_goal_score = AppraisalGoalMembershipSerializer(obj, many=True)
-        #     return fk_goal_score
+        read_only_field = ["id", "fk_other_contribution"]
 
 
-class AppraisalCreateSerializer(serializers.ModelSerializer):
+class AppraisalRequestSerializer(serializers.ModelSerializer):
     fk_goal_score = AppraisalGoalMembershipSerializer(many=True, write_only=True)
     fk_project_ranks = AppraisalProjectMembershipSerializer(many=True, write_only=True)
+    # fk_other_contribution =
+
     # fk_appraiser_template = AppraisalTemplateSerializer()
 
     class Meta:
         model = Appraisal
         fields = [
+            "id",
             "fk_appraiser",
             "fk_employee",
             "fk_appraiser_template",
             "fk_goal_score",
             "fk_project_ranks",
+            "fk_other_contribution",
             "remarks",
             "total_score_percentage",
             "created_at",
             "modified_at",
         ]
-        read_only_field = ["total_score_percentage"]
+        read_only_field = ["id", "total_score_percentage"]
 
     def create(self, validated_data):
         goals_data = validated_data.pop("fk_goal_score")
         project_ranks = validated_data.pop("fk_project_ranks")
+        other_contributions = validated_data.pop("fk_other_contribution")
 
         try:
-            template_id = validated_data.get("fk_appraiser_template").id
-            query = AppraisalTemplate.objects.filter(id=template_id)
+            query = AppraisalTemplate.objects.filter(
+                id=validated_data.get("fk_appraiser_template").id
+            )
 
         except AppraisalTemplate.DoesNotExist:
             return Response(
@@ -273,6 +295,7 @@ class AppraisalCreateSerializer(serializers.ModelSerializer):
                 "Total number of goal scores recieved is not according to template goals"
             )
         appraisal.total_score_percentage = total_score_percentage
+        appraisal.fk_other_contribution.set(other_contributions)
         appraisal.save()
 
         for project_rank in project_ranks:
@@ -288,8 +311,9 @@ class AppraisalCreateSerializer(serializers.ModelSerializer):
         instance.save()
 
         try:
-            template_id = validated_data.get("fk_appraiser_template").id
-            query = AppraisalTemplate.objects.filter(id=template_id)
+            query = AppraisalTemplate.objects.filter(
+                id=validated_data.get("fk_appraiser_template").id
+            )
 
         except AppraisalTemplate.DoesNotExist:
             return Response(
