@@ -32,7 +32,7 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "utils.exceptionhandlers.custom_exception_handler",
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.LimitOffsetPagination",
     "PAGE_SIZE": 2,
-    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend']
+    "DEFAULT_FILTER_BACKENDS": ["django_filters.rest_framework.DjangoFilterBackend"],
 }
 # Application definition
 
@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "employees",
     "appraisal",
+    "django_filters",
     "mptt",
     "drf_yasg",
 ]

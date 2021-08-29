@@ -262,9 +262,8 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
             )
 
         except AppraisalTemplate.DoesNotExist:
-            return Response(
-                {"Message": "The Request Body incorrect"},
-                status=status.HTTP_400_BAD_REQUEST,
+            raise serializers.ValidationError(
+                {"Message": "Template not found", "status": "404"}
             )
 
         appraisal = Appraisal(**validated_data)
@@ -292,9 +291,10 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
                 appraisal_goal.save()
         else:
             raise serializers.ValidationError(
-                "Total number of goal scores recieved is not according to template goals"
+                {"detail": "Incorrect Request Body", "status": "400"}
             )
         appraisal.total_score_percentage = total_score_percentage
+
         appraisal.fk_other_contribution.set(other_contributions)
         appraisal.save()
 
@@ -309,6 +309,7 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.remarks = validated_data["remarks"]
         instance.save()
+        print
 
         try:
             query = AppraisalTemplate.objects.filter(
@@ -316,9 +317,8 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
             )
 
         except AppraisalTemplate.DoesNotExist:
-            return Response(
-                {"Message": "The Request Body incorrect"},
-                status=status.HTTP_400_BAD_REQUEST,
+            return serializers.ValidationError(
+                {"detail": "Template not found", "status": "404"}
             )
 
         total_score_percentage = 0
@@ -348,16 +348,20 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
                             goal_data["score"] / goal_data["fk_goal"].max_score
                         ) * (goal_data["fk_goal"]).weightage
                     except AppraisalGoalMembership.DoesNotExist:
-                        return Response(
-                            {"Message": "Appraisal score doesn't exist"},
-                            status=status.HTTP_404_NOT_FOUND,
+                        return serializers.ValidationError(
+                            {
+                                "detail": "scores not found for appraisal",
+                                "status": "404",
+                            }
                         )
                     # Error handling of getting score
                 else:
-                    raise ValidationError("No id in goal")
+                    raise ValidationError(
+                        {"detail": "Request body incorrect in score", "status": "400"},
+                    )
         else:
             raise serializers.ValidationError(
-                "Total number of goal scores recieved is not according to template goals"
+                {"detail": "Request body incorrect", "status": "400"}
             )
 
         for project_rank in project_ranks:
@@ -373,13 +377,18 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
 
                 except AppraisalProjectMembership.DoesNotExist:
                     return Response(
-                        {"Message": "Project Task doesn't exist"},
-                        status=status.HTTP_404_NOT_FOUND,
+                        {"Message": "Project contribution not found", "status": "404"}
                     )
 
             else:
-                raise ValidationError("No id in Project")
-
+                raise ValidationError(
+                    {
+                        "detail": "Request body incorrect in project contribution",
+                        "status": "400",
+                    }
+                )
+        instance.fk_other_contribution.set(validated_data["fk_other_contribution"])
         instance.total_score_percentage = total_score_percentage
+
         instance.save()
         return instance
