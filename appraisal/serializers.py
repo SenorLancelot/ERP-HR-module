@@ -1,4 +1,4 @@
-from django.core.exceptions import ValidationError
+from django.core.exceptions import BadRequest, ValidationError
 from django.db.models import fields
 from django.db.models.query_utils import Q
 from rest_framework import serializers, status
@@ -75,7 +75,6 @@ class AppraisalTemplateRequestSerializer(serializers.ModelSerializer):
         total_weightage = 0
 
         for goal in fk_goal:
-            print(goal)
             total_weightage += goal.weightage
             if goal.status == 0:
                 raise NotFound(
@@ -262,9 +261,7 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
             )
 
         except AppraisalTemplate.DoesNotExist:
-            raise serializers.ValidationError(
-                {"Message": "Template not found", "status": "404"}
-            )
+            raise NotFound("Template not found")
 
         appraisal = Appraisal(**validated_data)
         appraisal.save()
@@ -290,9 +287,7 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
 
                 appraisal_goal.save()
         else:
-            raise serializers.ValidationError(
-                {"detail": "Incorrect Request Body", "status": "400"}
-            )
+            raise BadRequest("Incorrect Request Body")
         appraisal.total_score_percentage = total_score_percentage
 
         appraisal.fk_other_contribution.set(other_contributions)
@@ -309,7 +304,6 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         instance.remarks = validated_data["remarks"]
         instance.save()
-        print
 
         try:
             query = AppraisalTemplate.objects.filter(
@@ -317,9 +311,7 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
             )
 
         except AppraisalTemplate.DoesNotExist:
-            return serializers.ValidationError(
-                {"detail": "Template not found", "status": "404"}
-            )
+            raise NotFound("Template not found")
 
         total_score_percentage = 0
 
@@ -348,20 +340,13 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
                             goal_data["score"] / goal_data["fk_goal"].max_score
                         ) * (goal_data["fk_goal"]).weightage
                     except AppraisalGoalMembership.DoesNotExist:
-                        return serializers.ValidationError(
-                            {
-                                "detail": "scores not found for appraisal",
-                                "status": "404",
-                            }
-                        )
+                        raise NotFound("Template not found")
                     # Error handling of getting score
                 else:
-                    raise ValidationError(
-                        {"detail": "Request body incorrect in score", "status": "400"},
-                    )
+                    raise BadRequest("Goal id not specified")
         else:
-            raise serializers.ValidationError(
-                {"detail": "Request body incorrect", "status": "400"}
+            raise BadRequest(
+                "All goal scores don't match the respective template goals"
             )
 
         for project_rank in project_ranks:
@@ -376,17 +361,10 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
                     project.save()
 
                 except AppraisalProjectMembership.DoesNotExist:
-                    return Response(
-                        {"Message": "Project contribution not found", "status": "404"}
-                    )
+                    raise NotFound("Template not found")
 
             else:
-                raise ValidationError(
-                    {
-                        "detail": "Request body incorrect in project contribution",
-                        "status": "400",
-                    }
-                )
+                raise BadRequest("Project id not specified")
         instance.fk_other_contribution.set(validated_data["fk_other_contribution"])
         instance.total_score_percentage = total_score_percentage
 
