@@ -365,7 +365,7 @@ class LeavePolicySerializer(serializers.ModelSerializer):
 
 class LeavePolicyListSerializer(serializers.Serializer):
 
-    leavepolicy_ids = serializers.ListField(child=serializers.IntegerField())
+    leave_policy_ids = serializers.ListField(child=serializers.IntegerField())
 
 
 # class LeavePolicyTypeMembershipSerializer(serializers.ModelSerializer):

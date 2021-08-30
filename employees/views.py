@@ -10,12 +10,10 @@ from rest_framework import filters
 import django_filters
 from django_filters import rest_framework as django_rest_filters
 
-# from datetime import datetime
+
 import datetime
 
-# default value of detail, methods array,
 
-# project imports
 from rest_framework.decorators import action
 
 from .models import *
@@ -23,28 +21,25 @@ from .serializers import *
 
 from drf_yasg.utils import swagger_auto_schema
 
-class EmployeeFilterSet(django_filters.FilterSet):
 
+class EmployeeFilterSet(django_filters.FilterSet):
     class Meta:
         model = Employee
-        fields = {
-            'fk_department__id': ['exact']
-            
-        }
+        fields = {"fk_department__id": ["exact"]}
+
+
 class EmployeeViewSet(viewsets.ViewSet):
-    filter_backends = (django_rest_filters.DjangoFilterBackend, )
+    filter_backends = (django_rest_filters.DjangoFilterBackend,)
     filterset_class = EmployeeFilterSet
-    
+
     @swagger_auto_schema(responses={200: EmployeeResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_employee(self, request, pk):
 
-
-        
         try:
             queryset = Employee.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -58,7 +53,7 @@ class EmployeeViewSet(viewsets.ViewSet):
                 )
         except:
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -72,7 +67,7 @@ class EmployeeViewSet(viewsets.ViewSet):
             queryset = Employee.objects.filter(status=2)
         except:
 
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -87,7 +82,7 @@ class EmployeeViewSet(viewsets.ViewSet):
 
         except:
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -106,7 +101,7 @@ class EmployeeViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify ID."},
+                {"detail": "Request body incorrect. Please specify ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
@@ -115,7 +110,7 @@ class EmployeeViewSet(viewsets.ViewSet):
 
         except:
 
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = EmployeeRequestSerializer(queryset, request.data, partial=True)
 
@@ -165,7 +160,7 @@ class CustomerViewSet(viewsets.ViewSet):
         try:
             queryset = Customer.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -179,7 +174,7 @@ class CustomerViewSet(viewsets.ViewSet):
                 )
         except:
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -192,7 +187,7 @@ class CustomerViewSet(viewsets.ViewSet):
         try:
             queryset = Customer.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -206,7 +201,7 @@ class CustomerViewSet(viewsets.ViewSet):
                 )
         except:
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -225,11 +220,14 @@ class CustomerViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify ID."},
+                {"detail": "Request body incorrect. Please specify ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        queryset = Customer.objects.get(id=employee)
+        try:
+            queryset = Customer.objects.get(id=employee, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = CustomerRequestSerializer(queryset, request.data, partial=True)
 
@@ -279,7 +277,7 @@ class CompanyViewSet(viewsets.ViewSet):
         try:
             queryset = Company.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -293,7 +291,7 @@ class CompanyViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -306,7 +304,7 @@ class CompanyViewSet(viewsets.ViewSet):
         try:
             queryset = Employee.objects.filter(fk_company=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
         fields = self.request.query_params.getlist("fields", "")
         try:
 
@@ -319,7 +317,7 @@ class CompanyViewSet(viewsets.ViewSet):
                 )
         except:
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -337,12 +335,13 @@ class CompanyViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        queryset = Company.objects.get(id=company)
-
+        try:
+            queryset = Company.objects.get(id=company, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
         serialized = CompanyRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
@@ -358,7 +357,7 @@ class CompanyViewSet(viewsets.ViewSet):
         try:
             queryset = Company.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -374,7 +373,7 @@ class CompanyViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -418,7 +417,7 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
         try:
             queryset = EmployeeGrade.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -434,7 +433,7 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -453,12 +452,13 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        queryset = EmployeeGrade.objects.get(id=employee_grade)
-
+        try:
+            queryset = EmployeeGrade.objects.get(id=employee_grade, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
         serialized = EmployeeGradeRequestSerializer(
             queryset, request.data, partial=True
         )
@@ -476,7 +476,7 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
         try:
             queryset = EmployeeGrade.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -494,7 +494,7 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -540,9 +540,9 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
     def read_employee_group(self, request, pk):
 
         try:
-            queryset = EmployeeGroup.objects.get(id=pk)
+            queryset = EmployeeGroup.objects.get(id=pk, status=LIVE)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -560,7 +560,7 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -571,9 +571,9 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
     def read_employee_group_employees(self, request, pk):
 
         try:
-            queryset = Employee.objects.filter(fk_employee_group=pk)
+            queryset = Employee.objects.filter(fk_employee_group=pk, status=LIVE)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -589,7 +589,7 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -601,7 +601,7 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
 
         try:
 
-            group = EmployeeGroup.objects.get(id=pk)
+            group = EmployeeGroup.objects.get(id=pk, status=LIVE)
             print(group)
             employees = group.fk_employee.filter(status=2)
             print(employees)
@@ -615,11 +615,11 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
 
         if len(employees) == sessions.count():
 
-            return Response({"message": "All present"}, status=status.HTTP_200_OK)
+            return Response({"detail": "All present"}, status=status.HTTP_200_OK)
 
         else:
 
-            return Response({"message": "All not present"}, status=status.HTTP_200_OK)
+            return Response({"detail": "All not present"}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
@@ -634,11 +634,14 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "No ID in request data"}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "No ID in request data"}, status=status.HTTP_400_BAD_REQUEST
             )
+            # STARTHERE
 
-        queryset = EmployeeGroup.objects.get(id=employeegroup)
-
+        try:
+            queryset = EmployeeGroup.objects.get(id=employeegroup, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
         serialized = EmployeeGroupRequestSerializer(
             queryset, request.data, partial=True
         )
@@ -656,7 +659,7 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
         try:
             queryset = EmployeeGroup.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -674,7 +677,7 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -723,7 +726,7 @@ class DepartmentViewSet(viewsets.ViewSet):
         try:
             queryset = Department.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -739,7 +742,7 @@ class DepartmentViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -752,7 +755,7 @@ class DepartmentViewSet(viewsets.ViewSet):
         try:
             queryset = Employee.objects.filter(fk_department=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -768,7 +771,7 @@ class DepartmentViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -787,11 +790,14 @@ class DepartmentViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        queryset = Department.objects.get(id=department)
+        try:
+            queryset = Department.objects.get(id=department, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = DepartmentRequestSerializer(queryset, request.data, partial=True)
 
@@ -808,7 +814,7 @@ class DepartmentViewSet(viewsets.ViewSet):
         try:
             queryset = Department.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -824,7 +830,7 @@ class DepartmentViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -871,7 +877,7 @@ class DesignationViewSet(viewsets.ViewSet):
         try:
             queryset = Designation.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -887,7 +893,7 @@ class DesignationViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -900,7 +906,7 @@ class DesignationViewSet(viewsets.ViewSet):
         try:
             queryset = Employee.objects.filter(fk_designation=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -916,7 +922,7 @@ class DesignationViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -935,11 +941,14 @@ class DesignationViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        queryset = Designation.objects.get(id=designation)
+        try:
+            queryset = Designation.objects.get(id=designation, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = DesignationRequestSerializer(queryset, request.data, partial=True)
 
@@ -956,7 +965,7 @@ class DesignationViewSet(viewsets.ViewSet):
         try:
             queryset = Designation.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -972,7 +981,7 @@ class DesignationViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1018,7 +1027,7 @@ class EmergencyContactViewSet(viewsets.ViewSet):
         try:
             queryset = EmergencyContact.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -1034,7 +1043,7 @@ class EmergencyContactViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1053,11 +1062,16 @@ class EmergencyContactViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        queryset = EmergencyContact.objects.get(emergency_contact_id=emergency_contact)
+        try:
+            queryset = EmergencyContact.objects.get(
+                emergency_contact_id=emergency_contact
+            )
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = EmergencyContactRequestSerializer(
             queryset, request.data, partial=True
@@ -1076,7 +1090,7 @@ class EmergencyContactViewSet(viewsets.ViewSet):
         try:
             queryset = EmergencyContact.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -1094,7 +1108,7 @@ class EmergencyContactViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1141,7 +1155,7 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
         try:
             queryset = IdentificationDocument.objects.filter(fk_employee=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -1159,7 +1173,7 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -1171,7 +1185,7 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
         try:
             queryset = IdentificationDocument.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -1187,7 +1201,7 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1206,11 +1220,15 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        queryset = IdentificationDocument.objects.get(id=identificationdoc)
+        try:
+            queryset = IdentificationDocument.objects.get(
+                id=identificationdoc, status=LIVE
+            )
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = IdentificationDocumentRequestSerializer(
             queryset, request.data, partial=True
@@ -1229,7 +1247,7 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
         try:
             queryset = IdentificationDocument.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -1247,7 +1265,7 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1295,7 +1313,7 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
         try:
             queryset = IdentificationType.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -1311,7 +1329,7 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1330,11 +1348,13 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        queryset = IdentificationType.objects.get(id=designation)
+        try:
+            queryset = IdentificationType.objects.get(id=designation, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = IdentificationTypeRequestSerializer(
             queryset, request.data, partial=True
@@ -1353,7 +1373,7 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
         try:
             queryset = IdentificationType.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -1371,7 +1391,7 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1416,15 +1436,15 @@ class AttendanceViewSet(viewsets.ViewSet):
     def read_attendance(self, request, pk):
 
         try:
-            queryset = Attendance.objects.get(id=pk)
+            queryset = Attendance.objects.get(id=pk, status=LIVE)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             serialized = AttendanceSerializer(instance=queryset)
         except:
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1439,38 +1459,48 @@ class AttendanceViewSet(viewsets.ViewSet):
 
             start_date_req = request.GET.get("start_date")
             end_date_req = request.GET.get("end_date")
+
+        except:
+            return Response(
+                {"detail": "Enter start date and end date"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
             queryset = Attendance.objects.filter(
                 fk_employee__department=dep_id,
                 attendance_date__range=[start_date_req, end_date_req],
+                status=LIVE,
             )
             serialized = AttendanceSerializer(instance=queryset, many=True)
             return Response(data=serialized.data, status=status.HTTP_200_OK)
         except:
-            return Response(
-                {"message": "Enter start date and end date"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=["get"], url_path="company")
     @swagger_auto_schema(responses={200: AttendanceSerializer})
     def read_company_attendances(self, request, pk):
-        dep_id = pk
+        company_id = pk
 
         try:
 
             start_date_req = request.GET.get("start_date")
             end_date_req = request.GET.get("end_date")
+
+        except:
+            return Response(
+                {"detail": "Enter start date and end date"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
             queryset = Attendance.objects.filter(
-                fk_employee__company=dep_id,
+                fk_employee__fk_company=company_id,
                 attendance_date__range=[start_date_req, end_date_req],
+                status=LIVE,
             )
             serialized = AttendanceSerializer(instance=queryset, many=True)
             return Response(data=serialized.data, status=status.HTTP_200_OK)
         except:
-            return Response(
-                {"message": "Enter start date and end date"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=True, methods=["get"], url_path="employee")
     def read_employee_attendances(self, request, pk):
@@ -1480,21 +1510,30 @@ class AttendanceViewSet(viewsets.ViewSet):
         try:
             start_date_req = request.GET.get("start_date")
             end_date_req = request.GET.get("end_date")
+
+        except:
+            return Response(
+                {"detail": "Enter start date and end date"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
             queryset = Attendance.objects.filter(
-                id=id, attendance_date__range=[start_date_req, end_date_req]
+                fk_employee=id,
+                attendance_date__range=[start_date_req, end_date_req],
+                status=LIVE,
             )
             serialized = AttendanceSerializer(instance=queryset, many=True)
             return Response(data=serialized.data, status=status.HTTP_200_OK)
         except:
-            return Response(
-                {"message": "Enter start date and end date"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=["get"], url_path="read")
     def read_all_attendances(self, request):
+        try:
+            queryset = Attendance.objects.filter(status=2)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
-        queryset = Attendance.objects.filter(status=2)
         serialized = AttendanceSerializer(instance=queryset, many=True)
         return Response(data=serialized.data, status=status.HTTP_200_OK)
 
@@ -1539,7 +1578,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
         try:
             queryset = EmployeeSession.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -1555,7 +1594,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1570,15 +1609,20 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
         try:
             employee_id = request.data["fk_employee"]
             checked_in = request.data["checked_in_at"]
-            # is_first_session = request.data["is_first_session"]
+
         except:
             return Response(
-                {"message": "Request Body incorrect"},
+                {"detail": "Request Body incorrect"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        employee = Employee.objects.get(id=employee_id)
 
-        date = datetime.datetime.strptime(checked_in, "%Y-%m-%dT%H:%M:%S")
+        try:
+            employee = Employee.objects.get(id=employee_id)
+        except:
+            return Response(
+                {"detail": "Employee Not Found"}, status=status.HTTP_404_NOT_FOUND
+            )
+        date = datetime.datetime.strptime(checked_in[:-5], "%Y-%m-%dT%H:%M:%S")
         try:
             attendance = Attendance.objects.get(
                 attendance_date=date, fk_employee=employee_id
@@ -1588,7 +1632,6 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
             session = EmployeeSession(
                 checked_in_at=request.data["checked_in_at"],
                 fk_employee=employee,
-                # is_first_session=is_first_session,
             )
             session.save()
             attendance = Attendance(fk_employee=employee, attendance_date=date)
@@ -1620,7 +1663,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
             else:
 
                 return Response(
-                    {"message": "Check out of existing session"},
+                    {"detail": "Check out of existing session"},
                     status=status.HTTP_200_OK,
                 )
 
@@ -1636,10 +1679,10 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
         try:
             employee_id = request.data["fk_employee"]
             checked_out = request.data["checked_out_at"]
-            # is_last_session = request.data["is_last_session"]
+
         except:
             return Response(
-                {"message": "Request Body incorrect"},
+                {"detail": "Request Body incorrect"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
@@ -1650,7 +1693,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
 
         except EmployeeSession.DoesNotExist:
 
-            return Response({"message": "No checkin for the employee found"})
+            return Response({"detail": "No checkin for the employee found"})
 
         if session.checked_out_at is None:
 
@@ -1659,7 +1702,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
             )
 
             checked_out_date = datetime.datetime.strptime(
-                checked_out, "%Y-%m-%dT%H:%M:%S"
+                checked_out[:-5], "%Y-%m-%dT%H:%M:%S"
             )
 
             if (checked_out_date.day) > (session.checked_in_at.day):
@@ -1672,7 +1715,6 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
                     0,
                     0,
                 )
-                print("797")
 
                 session.checked_out_at = bridgetime
 
@@ -1733,7 +1775,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
         else:
 
             return Response(
-                {"message": "Already checked out of existing session"},
+                {"detail": "Already checked out of existing session"},
                 status=status.HTTP_200_OK,
             )
 
@@ -1758,10 +1800,39 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=["patch"], url_path="update")
+    @swagger_auto_schema(
+        request_body=EmployeeSessionRequestSerializer,
+        responses={200: EmployeeSessionRequestSerializer},
+    )
+    def update_leave_policies(self, request):
+
+        try:
+            session = request.data["id"]
+
+        except:
+
+            return Response(
+                {"detail": "Request body incorrect. Please specify  ID."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+            queryset = LeavePolicy.objects.get(id=session, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serialized = LeavePolicySerializer(queryset, request.data, partial=True)
+
+        if serialized.is_valid():
+            serialized.save()
+            return Response(data=serialized.data, status=status.HTTP_200_OK)
+
+        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
@@ -1808,13 +1879,13 @@ class LeavePolicyViewSet(viewsets.ViewSet):
         try:
             queryset = LeavePolicy.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             serialized = LeavePolicySerializer(instance=queryset)
         except:
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1833,7 +1904,7 @@ class LeavePolicyViewSet(viewsets.ViewSet):
             designation = Designation.objects.get(id=des_id)
         except:
             return Response(
-                {"message": "No designation found"}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": "No designation found"}, status=status.HTTP_400_BAD_REQUEST
             )
         if designation.fk_leave_policy is None:
 
@@ -1841,7 +1912,7 @@ class LeavePolicyViewSet(viewsets.ViewSet):
             leave_policy.save()
             designation.fk_leave_policy = leave_policy
             designation.save()
-            # leave_policy_id = leave_policy.leavepolicy_id
+
             for member in request.data:
                 member["fk_leave_policy"] = leave_policy.id
             serialized = LeavePolicyTypeMembershipSerializer(
@@ -1856,7 +1927,7 @@ class LeavePolicyViewSet(viewsets.ViewSet):
                 )
         else:
             return Response(
-                {"message": "Leave Policy already exists"},
+                {"detail": "Leave Policy already exists"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -1867,16 +1938,18 @@ class LeavePolicyViewSet(viewsets.ViewSet):
     def update_leave_policies(self, request):
 
         try:
-            leavepolicy = request.data["id"]
+            leave_policy = request.data["id"]
 
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        queryset = LeavePolicy.objects.get(id=leavepolicy)
+        try:
+            queryset = LeavePolicy.objects.get(id=leave_policy, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = LeavePolicySerializer(queryset, request.data, partial=True)
 
@@ -1893,7 +1966,7 @@ class LeavePolicyViewSet(viewsets.ViewSet):
         try:
             queryset = LeavePolicy.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = LeavePolicySerializer(instance=queryset, many=True)
 
@@ -1923,7 +1996,7 @@ class LeavePolicyViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            LeavePolicy.objects.filter(id__in=request.data["leavepolicy_ids"]).update(
+            LeavePolicy.objects.filter(id__in=request.data["leave_policy_ids"]).update(
                 status=0
             )
 
@@ -1941,7 +2014,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         try:
             queryset = LeaveApplication.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -1957,7 +2030,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -1969,24 +2042,26 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         try:
             accepted_ids = request.data["leaveapplication_ids"]
         except:
-            return Response({"message": "specify accepted ids"})
+            return Response({"detail": "specify accepted ids"})
 
-        try:
-            LeaveApplication.objects.filter(id__in=accepted_ids).update(
-                status="Approved"
-            )
+        # try:
+        #     LeaveApplication.objects.filter(id__in=accepted_ids).update(
+        #         application_status="Approved"
+        #     )
 
-        except ValueError:
-            print(ValueError)
-            return Response(
-                {"message": "Bad request, check body"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        # except ValueError:
+        #     print(ValueError)
+        #     return Response(
+        #         {"detail": "Bad request, check body"},
+        #         status=status.HTTP_400_BAD_REQUEST,
+        #     )
 
         leave_applications = LeaveApplication.objects.filter(id__in=accepted_ids)
         for app_id in accepted_ids:
 
             leave_application = leave_applications.get(id=app_id)
+            if leave_application.application_status == "Approved":
+                continue
             leave_report = EmployeeLeaveReport.objects.get(
                 fk_employee=leave_application.fk_employee
             )  # TODO SOLVE BUG
@@ -2009,7 +2084,8 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
             leave_details.leaves_remaining = leave_details.leaves_remaining - leave_days
             leave_details.leaves_taken = leave_details.leaves_taken + leave_days
             leave_details.save()
-
+            leave_application.application_status = "Approved"
+            leave_application.save()
             # leaves = LeaveApplicationTypeMembership.objects.filter(
             #     fk_leave_application=app_id
             # )
@@ -2032,18 +2108,18 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         try:
             rejected_ids = request.data["rejected_ids"]
         except:
-            return Response({"message": "specify rejected ids"})
+            return Response({"detail": "specify rejected ids"})
 
         try:
             LeaveApplication.objects.filter(id__in=rejected_ids).update(
-                status="Rejected"
+                application_status="Rejected"
             )
 
             return Response(data=request.data)
         except ValueError:
             print(ValueError)
             return Response(
-                {"message": "Bad request, check body"},
+                {"detail": "Bad request, check body"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -2067,7 +2143,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -2092,7 +2168,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
         return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -2110,11 +2186,13 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        queryset = LeaveApplication.objects.get(id=leaveapplication)
+        try:
+            queryset = LeaveApplication.objects.get(id=leaveapplication, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = LeaveApplicationRequestSerializer(
             queryset, request.data, partial=True
@@ -2133,7 +2211,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         try:
             queryset = LeaveApplication.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -2151,7 +2229,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2234,7 +2312,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
             else:
 
                 return Response(
-                    {"message": "Leave durations not valid, please enter valid leaves"},
+                    {"detail": "Leave durations not valid, please enter valid leaves"},
                     status=status.HTTP_400_BAD_REQUEST,
                 )
 
@@ -2259,10 +2337,12 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
 
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
 class LeaveTypeViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=LeaveTypeRequestSerializer, responses={200: LeaveTypeRequestSerializer}
+        request_body=LeaveTypeRequestSerializer,
+        responses={200: LeaveTypeRequestSerializer},
     )
     def create_leave_types(self, request):
 
@@ -2272,6 +2352,7 @@ class LeaveTypeViewSet(viewsets.ViewSet):
             return Response(data=serialized.data, status=status.HTTP_200_OK)
 
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
     @swagger_auto_schema(responses={200: LeaveTypeResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_leave_type(self, request, pk):
@@ -2279,7 +2360,7 @@ class LeaveTypeViewSet(viewsets.ViewSet):
         try:
             queryset = LeaveType.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -2288,12 +2369,14 @@ class LeaveTypeViewSet(viewsets.ViewSet):
 
                 serialized = LeaveTypeResponseSerializer(instance=queryset)
             else:
-                serialized = LeaveTypeResponseSerializer(instance=queryset, fields=fields)
+                serialized = LeaveTypeResponseSerializer(
+                    instance=queryset, fields=fields
+                )
 
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2301,7 +2384,8 @@ class LeaveTypeViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
-        request_body=LeaveTypeRequestSerializer, responses={200: LeaveTypeRequestSerializer}
+        request_body=LeaveTypeRequestSerializer,
+        responses={200: LeaveTypeRequestSerializer},
     )
     def update_leave_types(self, request):
 
@@ -2311,11 +2395,13 @@ class LeaveTypeViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        queryset = LeaveType.objects.get(id=company)
+        try:
+            queryset = LeaveType.objects.get(id=company, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = LeaveTypeRequestSerializer(queryset, request.data, partial=True)
 
@@ -2332,7 +2418,7 @@ class LeaveTypeViewSet(viewsets.ViewSet):
         try:
             queryset = LeaveType.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -2348,7 +2434,7 @@ class LeaveTypeViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2364,7 +2450,9 @@ class LeaveTypeViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            Company.objects.filter(id__in=request.data["leave_type_ids"]).update(status=0)
+            Company.objects.filter(id__in=request.data["leave_type_ids"]).update(
+                status=0
+            )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -2398,13 +2486,13 @@ class LeaveViewSet(viewsets.ViewSet):
             except:
 
                 return Response(
-                    {"message": "Serializer error"},
+                    {"detail": "Serializer error"},
                     status=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 )
             return Response(data=serialized.data, status=status.HTTP_200_OK)
         except:
             return Response(
-                {"message": "Enter start date and end date"},
+                {"detail": "Enter start date and end date"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -2415,7 +2503,7 @@ class LeaveViewSet(viewsets.ViewSet):
         try:
             queryset = Leave.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -2429,7 +2517,7 @@ class LeaveViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2447,11 +2535,13 @@ class LeaveViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        queryset = Leave.objects.get(leave_id=leave)
+        try:
+            queryset = Leave.objects.get(leave_id=leave, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = LeaveRequestSerializer(queryset, request.data, partial=True)
 
@@ -2468,7 +2558,7 @@ class LeaveViewSet(viewsets.ViewSet):
         try:
             queryset = Leave.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -2484,7 +2574,7 @@ class LeaveViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2537,7 +2627,7 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2562,6 +2652,7 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
                 prev_leave_records = LeaveReportTypeMembership.objects.filter(
                     fk_employee_report=prev_leave_report.id
                 )  # CHANGE FIELD NAME
+                prev_leave_report.update(status=HIDDEN)
                 leave_report.save()
                 for policy in leave_policies:
                     prev_record = prev_leave_records.get(
@@ -2584,10 +2675,10 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
 
                 # employee.fk_leave_report = leave_report.id
 
-                return Response({"message": "Successful"}, status=status.HTTP_200_OK)
+                return Response({"detail": "Successful"}, status=status.HTTP_200_OK)
 
             return Response(
-                {"message": "Report already exists"},
+                {"detail": "Report already exists"},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -2608,7 +2699,7 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
 
             #     # employee.fk_leave_report = leave_report.id
 
-            #     return Response({"message": "Successful"}, status=status.HTTP_200_OK)
+            #     return Response({"detail": "Successful"}, status=status.HTTP_200_OK)
 
         else:
 
@@ -2624,13 +2715,13 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
         try:
             queryset = EmployeeLeaveReport.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             serialized = EmployeeLeaveReportResponseSerializer(instance=queryset)
         except:
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2643,7 +2734,7 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
         try:
             queryset = EmployeeLeaveReport.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         try:
             serialized = EmployeeLeaveReportResponseSerializer(
@@ -2651,7 +2742,7 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
             )
         except:
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2670,11 +2761,15 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify ID."},
+                {"detail": "Request body incorrect. Please specify ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        queryset = EmployeeLeaveReport.objects.get(id=EmployeeLeaveReport)
+        try:
+            queryset = EmployeeLeaveReport.objects.get(
+                id=EmployeeLeaveReport, status=LIVE
+            )
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = EmployeeLeaveReportRequestSerializer(
             queryset, request.data, partial=True
@@ -2727,7 +2822,7 @@ class ScheduleViewSet(viewsets.ViewSet):
         try:
             queryset = Schedule.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -2743,7 +2838,7 @@ class ScheduleViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2762,11 +2857,13 @@ class ScheduleViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        queryset = Schedule.objects.get(id=schedule)
+        try:
+            queryset = Schedule.objects.get(id=schedule, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = ScheduleRequestSerializer(queryset, request.data, partial=True)
 
@@ -2783,7 +2880,7 @@ class ScheduleViewSet(viewsets.ViewSet):
         try:
             queryset = Schedule.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -2799,7 +2896,7 @@ class ScheduleViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2821,7 +2918,7 @@ class ScheduleViewSet(viewsets.ViewSet):
         except Designation.DoesNotExist:
 
             return Response(
-                {{"message": "No designation found"}},
+                {{"detail": "No designation found"}},
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
@@ -2864,7 +2961,7 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
         try:
             queryset = WorkdayDivision.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -2880,7 +2977,7 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2899,11 +2996,13 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        queryset = WorkdayDivision.objects.get(leave_id=leave)
+        try:
+            queryset = WorkdayDivision.objects.get(leave_id=leave, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = WorkdayDivisionRequestSerializer(
             queryset, request.data, partial=True
@@ -2922,7 +3021,7 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
         try:
             queryset = WorkdayDivision.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -2940,7 +3039,7 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -2988,7 +3087,7 @@ class DaysListViewSet(viewsets.ViewSet):
         try:
             queryset = DaysList.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -3004,7 +3103,7 @@ class DaysListViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -3023,11 +3122,13 @@ class DaysListViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-
-        queryset = DaysList.objects.get(id=leave)
+        try:
+            queryset = DaysList.objects.get(id=leave, status=LIVE)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
         serialized = DaysListRequestSerializer(queryset, request.data, partial=True)
 
@@ -3044,7 +3145,7 @@ class DaysListViewSet(viewsets.ViewSet):
         try:
             queryset = DaysList.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
@@ -3060,7 +3161,7 @@ class DaysListViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -3099,20 +3200,158 @@ class DaysListViewSet(viewsets.ViewSet):
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-
 class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
+    @swagger_auto_schema(request_body=CompensateLeaveApplicationListSerializer)
+    @action(detail=False, methods=["post"], url_path="accept_applications")
+    def accept_applications(self, request):
+        try:
+            accepted_ids = request.data["compensate_leave_application_ids"]
+        except:
+            return Response({"detail": "specify accepted ids"})
+
+        compensate_leave_applications = CompensateLeaveApplication.objects.filter(
+            id__in=accepted_ids, status=LIVE
+        )
+
+        for app_id in accepted_ids:
+
+            compensate_leave_application = compensate_leave_applications.get(id=app_id)
+            if compensate_leave_application.application_status == "Approved":
+                continue
+            leave_report = EmployeeLeaveReport.objects.get(
+                fk_employee=compensate_leave_application.fk_employee, status=LIVE
+            )
+            leave_details = LeaveReportTypeMembership.objects.get(
+                fk_employee_report=leave_report.id,
+                fk_leave_type=compensate_leave_application.fk_leave_type,
+            )
+
+            leave_days = compensate_leave_application.leaves  # USE TIME DELTA
+            leave_details.leaves_remaining = leave_details.leaves_remaining - leave_days
+            leave_details.compensated_leaves = (
+                leave_details.compensated_leaves + leave_days
+            )
+            leave_details.save()
+            compensate_leave_application.application_status = "Approved"
+            compensate_leave_application.save()
+            # leaves = LeaveApplicationTypeMembership.objects.filter(
+            #     fk_leave_application=app_id
+            # )
+
+            # for leave in leaves:
+
+            #     leave = Leave(
+            #         fk_employee=leave.fk_leave_application.fk_employee,
+            #         fk_leave_type=leave.fk_leave_type,
+            #         from_date=leave.from_date,
+            #         to_date=leave.to_date,
+            #     )
+            #     leave.save()
+
+        return Response(data=request.data, status=status.HTTP_200_OK)
+
+    @swagger_auto_schema(request_body=CompensateLeaveApplicationListSerializer)
+    @action(detail=False, methods=["post"], url_path="reject_applications")
+    def reject_applications(self, request):
+        try:
+            rejected_ids = request.data["compensate_leave_application_ids"]
+        except:
+            return Response({"detail": "specify rejected ids"})
+
+        try:
+            CompensateLeaveApplication.objects.filter(id__in=rejected_ids).update(
+                application_status="Rejected"
+            )
+
+            return Response(data=request.data)
+        except ValueError:
+            print(ValueError)
+            return Response(
+                {"detail": "Bad request, check body"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=CompensateLeaveApplicationRequestSerializer, responses={200: CompensateLeaveApplicationRequestSerializer}
+        request_body=CompensateLeaveApplicationRequestSerializer,
+        responses={200: CompensateLeaveApplicationRequestSerializer},
     )
     def create_compensate_leave_applications(self, request):
 
-        serialized = CompensateLeaveApplicationRequestSerializer(data=request.data, many=True)
+        serialized = CompensateLeaveApplicationRequestSerializer(data=request.data)
         if serialized.is_valid():
-            serialized.save()
-            return Response(data=serialized.data, status=status.HTTP_200_OK)
+            employee_leave_report = EmployeeLeaveReport.objects.get(
+                fk_employee=request.data["fk_employee"], status=LIVE
+            )
+            is_valid = True
+            leave_details = LeaveReportTypeMembership.objects.get(
+                fk_employee_report=employee_leave_report.id,
+                fk_leave_type=request.data["fk_leave_type"],
+            )
+
+            leave_days = request.data["leaves"]
+            allowed_days = leave_details.leaves_remaining
+
+            if leave_days > allowed_days:
+
+                is_valid = False
+
+            if is_valid:
+                serialized.save()
+
+                # employee_leave_report = EmployeeLeaveReport.objects.get(fk_employee = request.data['fk_employee'])
+                # leaves = request.data['fk_leave_types'].copy()
+                # print(leaves)
+                # total_days = 0
+                # is_valid = True
+                # leave_details = LeaveReportTypeMembership.objects.filter(fk_employee_report = employee_leave_report.id)
+                # for leave in leaves:
+
+                # to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
+                # from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
+                #     print(to_date, from_date)
+                #     leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
+                #     total_days+=leave_days
+                #     leave_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
+                #     allowed_days = leave_obj.leaves_remaining
+                #     print("allowed days", allowed_days)
+                #     print("leave_days", leave_days)
+                #     consecutive_days = leave_obj.consecutive_days_allowed
+                #     if leave_days > allowed_days or leave_days > consecutive_days:
+
+                #         is_valid = False
+
+                # net_days = (datetime.datetime.strptime(request.data['to_date'], "%Y-%m-%d"))-(datetime.datetime.strptime(request.data['from_date'], "%Y-%m-%d"))
+                # if total_days > (net_days.days + 1):
+                #     print("total_days_mismatch")
+                #     is_valid = False
+
+                # if is_valid:
+                #     serialized.save()
+                #     for leave in leaves:
+
+                #         leave_report_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
+
+                #         to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
+                #         from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
+
+                #         leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
+                #         leave_report_obj.leaves_remaining = leave_report_obj.leaves_remaining - leave_days
+                #         leave_report_obj.leaves_taken = leave_report_obj.leaves_taken + leave_days
+                #         leave_report_obj.save()
+                #     return Response(data=request.data, status=status.HTTP_200_OK)
+                return Response(data=serialized.data, status=status.HTTP_200_OK)
+            else:
+
+                return Response(
+                    {
+                        "detail": "Total leaves to be compensated exceeds leaves remaining"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST,
+                )
 
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
     @swagger_auto_schema(responses={200: CompensateLeaveApplicationResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_compensate_leave_application(self, request, pk):
@@ -3120,21 +3359,25 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
         try:
             queryset = CompensateLeaveApplication.objects.get(id=pk)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
 
             if fields == "":
 
-                serialized = CompensateLeaveApplicationResponseSerializer(instance=queryset)
+                serialized = CompensateLeaveApplicationResponseSerializer(
+                    instance=queryset
+                )
             else:
-                serialized = CompensateLeaveApplicationResponseSerializer(instance=queryset, fields=fields)
+                serialized = CompensateLeaveApplicationResponseSerializer(
+                    instance=queryset, fields=fields
+                )
 
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -3142,7 +3385,8 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
-        request_body=CompensateLeaveApplicationRequestSerializer, responses={200: CompensateLeaveApplicationRequestSerializer}
+        request_body=CompensateLeaveApplicationRequestSerializer,
+        responses={200: CompensateLeaveApplicationRequestSerializer},
     )
     def update_compensate_leave_applications(self, request):
 
@@ -3152,13 +3396,17 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Request body incorrect. Please specify  ID."},
+                {"detail": "Request body incorrect. Please specify  ID."},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        try:
+            queryset = CompensateLeaveApplication.objects.get(id=company)
+        except:
+            return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
-        queryset = CompensateLeaveApplication.objects.get(id=company)
-
-        serialized = CompensateLeaveApplicationRequestSerializer(queryset, request.data, partial=True)
+        serialized = CompensateLeaveApplicationRequestSerializer(
+            queryset, request.data, partial=True
+        )
 
         if serialized.is_valid():
             serialized.save()
@@ -3173,14 +3421,16 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
         try:
             queryset = CompensateLeaveApplication.objects.filter(status=2)
         except:
-            return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+            return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
         fields = self.request.query_params.getlist("fields", "")
         try:
 
             if fields == "":
 
-                serialized = CompensateLeaveApplicationResponseSerializer(instance=queryset, many=True)
+                serialized = CompensateLeaveApplicationResponseSerializer(
+                    instance=queryset, many=True
+                )
             else:
                 serialized = CompensateLeaveApplicationResponseSerializer(
                     instance=queryset, many=True, fields=fields
@@ -3189,7 +3439,7 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
         except:
 
             return Response(
-                {"message": "Serializer error"},
+                {"detail": "Serializer error"},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
@@ -3197,7 +3447,8 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
-        request_body=CompensateLeaveApplicationListSerializer, responses={200: CompensateLeaveApplicationListSerializer}
+        request_body=CompensateLeaveApplicationListSerializer,
+        responses={200: CompensateLeaveApplicationListSerializer},
     )
     def delete_compensate_leave_applications(self, request):
 
@@ -3205,11 +3456,15 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            Company.objects.filter(id__in=request.data["compensate_leave_application_ids"]).update(status=0)
+            Company.objects.filter(
+                id__in=request.data["compensate_leave_application_ids"]
+            ).update(status=0)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
 # class MonthlyReportViewSet(viewsets.ViewSet):
 #     def update_monthlyreports(self, request):
 
@@ -3218,7 +3473,7 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
 
 #         except:
 
-#             return Response({"message": "Request body incorrect. Please specify  ID."}, status=status.HTTP_400_BAD_REQUEST)
+#             return Response({"detail": "Request body incorrect. Please specify  ID."}, status=status.HTTP_400_BAD_REQUEST)
 
 #         queryset = MonthlyReport.objects.get(monthlyreport_id=monthlyreport)
 
@@ -3235,7 +3490,7 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
 #         try:
 #             queryset = MonthlyReport.objects.filter(status = 2)
 #         except:
-#             return Response({"message": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
+#             return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
 #         serialized = MonthlyReportSerializer(queryset, many=True)
 #         if serialized.is_valid():
@@ -3289,7 +3544,7 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
 #         try:
 #             date = request.data["date"]
 #         except:
-#             return Response({"message" : "Request body incorrect. Please specify  ID."}, status = status.HTTP_400_BAD_REQUEST)
+#             return Response({"detail" : "Request body incorrect. Please specify  ID."}, status = status.HTTP_400_BAD_REQUEST)
 #         queryset = Calendar.objects.get(date=date)
 
 #         serialized = CalendarSerializer(queryset, request.data, partial = True)
@@ -3306,7 +3561,7 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
 #         try:
 #             queryset = Calendar.objects.filter(status = 2)
 #         except:
-#             return Response({"message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
+#             return Response({"detail" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
 
 #         serialized = CalendarSerializer(queryset, many = True)
 #         if serialized.is_valid():
@@ -3340,7 +3595,7 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
 #         try:
 #             event_id = request.data["event_id"]
 #         except:
-#             return Response({"message" : "Request body incorrect. Please specify  ID."}, status = status.HTTP_400_BAD_REQUEST)
+#             return Response({"detail" : "Request body incorrect. Please specify  ID."}, status = status.HTTP_400_BAD_REQUEST)
 #         queryset = Events.objects.get(event_id=event_id)
 
 #         serialized = EventSerializer(queryset, request.data, partial = True)
@@ -3357,7 +3612,7 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
 #         try:
 #             queryset = Events.objects.filter(status = 2)
 #         except:
-#             return Response({"message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
+#             return Response({"detail" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
 
 #         serialized = EventSerializer(queryset, many = True)
 #         if serialized.is_valid():
@@ -3393,7 +3648,7 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
 #             #designations=design_id,
 #         ):
 #             return Response(
-#                 {"message": "Leave Policy exists"}, status=status.HTTP_400_BAD_REQUEST
+#                 {"detail": "Leave Policy exists"}, status=status.HTTP_400_BAD_REQUEST
 #             )
 #         else:
 #             serializer = LeavePolicySerializer(data=request.data)
@@ -3448,12 +3703,12 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
 #     try:
 #         queryset = Employee.objects.filter(status = 2)
 #     except:
-#         return Response({"message" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
+#         return Response({"detail" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
 
 #     try:
 #         serialized = EmployeeSerializer(queryset, many = True)
 #     except:
-#         return Response({"message" : "Serializer error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR )
+#         return Response({"detail" : "Serializer error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR )
 
 #     return Response(data=serialized.data, status= status.HTTP_200_OK)
 

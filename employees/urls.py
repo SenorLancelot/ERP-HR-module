@@ -20,6 +20,7 @@ router.register(r"employee_leave_reports", EmployeeLeaveReportViewSet, basename=
 router.register(r"day_lists", DaysListViewSet, basename="day_lists")
 router.register(r"employee_sessions", EmployeeSessionViewSet, basename="employee_sessions")
 router.register(r"customers", CustomerViewSet, basename="customers")
+router.register(r"compensate_leave_applications", CompensateLeaveApplicationViewSet, basename="compensate_leave_applications")
 router.register(r"workday_division", WorkdayDivisionViewSet, basename="workday_division")
 
 urlpatterns = [

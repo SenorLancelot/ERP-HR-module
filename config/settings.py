@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     "appraisal",
     "mptt",
     "drf_yasg",
+    'django_filters'
 ]
 
 MIDDLEWARE = [
@@ -121,7 +122,7 @@ USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = False
+USE_TZ = True
 
 
 # Static files (CSS, JavaScript, Images)

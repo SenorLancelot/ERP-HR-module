@@ -294,7 +294,7 @@ class LeaveApplication(models.Model):
         ("Rejected", "Rejected"),
         ("Cancelled", "Cancelled"),
     )
-    status = models.CharField(max_length=50, choices=statusType, default="Open")
+    application_status = models.CharField(max_length=50, choices=statusType, default="Open")
     post_date = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
@@ -403,13 +403,24 @@ class LeaveReportTypeMembership(models.Model):
     fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
     leaves_taken = models.IntegerField()
     leaves_remaining = models.IntegerField()
+    compensated_leaves = models.IntegerField(default=0)
     consecutive_days_allowed = models.FloatField(default=0)
     blocked_till = models.DateField(null=True, blank=True)
-    is_compulsory = models.BooleanField(default=False)
+    
 
 class CompensateLeaveApplication(models.Model):
+    statusType = (
+        ("Open", "Open"),
+        ("On Hold", "On Hold"),
+        ("Approved", "Approved"),
+        ("Rejected", "Rejected"),
+        ("Cancelled", "Cancelled"),
+    )
     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
-    fk_leave_type = models.ManyToManyField("LeaveType")
+    fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
+    leaves = models.IntegerField(default=0)
+    status = models.IntegerField(default=LIVE, choices=STATUS_CHOICES)
+    application_status = models.CharField(max_length=50, choices=statusType, default="Open")
 # class Calendar(models.Model):
 #
 #     date = models.DateField()
