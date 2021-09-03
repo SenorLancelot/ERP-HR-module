@@ -202,12 +202,12 @@ class Attendance(models.Model):
         ("Work-From-Home", "Work-From_Home"),
     )
     # Create a table for type
-    fk_sessions = models.ManyToManyField("EmployeeSession")
+    # fk_sessions = models.ManyToManyField("EmployeeSession")
 
     is_late_entry = models.BooleanField(default=False)
     is_early_exit = models.BooleanField(default=False)
     comment = models.CharField(max_length=100, null=True, blank=True)
-    total_time = models.FloatField(default=0.0)
+    total_time = models.TimeField(null=True, blank=True, default = datetime.time(0, 0, 0))
     total_overtime = models.FloatField(default=0.0)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
@@ -221,7 +221,7 @@ class EmployeeSession(models.Model):
     status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
     # See if we can remove this
     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
-
+    fk_attendance = models.ForeignKey("Attendance", on_delete=models.CASCADE)
     # attendance = models.ForeignKey('Attendances', on_delete=models.CASCADE)
     checked_in_at = models.DateTimeField()
     checked_out_at = models.DateTimeField(blank=True, null=True)

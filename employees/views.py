@@ -1480,7 +1480,7 @@ class AttendanceViewSet(viewsets.ViewSet):
     @swagger_auto_schema(responses={200: AttendanceResponseSerializer})
     def read_company_attendances(self, request, pk):
         company_id = pk
-        #TODO negative leaves, automatic leave generation
+        # TODO negative leaves, automatic leave generation
         try:
 
             start_date_req = request.GET.get("start_date")
@@ -1539,11 +1539,14 @@ class AttendanceViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=AttendanceRequestSerializer, responses={200: AttendanceRequestSerializer}
+        request_body=AttendanceRequestSerializer,
+        responses={200: AttendanceRequestSerializer},
     )
     def create_attendances(self, request):
 
-        serialized = AttendanceRequestSerializer(data=request.data, many=True)  # changed
+        serialized = AttendanceRequestSerializer(
+            data=request.data, many=True
+        )  # changed
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -1651,43 +1654,50 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
             return Response(
                 {"detail": "Employee Not Found"}, status=status.HTTP_404_NOT_FOUND
             )
-        date = datetime.datetime.strptime(checked_in[:-5], "%Y-%m-%dT%H:%M:%S")
+        date = datetime.datetime.strptime(checked_in, "%Y-%m-%dT%H:%M:%S")
         try:
             attendance = Attendance.objects.get(
-                attendance_date=date, fk_employee=employee_id, status = LIVE
+                attendance_date=date, fk_employee=employee_id, status=LIVE
             )
         except Attendance.DoesNotExist:
-
+            attendance = Attendance(fk_employee=employee, attendance_date=date)
+            attendance.save()
             session = EmployeeSession(
                 checked_in_at=request.data["checked_in_at"],
                 fk_employee=employee,
+                fk_attendance=attendance,
             )
             session.save()
-            attendance = Attendance(fk_employee=employee, attendance_date=date)
-            attendance.save()
-            attendance.fk_sessions.add(session)
-            attendance.save()
+
             return Response(status=status.HTTP_200_OK)
 
         serialized = EmployeeSessionCheckinSerializer(data=request.data)
 
         if serialized.is_valid():
             try:
-                check = EmployeeSession.objects.filter(fk_employee=employee_id, status=LIVE).latest(
-                    "checked_in_at"
-                )
+                check = EmployeeSession.objects.filter(
+                    fk_employee=employee_id, status=LIVE
+                ).latest("checked_in_at")
             except EmployeeSession.DoesNotExist:
-                #TODO add work from home session
-                serialized.save()
-                e = EmployeeSession.objects.get(id = serialized.data["id"])
-                attendance.fk_sessions.add(e)
+
+                session = EmployeeSession(
+                    checked_in_at=checked_in,
+                    fk_employee=employee,
+                    fk_attendance=attendance,
+                )
+                # TODO add work from home session
+                session.save()
 
                 return Response(data=serialized.data, status=status.HTTP_200_OK)
 
             if check.checked_out_at is not None:
-                serialized.save()
-                e = EmployeeSession.objects.get(id = serialized.data["id"]).latest("checked_in_at")
-                attendance.fk_sessions.add(e)
+                session = EmployeeSession(
+                    checked_in_at=checked_in,
+                    fk_employee=employee,
+                    fk_attendance=attendance,
+                )
+                # TODO add work from home session
+                session.save()
                 return Response(data=serialized.data, status=status.HTTP_200_OK)
             else:
 
@@ -1731,7 +1741,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
             # )
 
             checked_out_date = datetime.datetime.strptime(
-                checked_out[:-5], "%Y-%m-%dT%H:%M:%S"
+                checked_out, "%Y-%m-%dT%H:%M:%S"
             )
 
             if (checked_out_date.day) > (session.checked_in_at.day):
@@ -1756,7 +1766,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
                 )
                 employee = Employee.objects.get(id=request.data["fk_employee"])
                 attendance = Attendance(
-                    fk_employee=employee, attendance_date=checked_out_date, status= LIVE
+                    fk_employee=employee, attendance_date=checked_out_date, status=LIVE
                 )
                 attendance.save()
                 autosession.save()
@@ -1764,10 +1774,24 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
                 attendance.save()
 
             else:
+                checked_out_datetime = datetime.datetime.strptime(
+                    checked_out, "%Y-%m-%dT%H:%M:%S"
+                )
 
-                session.checked_out_at = checked_out
+                session.checked_out_at = checked_out_datetime
+                print(checked_out_datetime)
+
+                session_length = checked_out_datetime - session.checked_in_at
+                attendance = Attendance.objects.get(id=session.fk_attendance.id)
+                print(session_length.seconds)
+                hours = float(session_length.seconds) / 3600
+                minutes = (float(session_length.seconds) % 3600) / 60
+                seconds = (float(session_length.seconds) % 3600) % 60
+                attendance.total_time = (datetime.datetime.combine(
+                    datetime.date.today(), attendance.total_time) + session_length).time()
+
+                attendance.save()
                 session.save()
-
 
             return Response(status=status.HTTP_200_OK)
         else:
@@ -1824,7 +1848,9 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = EmployeeSessionRequestSerializer(queryset, request.data, partial=True)
+        serialized = EmployeeSessionRequestSerializer(
+            queryset, request.data, partial=True
+        )
 
         if serialized.is_valid():
             serialized.save()
@@ -1931,7 +1957,8 @@ class LeavePolicyViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["patch"], url_path="update")
     @swagger_auto_schema(
-        request_body=LeavePolicyRequestSerializer, responses={200: LeavePolicyRequestSerializer}
+        request_body=LeavePolicyRequestSerializer,
+        responses={200: LeavePolicyRequestSerializer},
     )
     def update_leave_policies(self, request):
 
@@ -1972,7 +1999,8 @@ class LeavePolicyViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["post"], url_path="create")
     @swagger_auto_schema(
-        request_body=LeavePolicyRequestSerializer, responses={200: LeavePolicyRequestSerializer}
+        request_body=LeavePolicyRequestSerializer,
+        responses={200: LeavePolicyRequestSerializer},
     )
     def create_leave_policies(self, request):
 
@@ -2060,8 +2088,8 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
             if leave_application.application_status == "Approved":
                 continue
             leave_report = EmployeeLeaveReport.objects.get(
-                fk_employee=leave_application.fk_employee, status = LIVE
-            )  
+                fk_employee=leave_application.fk_employee, status=LIVE
+            )
             leave_details = LeaveReportTypeMembership.objects.get(
                 fk_employee_report=leave_report.id,
                 fk_leave_type=leave_application.fk_leave_type,
@@ -2075,17 +2103,19 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
             )
             leave.save()
             holidays_in_leave = DaysList.objects.filter(
-                is_holiday=True, date__range=[leave_application.from_date, leave_application.to_date], status=LIVE
+                is_holiday=True,
+                date__range=[leave_application.from_date, leave_application.to_date],
+                status=LIVE,
             )
             # leave_days = (
             #     leave_application.to_date - leave_application.from_date
             # ).days + 1  # USE TIME DELTA
             leave_days = (
-                (leave_application.to_date - leave_application.from_date).days
-                + 1
-                
+                (leave_application.to_date - leave_application.from_date).days + 1
                 if leave_details.fk_leave_type.is_holiday
-                else (leave_application.to_date - leave_application.from_date).days + 1 - holidays_in_leave.count()
+                else (leave_application.to_date - leave_application.from_date).days
+                + 1
+                - holidays_in_leave.count()
             )
             print(leave_days)
             leave_details.leaves_remaining = leave_details.leaves_remaining - leave_days
@@ -2253,54 +2283,50 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
         if serialized.is_valid():
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
-            
 
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
+        # employee_leave_report = EmployeeLeaveReport.objects.get(fk_employee = request.data['fk_employee'])
+        # leaves = request.data['fk_leave_types'].copy()
+        # print(leaves)
+        # total_days = 0
+        # is_valid = True
+        # leave_details = LeaveReportTypeMembership.objects.filter(fk_employee_report = employee_leave_report.id)
+        # for leave in leaves:
 
+        # to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
+        # from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
+        #     print(to_date, from_date)
+        #     leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
+        #     total_days+=leave_days
+        #     leave_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
+        #     allowed_days = leave_obj.leaves_remaining
+        #     print("allowed days", allowed_days)
+        #     print("leave_days", leave_days)
+        #     consecutive_days = leave_obj.consecutive_days_allowed
+        #     if leave_days > allowed_days or leave_days > consecutive_days:
 
-                # employee_leave_report = EmployeeLeaveReport.objects.get(fk_employee = request.data['fk_employee'])
-                # leaves = request.data['fk_leave_types'].copy()
-                # print(leaves)
-                # total_days = 0
-                # is_valid = True
-                # leave_details = LeaveReportTypeMembership.objects.filter(fk_employee_report = employee_leave_report.id)
-                # for leave in leaves:
+        #         is_valid = False
 
-                # to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
-                # from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
-                #     print(to_date, from_date)
-                #     leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
-                #     total_days+=leave_days
-                #     leave_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
-                #     allowed_days = leave_obj.leaves_remaining
-                #     print("allowed days", allowed_days)
-                #     print("leave_days", leave_days)
-                #     consecutive_days = leave_obj.consecutive_days_allowed
-                #     if leave_days > allowed_days or leave_days > consecutive_days:
+        # net_days = (datetime.datetime.strptime(request.data['to_date'], "%Y-%m-%d"))-(datetime.datetime.strptime(request.data['from_date'], "%Y-%m-%d"))
+        # if total_days > (net_days.days + 1):
+        #     print("total_days_mismatch")
+        #     is_valid = False
 
-                #         is_valid = False
+        # if is_valid:
+        #     serialized.save()
+        #     for leave in leaves:
 
-                # net_days = (datetime.datetime.strptime(request.data['to_date'], "%Y-%m-%d"))-(datetime.datetime.strptime(request.data['from_date'], "%Y-%m-%d"))
-                # if total_days > (net_days.days + 1):
-                #     print("total_days_mismatch")
-                #     is_valid = False
+        #         leave_report_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
 
-                # if is_valid:
-                #     serialized.save()
-                #     for leave in leaves:
+        #         to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
+        #         from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
 
-                #         leave_report_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
-
-                #         to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
-                #         from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
-
-                #         leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
-                #         leave_report_obj.leaves_remaining = leave_report_obj.leaves_remaining - leave_days
-                #         leave_report_obj.leaves_taken = leave_report_obj.leaves_taken + leave_days
-                #         leave_report_obj.save()
-                #     return Response(data=request.data, status=status.HTTP_200_OK)
-
+        #         leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
+        #         leave_report_obj.leaves_remaining = leave_report_obj.leaves_remaining - leave_days
+        #         leave_report_obj.leaves_taken = leave_report_obj.leaves_taken + leave_days
+        #         leave_report_obj.save()
+        #     return Response(data=request.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -2644,9 +2670,7 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
                         # prev_record = prev_leave_records.get(
                         #     fk_leave_type=policy.fk_leave_type
                         # )
-                        leaves_remaining = (
-                            policy.total_days_allowed
-                        )
+                        leaves_remaining = policy.total_days_allowed
                         # leave_type = Leavetype.objects.get(id = policy.fk_leave_type)
                         leave_record = LeaveReportTypeMembership(
                             fk_employee_report=leave_report,
@@ -2660,7 +2684,6 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
                     # employee.fk_leave_report = leave_report.id
 
                     return Response({"detail": "Successful"}, status=status.HTTP_200_OK)
-
 
                 leave_report = EmployeeLeaveReport(
                     fk_employee=employee, year=request.data["year"]
@@ -2676,8 +2699,16 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
                         fk_leave_type=policy.fk_leave_type
                     )
 
-                    if policy.fk_leave_type.is_compensatory and not policy.fk_leave_type.is_carry_forward:
-                        comp_application = CompensateLeaveApplication(fk_employee = employee, fk_leave_type = policy.fk_leave_type, leaves = prev_record.leaves_remaining, application_status = "Approved")
+                    if (
+                        policy.fk_leave_type.is_compensatory
+                        and not policy.fk_leave_type.is_carry_forward
+                    ):
+                        comp_application = CompensateLeaveApplication(
+                            fk_employee=employee,
+                            fk_leave_type=policy.fk_leave_type,
+                            leaves=prev_record.leaves_remaining,
+                            application_status="Approved",
+                        )
                         comp_application.save()
                         prev_record.compensated_leaves = prev_record.leaves_remaining
                         prev_record.leaves_remaining = 0
@@ -2728,7 +2759,6 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
         else:
 
             return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
     @swagger_auto_schema(responses={200: EmployeeLeaveReportResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
@@ -3300,12 +3330,13 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
     )
     def create_compensate_leave_applications(self, request):
 
-        serialized = CompensateLeaveApplicationRequestSerializer(data=request.data, many=True)
+        serialized = CompensateLeaveApplicationRequestSerializer(
+            data=request.data, many=True
+        )
         if serialized.is_valid():
             serialized.save()
 
             return Response(data=serialized.data, status=status.HTTP_200_OK)
-
 
             # try:
             #     employee_leave_report = EmployeeLeaveReport.objects.get(
@@ -3339,47 +3370,46 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
             #         status=status.HTTP_400_BAD_REQUEST,
             #     )
 
-                # employee_leave_report = EmployeeLeaveReport.objects.get(fk_employee = request.data['fk_employee'])
-                # leaves = request.data['fk_leave_types'].copy()
-                # print(leaves)
-                # total_days = 0
-                # is_valid = True
-                # leave_details = LeaveReportTypeMembership.objects.filter(fk_employee_report = employee_leave_report.id)
-                # for leave in leaves:
+            # employee_leave_report = EmployeeLeaveReport.objects.get(fk_employee = request.data['fk_employee'])
+            # leaves = request.data['fk_leave_types'].copy()
+            # print(leaves)
+            # total_days = 0
+            # is_valid = True
+            # leave_details = LeaveReportTypeMembership.objects.filter(fk_employee_report = employee_leave_report.id)
+            # for leave in leaves:
 
-                # to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
-                # from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
-                #     print(to_date, from_date)
-                #     leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
-                #     total_days+=leave_days
-                #     leave_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
-                #     allowed_days = leave_obj.leaves_remaining
-                #     print("allowed days", allowed_days)
-                #     print("leave_days", leave_days)
-                #     consecutive_days = leave_obj.consecutive_days_allowed
-                #     if leave_days > allowed_days or leave_days > consecutive_days:
+            # to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
+            # from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
+            #     print(to_date, from_date)
+            #     leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
+            #     total_days+=leave_days
+            #     leave_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
+            #     allowed_days = leave_obj.leaves_remaining
+            #     print("allowed days", allowed_days)
+            #     print("leave_days", leave_days)
+            #     consecutive_days = leave_obj.consecutive_days_allowed
+            #     if leave_days > allowed_days or leave_days > consecutive_days:
 
-                #         is_valid = False
+            #         is_valid = False
 
-                # net_days = (datetime.datetime.strptime(request.data['to_date'], "%Y-%m-%d"))-(datetime.datetime.strptime(request.data['from_date'], "%Y-%m-%d"))
-                # if total_days > (net_days.days + 1):
-                #     print("total_days_mismatch")
-                #     is_valid = False
-                # if is_valid:
-                #     serialized.save()
-                #     for leave in leaves:
+            # net_days = (datetime.datetime.strptime(request.data['to_date'], "%Y-%m-%d"))-(datetime.datetime.strptime(request.data['from_date'], "%Y-%m-%d"))
+            # if total_days > (net_days.days + 1):
+            #     print("total_days_mismatch")
+            #     is_valid = False
+            # if is_valid:
+            #     serialized.save()
+            #     for leave in leaves:
 
-                #         leave_report_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
+            #         leave_report_obj = leave_details.get(fk_leave_type = leave['fk_leave_type'])
 
-                #         to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
-                #         from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
+            #         to_date = datetime.datetime.strptime(leave['to_date'], "%Y-%m-%d")
+            #         from_date = datetime.datetime.strptime(leave['from_date'], "%Y-%m-%d")
 
-                #         leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
-                #         leave_report_obj.leaves_remaining = leave_report_obj.leaves_remaining - leave_days
-                #         leave_report_obj.leaves_taken = leave_report_obj.leaves_taken + leave_days
-                #         leave_report_obj.save()
-                #     return Response(data=request.data, status=status.HTTP_200_OK)
-
+            #         leave_days = (to_date - from_date).days + 1 #USE TIME DELTA
+            #         leave_report_obj.leaves_remaining = leave_report_obj.leaves_remaining - leave_days
+            #         leave_report_obj.leaves_taken = leave_report_obj.leaves_taken + leave_days
+            #         leave_report_obj.save()
+            #     return Response(data=request.data, status=status.HTTP_200_OK)
 
         print(serialized.errors)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)

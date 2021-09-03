@@ -300,7 +300,7 @@ class AttendanceRequestSerializer(serializers.ModelSerializer):
             "total_time",
             "total_overtime",
             "fk_employee",
-            "fk_sessions",
+            
         ]
 
 
@@ -316,7 +316,7 @@ class AttendanceResponseSerializer(serializers.ModelSerializer):
             "total_time",
             "total_overtime",
             "fk_employee",
-            "fk_sessions",
+            
         ]
 
 
