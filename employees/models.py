@@ -1,5 +1,5 @@
 from django.db import models
-
+from django.core.validators import MinValueValidator
 from mptt.models import MPTTModel, TreeForeignKey
 import datetime
 from django.db.models.signals import post_save
@@ -242,7 +242,7 @@ class LeavePolicy(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
-    fk_blocked_leaves = models.ManyToManyField("DaysList")
+    # fk_blocked_leaves = models.ManyToManyField("DaysList")
 
     class Meta:
 
@@ -344,10 +344,9 @@ class WorkdayDivision(models.Model):
 
 class DaysList(models.Model):
     status = models.IntegerField(choices=STATUS_CHOICES, default=LIVE)
-    is_holiday_list = models.BooleanField(default=False)
-    is_blocked_list = models.BooleanField(default=False)
-    from_date = models.DateField()
-    to_date = models.DateField()
+    is_holiday = models.BooleanField(default=False)
+    is_blocked_leave = models.BooleanField(default=False)
+    date = models.DateField()
     occasion = models.CharField(max_length=100)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
@@ -403,8 +402,8 @@ class LeaveReportTypeMembership(models.Model):
     fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
     leaves_taken = models.IntegerField()
     leaves_remaining = models.IntegerField()
-    compensated_leaves = models.IntegerField(default=0)
-    consecutive_days_allowed = models.FloatField(default=0)
+    compensated_leaves = models.IntegerField(default=0, )
+    consecutive_days_allowed = models.IntegerField(default=0)
     blocked_till = models.DateField(null=True, blank=True)
     
 
@@ -418,7 +417,7 @@ class CompensateLeaveApplication(models.Model):
     )
     fk_employee = models.ForeignKey("Employee", on_delete=models.CASCADE)
     fk_leave_type = models.ForeignKey("LeaveType", on_delete=models.CASCADE)
-    leaves = models.IntegerField(default=0)
+    leaves = models.IntegerField(default=0, )
     status = models.IntegerField(default=LIVE, choices=STATUS_CHOICES)
     application_status = models.CharField(max_length=50, choices=statusType, default="Open")
 # class Calendar(models.Model):

@@ -1,9 +1,9 @@
-from django.core.exceptions import BadRequest, ValidationError
+from django.core.exceptions import ValidationError
 from django.db.models import fields
 from django.db.models.query_utils import Q
 from rest_framework import serializers, status
 from django.db.models.aggregates import Sum
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, ParseError
 from rest_framework.fields import ReadOnlyField
 from rest_framework.response import Response
 from rest_framework import status
@@ -287,7 +287,7 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
 
                 appraisal_goal.save()
         else:
-            raise BadRequest("Incorrect Request Body")
+            raise ParseError("Incorrect Request Body")
         appraisal.total_score_percentage = total_score_percentage
 
         appraisal.fk_other_contribution.set(other_contributions)
@@ -343,9 +343,9 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
                         raise NotFound("Template not found")
                     # Error handling of getting score
                 else:
-                    raise BadRequest("Goal id not specified")
+                    raise ParseError("Goal id not specified")
         else:
-            raise BadRequest(
+            raise ParseError(
                 "All goal scores don't match the respective template goals"
             )
 
@@ -364,7 +364,7 @@ class AppraisalRequestSerializer(serializers.ModelSerializer):
                     raise NotFound("Template not found")
 
             else:
-                raise BadRequest("Project id not specified")
+                raise ParseError("Project id not specified")
         instance.fk_other_contribution.set(validated_data["fk_other_contribution"])
         instance.total_score_percentage = total_score_percentage
 

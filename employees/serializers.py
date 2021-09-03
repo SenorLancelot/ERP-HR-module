@@ -1,9 +1,9 @@
 from rest_framework import serializers
 
-# TODO change dynamic field inheritance for response
-
+from rest_framework.exceptions import NotFound, ParseError, ValidationError
+from rest_framework.response import Response
 from .models import *
-
+from rest_framework import status
 
 class DynamicFieldsModelSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
@@ -89,7 +89,6 @@ class EmployeeResponseSerializer(DynamicFieldsModelSerializer):
             "fk_company",
             "fk_department",
             "fk_designation",
-            
         ]
 
 
@@ -116,8 +115,20 @@ class EmployeeRequestSerializer(DynamicFieldsModelSerializer):
             "fk_company",
             "fk_department",
             "fk_designation",
-            
         ]
+
+    def create(self, validated_data):
+        is_current_address_permanent = validated_data.get("is_current_permanent")
+        obj = None
+        if is_current_address_permanent:
+            current_add = validated_data.pop("current_address")
+            perm_add = current_add
+            obj = Employee.objects.create(
+                current_add=current_add, perm_add=perm_add, **validated_data
+            )
+        else:
+            obj = Employee.objects.create(**validated_data)
+        return obj
 
 
 class EmployeeListSerializer(serializers.Serializer):
@@ -142,10 +153,10 @@ class EmployeeLeaveReportResponseSerializer(serializers.ModelSerializer):
 
 
 class EmployeeLeaveReportRequestSerializer(serializers.ModelSerializer):
-    
     class Meta:
         model = EmployeeLeaveReport
         fields = "__all__"
+
 
 class EmployeeLeaveReportListSerializer(serializers.Serializer):
 
@@ -277,9 +288,25 @@ class DesignationListSerializer(serializers.Serializer):
     designation_ids = serializers.ListField(child=serializers.IntegerField())
 
 
-class AttendanceSerializer(serializers.ModelSerializer):
+class AttendanceRequestSerializer(serializers.ModelSerializer):
     class Meta:
 
+        model = Attendance
+        fields = [
+            "attendance_date",
+            "is_late_entry",
+            "is_early_exit",
+            "comment",
+            "total_time",
+            "total_overtime",
+            "fk_employee",
+            "fk_sessions",
+        ]
+
+
+class AttendanceResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        depth = 1
         model = Attendance
         fields = [
             "attendance_date",
@@ -344,11 +371,11 @@ class LeavePolicyTypeMembershipSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
-class LeavePolicySerializer(serializers.ModelSerializer):
+class LeavePolicyResponseSerializer(serializers.ModelSerializer):
     fk_leave_type = LeavePolicyTypeMembershipSerializer(
         source="leavepolicytypemembership_set", many=True
     )
-    fk_blocked_leaves = DaysListSerializer(many=True)
+    # fk_blocked_leaves = DaysListSerializer(many=True)
 
     class Meta:
 
@@ -357,11 +384,21 @@ class LeavePolicySerializer(serializers.ModelSerializer):
             "fk_leave_type",
             "created_at",
             "modified_at",
-            "fk_blocked_leaves",
+            # "fk_blocked_leaves",
         ]
 
+class LeavePolicyRequestSerializer(serializers.ModelSerializer):
+    
 
+    class Meta:
 
+        model = LeavePolicy
+        fields = [
+            "fk_leave_type",
+            "created_at",
+            "modified_at",
+            # "fk_blocked_leaves",
+        ]
 
 class LeavePolicyListSerializer(serializers.Serializer):
 
@@ -377,7 +414,7 @@ class LeavePolicyListSerializer(serializers.Serializer):
 
 class LeaveApplicationResponseSerializer(DynamicFieldsModelSerializer):
     class Meta:
-
+        depth = 1
         model = LeaveApplication
         fields = "__all__"
 
@@ -417,7 +454,45 @@ class CreateLeaveApplicationSerializer(serializers.ModelSerializer):
             "status",
             "post_date",
         ]
+    
+    def validate(self, data):
 
+        employee_leave_report = EmployeeLeaveReport.objects.get(
+            fk_employee=data["fk_employee"], status=LIVE
+        )
+        
+        leave_details = LeaveReportTypeMembership.objects.get(
+            fk_employee_report=employee_leave_report.id,
+            fk_leave_type=data["fk_leave_type"],
+        )
+        to_date = datetime.datetime.strptime(str(data["to_date"]), "%Y-%m-%d")
+        from_date = datetime.datetime.strptime(
+            str(data["from_date"]), "%Y-%m-%d"
+        )
+        holidays_in_leave = DaysList.objects.filter(
+            is_holiday=True, date__range=[from_date, to_date], status=LIVE
+        )
+
+        leave_days = (
+            (to_date - from_date).days + 1 
+            if leave_details.fk_leave_type.is_holiday
+            else (to_date - from_date).days + 1 - holidays_in_leave.count()
+        )
+        allowed_days = leave_details.leaves_remaining
+        consecutive_days = leave_details.consecutive_days_allowed
+
+        blocked_leaves = DaysList.objects.filter(
+            is_blocked_leave=True, date__range=[from_date, to_date], status=LIVE
+        )
+
+        if blocked_leaves.count() > 0:
+            
+            raise ValidationError("Leave Duration contains blocked leaves")
+
+        if leave_days > allowed_days or leave_days > consecutive_days:
+            raise ValidationError("Leave Duration exceeds allowed leaves or consecutive days")
+
+        return super().validate(data)
     # def create(self, validated_data):
 
     #     leave_type_membership = validated_data.pop("fk_leave_types")
@@ -450,9 +525,12 @@ class LeaveTypeResponseSerializer(DynamicFieldsModelSerializer):
         model = LeaveType
         fields = "__all__"
 
+
 class LeaveTypeListSerializer(serializers.Serializer):
 
-    compensate_leave_application_ids = serializers.ListField(child=serializers.IntegerField())
+    compensate_leave_application_ids = serializers.ListField(
+        child=serializers.IntegerField()
+    )
 
 
 class LeaveRequestSerializer(DynamicFieldsModelSerializer):
@@ -547,12 +625,36 @@ class DaysListListSerializer(serializers.Serializer):
 
     days_list_ids = serializers.ListField(child=serializers.IntegerField())
 
+
 class CompensateLeaveApplicationRequestSerializer(DynamicFieldsModelSerializer):
     class Meta:
 
         model = CompensateLeaveApplication
         fields = "__all__"
 
+    def validate(self, data):
+
+        try:
+            employee_leave_report = EmployeeLeaveReport.objects.get(
+                fk_employee=data["fk_employee"], status=LIVE
+            )
+        except :
+
+            raise ValidationError(f'Leave Report for employee id {data["fk_employee"]} does not exist')
+        
+        leave_details = LeaveReportTypeMembership.objects.get(
+            fk_employee_report=employee_leave_report.id,
+            fk_leave_type=data["fk_leave_type"],
+        )
+
+        leave_days = data["leaves"]
+        allowed_days = leave_details.leaves_remaining
+
+        if leave_days > allowed_days:
+
+            raise ValidationError("Leaves to be compensated more than remaining leaves")
+
+        return super().validate(data)
 
 class CompensateLeaveApplicationResponseSerializer(DynamicFieldsModelSerializer):
     class Meta:
@@ -560,9 +662,12 @@ class CompensateLeaveApplicationResponseSerializer(DynamicFieldsModelSerializer)
         model = CompensateLeaveApplication
         fields = "__all__"
 
+
 class CompensateLeaveApplicationListSerializer(serializers.Serializer):
 
-    compensate_leave_application_ids = serializers.ListField(child=serializers.IntegerField())
+    compensate_leave_application_ids = serializers.ListField(
+        child=serializers.IntegerField()
+    )
 
 
 # class CalendarSerializer(serializers.ModelSerializer):
