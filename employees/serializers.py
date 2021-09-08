@@ -343,7 +343,8 @@ class EmployeeSessionCheckinSerializer(serializers.ModelSerializer):
     class Meta:
 
         model = EmployeeSession
-        fields = ["fk_employee", "checked_in_at"]
+        # fields = ["fk_employee", "checked_in_at"]
+        fields = "__all__"
 
 
 class EmployeeSessionCheckoutSerializer(serializers.ModelSerializer):

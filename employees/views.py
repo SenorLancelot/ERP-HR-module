@@ -4,12 +4,6 @@ from rest_framework import viewsets, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db.models import Q
-from django.db.models import Sum
-from utils.renderers import CustomRenderer
-from rest_framework import filters
-import django_filters
-from django_filters import rest_framework as django_rest_filters
-
 
 import datetime
 
@@ -22,16 +16,7 @@ from .serializers import *
 from drf_yasg.utils import swagger_auto_schema
 
 
-class EmployeeFilterSet(django_filters.FilterSet):
-    class Meta:
-        model = Employee
-        fields = {"fk_department__id": ["exact"]}
-
-
 class EmployeeViewSet(viewsets.ViewSet):
-    # filter_backends = (django_rest_filters.DjangoFilterBackend,)
-    # filterset_class = EmployeeFilterSet
-
     @swagger_auto_schema(responses={200: EmployeeResponseSerializer})
     @action(detail=True, methods=["get"], url_path="read")
     def read_employee(self, request, pk):
@@ -145,7 +130,7 @@ class EmployeeViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
             Employee.objects.filter(id__in=request.data["employee_ids"]).update(
-                status=0
+                is_deleted=True
             )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
@@ -225,7 +210,7 @@ class CustomerViewSet(viewsets.ViewSet):
             )
 
         try:
-            queryset = Customer.objects.get(id=employee, status=LIVE)
+            queryset = Customer.objects.get(id=employee, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -262,7 +247,7 @@ class CustomerViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
             Customer.objects.filter(id__in=request.data["customer_ids"]).update(
-                status=0
+                is_deleted=True
             )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
@@ -339,7 +324,7 @@ class CompanyViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            queryset = Company.objects.get(id=company, status=LIVE)
+            queryset = Company.objects.get(id=company, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
         serialized = CompanyRequestSerializer(queryset, request.data, partial=True)
@@ -402,7 +387,9 @@ class CompanyViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            Company.objects.filter(id__in=request.data["company_ids"]).update(status=0)
+            Company.objects.filter(id__in=request.data["company_ids"]).update(
+                is_deleted=True
+            )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -456,7 +443,7 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            queryset = EmployeeGrade.objects.get(id=employee_grade, status=LIVE)
+            queryset = EmployeeGrade.objects.get(id=employee_grade, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
         serialized = EmployeeGradeRequestSerializer(
@@ -527,7 +514,7 @@ class EmployeeGradeViewSet(viewsets.ViewSet):
 
             EmployeeGrade.objects.filter(
                 id__in=request.data["employee_grade_ids"]
-            ).update(status=0)
+            ).update(is_deleted=True)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -540,7 +527,7 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
     def read_employee_group(self, request, pk):
 
         try:
-            queryset = EmployeeGroup.objects.get(id=pk, status=LIVE)
+            queryset = EmployeeGroup.objects.get(id=pk, is_deleted=False)
         except:
             return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -571,7 +558,7 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
     def read_employee_group_employees(self, request, pk):
 
         try:
-            queryset = Employee.objects.filter(fk_employee_group=pk, status=LIVE)
+            queryset = Employee.objects.filter(fk_employee_group=pk, is_deleted=False)
         except:
             return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -601,7 +588,7 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
 
         try:
 
-            group = EmployeeGroup.objects.get(id=pk, status=LIVE)
+            group = EmployeeGroup.objects.get(id=pk, is_deleted=False)
             print(group)
             employees = group.fk_employee.filter(status=2)
             print(employees)
@@ -639,7 +626,7 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
             # STARTHERE
 
         try:
-            queryset = EmployeeGroup.objects.get(id=employeegroup, status=LIVE)
+            queryset = EmployeeGroup.objects.get(id=employeegroup, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
         serialized = EmployeeGroupRequestSerializer(
@@ -708,7 +695,7 @@ class EmployeeGroupViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
             EmployeeGroup.objects.filter(id__in=request.data["group_ids"]).update(
-                status=0
+                is_deleted=True
             )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
@@ -795,7 +782,7 @@ class DepartmentViewSet(viewsets.ViewSet):
             )
 
         try:
-            queryset = Department.objects.get(id=department, status=LIVE)
+            queryset = Department.objects.get(id=department, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -861,7 +848,7 @@ class DepartmentViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
             Department.objects.filter(id__in=request.data["department_ids"]).update(
-                status=0
+                is_deleted=True
             )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
@@ -946,7 +933,7 @@ class DesignationViewSet(viewsets.ViewSet):
             )
 
         try:
-            queryset = Designation.objects.get(id=designation, status=LIVE)
+            queryset = Designation.objects.get(id=designation, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -1012,7 +999,7 @@ class DesignationViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
             Designation.objects.filter(id__in=request.data["designation_ids"]).update(
-                status=0
+                is_deleted=True
             )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
@@ -1140,7 +1127,7 @@ class EmergencyContactViewSet(viewsets.ViewSet):
         if serialized.is_valid():
 
             EmergencyContact.objects.filter(id__in=request.data["leave_ids"]).update(
-                status=0
+                is_deleted=True
             )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
@@ -1225,7 +1212,7 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
             )
         try:
             queryset = IdentificationDocument.objects.get(
-                id=identificationdoc, status=LIVE
+                id=identificationdoc, is_deleted=False
             )
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
@@ -1299,7 +1286,7 @@ class IdentificationDocumentViewSet(viewsets.ViewSet):
         if serialized.is_valid():
             IdentificationDocument.objects.filter(
                 id__in=request.data["identificationdocument_ids"]
-            ).update(status=0)
+            ).update(is_deleted=True)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -1352,7 +1339,7 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            queryset = IdentificationType.objects.get(id=designation, status=LIVE)
+            queryset = IdentificationType.objects.get(id=designation, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -1423,7 +1410,7 @@ class IdentificationTypeViewSet(viewsets.ViewSet):
         if serialized.is_valid():
             IdentificationType.objects.filter(
                 id__in=request.data["identificationtype_ids"]
-            ).update(status=0)
+            ).update(is_deleted=True)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -1436,7 +1423,7 @@ class AttendanceViewSet(viewsets.ViewSet):
     def read_attendance(self, request, pk):
 
         try:
-            queryset = Attendance.objects.get(id=pk, status=LIVE)
+            queryset = Attendance.objects.get(id=pk, is_deleted=False)
         except:
             return Response({"detail": "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -1469,7 +1456,7 @@ class AttendanceViewSet(viewsets.ViewSet):
             queryset = Attendance.objects.filter(
                 fk_employee__department=dep_id,
                 attendance_date__range=[start_date_req, end_date_req],
-                status=LIVE,
+                is_deleted=False,
             )
             serialized = AttendanceResponseSerializer(instance=queryset, many=True)
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -1495,7 +1482,7 @@ class AttendanceViewSet(viewsets.ViewSet):
             queryset = Attendance.objects.filter(
                 fk_employee__fk_company=company_id,
                 attendance_date__range=[start_date_req, end_date_req],
-                status=LIVE,
+                is_deleted=False,
             )
             serialized = AttendanceResponseSerializer(instance=queryset, many=True)
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -1520,7 +1507,7 @@ class AttendanceViewSet(viewsets.ViewSet):
             queryset = Attendance.objects.filter(
                 fk_employee=id,
                 attendance_date__range=[start_date_req, end_date_req],
-                status=LIVE,
+                is_deleted=False,
             )
             serialized = AttendanceResponseSerializer(instance=queryset, many=True)
             return Response(data=serialized.data, status=status.HTTP_200_OK)
@@ -1570,7 +1557,7 @@ class AttendanceViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            queryset = Attendance.objects.get(id=attendance, status=LIVE)
+            queryset = Attendance.objects.get(id=attendance, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -1594,12 +1581,73 @@ class AttendanceViewSet(viewsets.ViewSet):
         if serialized.is_valid():
 
             Attendance.objects.filter(id__in=request.data["attendance_ids"]).update(
-                status=0
+                is_deleted=True
             )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+def automatic_checkouts():
+
+    active_sessions = EmployeeSession.objects.filter(checked_out_at__isnull=True)
+    now = datetime.datetime.now()
+    for session in active_sessions:
+        bridgetime = datetime.datetime(
+            2021,
+            9,
+            6,
+            0,
+            0,
+            0,
+        )
+        # session.checked_out_at = bridgetime
+        # session_length = bridgetime - session.checked_in_at
+        session.checked_out_at = now
+        session_length = now - session.checked_in_at
+        attendance = Attendance.objects.get(id=session.fk_attendance.id)
+        attendance.total_time = (
+            datetime.datetime.combine(datetime.date.today(), attendance.total_time)
+            + session_length
+        ).time()
+        attendance.save()
+        session.save()
+
+        attendance = Attendance(
+            fk_employee=session.fk_employee,
+            attendance_date=datetime.datetime.today(),
+            is_deleted=False,
+        )
+        attendance.save()
+        autosession = EmployeeSession(
+            fk_employee=session.fk_employee, checked_in_at=now, fk_attendance=attendance
+        )
+        autosession.save()
+
+
+def automatic_leave_generation():
+    half_day = WorkdayDivision.objects.get(name="Half-Day")
+    present_employee_ids = Attendance.objects.filter(
+        total_time__gte=half_day.duration, attendance_date=datetime.datetime.today()
+    ).values_list("fk_employee", flat=True)
+
+    absentee_employees = Employee.objects.all().exclude(id__in=present_employee_ids)
+    print(absentee_employees)
+    for employee in absentee_employees:
+        leave_report = EmployeeLeaveReport.objects.get(
+            is_deleted=False, fk_employee=employee
+        )
+        abs = LeaveType.objects.get(name="Absentee")
+        leave = Leave(
+            fk_employee=employee,
+            fk_leave_type=abs,
+            from_date=datetime.datetime.today(),
+            to_date=datetime.datetime.today(),
+        )
+        leave.save()
+        leave_report.absentee_leaves += 1
+        leave_report.save()
 
 
 class EmployeeSessionViewSet(viewsets.ViewSet):
@@ -1638,45 +1686,72 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
         responses={200: EmployeeSessionCheckinSerializer},
     )
     def create_employee_checkin(self, request):
-        try:
-            employee_id = request.data["fk_employee"]
-            checked_in = request.data["checked_in_at"]
+        # try:
+        #     employee_id = request.data["fk_employee"]
+        #     checked_in = request.data["checked_in_at"]
 
-        except:
-            return Response(
-                {"detail": "Request Body incorrect"},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
+        # except:
+        #     return Response(
+        #         {"detail": "Request Body incorrect"},
+        #         status=status.HTTP_400_BAD_REQUEST,
+        #     )
 
-        try:
-            employee = Employee.objects.get(id=employee_id)
-        except:
-            return Response(
-                {"detail": "Employee Not Found"}, status=status.HTTP_404_NOT_FOUND
-            )
-        date = datetime.datetime.strptime(checked_in, "%Y-%m-%dT%H:%M:%S")
-        try:
-            attendance = Attendance.objects.get(
-                attendance_date=date, fk_employee=employee_id, status=LIVE
-            )
-        except Attendance.DoesNotExist:
-            attendance = Attendance(fk_employee=employee, attendance_date=date)
-            attendance.save()
-            session = EmployeeSession(
-                checked_in_at=request.data["checked_in_at"],
-                fk_employee=employee,
-                fk_attendance=attendance,
-            )
-            session.save()
+        # try:
+        #     employee = Employee.objects.get(id=employee_id)
+        # except:
+        #     return Response(
+        #         {"detail": "Employee Not Found"}, status=status.HTTP_404_NOT_FOUND
+        #     )
+        # date = datetime.datetime.strptime(checked_in, "%Y-%m-%dT%H:%M:%S")
+        # try:
+        #     attendance = Attendance.objects.get(
+        #         attendance_date=date, fk_employee=employee_id, is_deleted = False
+        #     )
+        # except Attendance.DoesNotExist:
+        #     attendance = Attendance(fk_employee=employee, attendance_date=date)
+        #     attendance.save()
+        #     session = EmployeeSession(
+        #         checked_in_at=request.data["checked_in_at"],
+        #         fk_employee=employee,
+        #         fk_attendance=attendance,
+        #     )
+        #     session.save()
 
-            return Response(status=status.HTTP_200_OK)
+        #     return Response(status=status.HTTP_200_OK)
 
         serialized = EmployeeSessionCheckinSerializer(data=request.data)
 
         if serialized.is_valid():
+            ##
+            employee_id = request.data["fk_employee"]
+            checked_in = request.data["checked_in_at"]
+            try:
+                employee = Employee.objects.get(id=employee_id)
+            except:
+                return Response(
+                    {"detail": "Employee Not Found"}, status=status.HTTP_404_NOT_FOUND
+                )
+            date = datetime.datetime.strptime(checked_in, "%Y-%m-%dT%H:%M:%S")
+            try:
+                attendance = Attendance.objects.get(
+                    attendance_date=date, fk_employee=employee_id, is_deleted=False
+                )
+            except Attendance.DoesNotExist:
+                attendance = Attendance(fk_employee=employee, attendance_date=date)
+                attendance.save()
+                session = EmployeeSession(
+                    checked_in_at=request.data["checked_in_at"],
+                    fk_employee=employee,
+                    fk_attendance=attendance,
+                )
+                session.save()
+
+                return Response(status=status.HTTP_200_OK)
+
+            ##
             try:
                 check = EmployeeSession.objects.filter(
-                    fk_employee=employee_id, status=LIVE
+                    fk_employee=employee_id, is_deleted=False
                 ).latest("checked_in_at")
             except EmployeeSession.DoesNotExist:
 
@@ -1696,13 +1771,21 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
                     fk_employee=employee,
                     fk_attendance=attendance,
                 )
-                # TODO add work from home session
+
                 session.save()
                 return Response(data=serialized.data, status=status.HTTP_200_OK)
             else:
+                session = EmployeeSession(
+                    checked_in_at=checked_in,
+                    fk_employee=employee,
+                    fk_attendance=attendance,
+                )
 
+                session.save()
+                check.checked_out_at = check.checked_in_at
+                check.save()
                 return Response(
-                    {"detail": "Check out of existing session"},
+                    {"detail": "Existing Check out found and checked out from"},
                     status=status.HTTP_200_OK,
                 )
 
@@ -1736,10 +1819,6 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
 
         if session.checked_out_at is None:
 
-            # checked_in_date = datetime.datetime.strptime(
-            #     checked_out, "%Y-%m-%dT%H:%M:%S"
-            # )
-
             checked_out_date = datetime.datetime.strptime(
                 checked_out, "%Y-%m-%dT%H:%M:%S"
             )
@@ -1766,7 +1845,9 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
                 )
                 employee = Employee.objects.get(id=request.data["fk_employee"])
                 attendance = Attendance(
-                    fk_employee=employee, attendance_date=checked_out_date, status=LIVE
+                    fk_employee=employee,
+                    attendance_date=checked_out_date,
+                    is_deleted=False,
                 )
                 attendance.save()
                 autosession.save()
@@ -1784,11 +1865,12 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
                 session_length = checked_out_datetime - session.checked_in_at
                 attendance = Attendance.objects.get(id=session.fk_attendance.id)
                 print(session_length.seconds)
-                hours = float(session_length.seconds) / 3600
-                minutes = (float(session_length.seconds) % 3600) / 60
-                seconds = (float(session_length.seconds) % 3600) % 60
-                attendance.total_time = (datetime.datetime.combine(
-                    datetime.date.today(), attendance.total_time) + session_length).time()
+                attendance.total_time = (
+                    datetime.datetime.combine(
+                        datetime.date.today(), attendance.total_time
+                    )
+                    + session_length
+                ).time()
 
                 attendance.save()
                 session.save()
@@ -1844,7 +1926,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            queryset = EmployeeSession.objects.get(id=session, status=LIVE)
+            queryset = EmployeeSession.objects.get(id=session, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -1885,7 +1967,7 @@ class EmployeeSessionViewSet(viewsets.ViewSet):
 
             EmployeeSession.objects.filter(
                 id__in=request.data["attendance_ids"]
-            ).update(status=0)
+            ).update(is_deleted=True)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -1972,11 +2054,11 @@ class LeavePolicyViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            queryset = LeavePolicy.objects.get(id=leave_policy, status=LIVE)
+            queryset = LeavePolicy.objects.get(id=leave_policy, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
-        serialized = LeavePolicySerializer(queryset, request.data, partial=True)
+        serialized = LeavePolicyRequestSerializer(queryset, request.data, partial=True)
 
         if serialized.is_valid():
             serialized.save()
@@ -2004,12 +2086,17 @@ class LeavePolicyViewSet(viewsets.ViewSet):
     )
     def create_leave_policies(self, request):
 
-        serialized = LeavePolicyRequestSerializer(data=request.data, many=True)
+        serialized = LeavePolicyTypeMembershipSerializer(data=request.data, many=True)
         if serialized.is_valid():
+            leave_policy = LeavePolicy()
+            leave_policy.save()
+            for member in request.data:
+                member["fk_leave_policy"] = leave_policy.id
+
             serialized.save()
             return Response(data=serialized.data, status=status.HTTP_200_OK)
-
-        return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @action(detail=False, methods=["delete"], url_path="delete")
     @swagger_auto_schema(
@@ -2023,7 +2110,7 @@ class LeavePolicyViewSet(viewsets.ViewSet):
         if serialized.is_valid():
 
             LeavePolicy.objects.filter(id__in=request.data["leave_policy_ids"]).update(
-                status=0
+                is_deleted=True
             )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
@@ -2088,7 +2175,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
             if leave_application.application_status == "Approved":
                 continue
             leave_report = EmployeeLeaveReport.objects.get(
-                fk_employee=leave_application.fk_employee, status=LIVE
+                fk_employee=leave_application.fk_employee, is_deleted=False
             )
             leave_details = LeaveReportTypeMembership.objects.get(
                 fk_employee_report=leave_report.id,
@@ -2105,7 +2192,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
             holidays_in_leave = DaysList.objects.filter(
                 is_holiday=True,
                 date__range=[leave_application.from_date, leave_application.to_date],
-                status=LIVE,
+                is_deleted=False,
             )
             # leave_days = (
             #     leave_application.to_date - leave_application.from_date
@@ -2227,7 +2314,9 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            queryset = LeaveApplication.objects.get(id=leaveapplication, status=LIVE)
+            queryset = LeaveApplication.objects.get(
+                id=leaveapplication, is_deleted=False
+            )
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -2341,7 +2430,7 @@ class LeaveApplicationViewSet(viewsets.ViewSet):
 
             LeaveApplication.objects.filter(
                 id__in=request.data["leaveapplication_ids"]
-            ).update(status=0)
+            ).update(is_deleted=True)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -2409,7 +2498,7 @@ class LeaveTypeViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            queryset = LeaveType.objects.get(id=company, status=LIVE)
+            queryset = LeaveType.objects.get(id=company, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -2461,7 +2550,7 @@ class LeaveTypeViewSet(viewsets.ViewSet):
         if serialized.is_valid():
 
             Company.objects.filter(id__in=request.data["leave_type_ids"]).update(
-                status=0
+                is_deleted=True
             )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
@@ -2549,7 +2638,7 @@ class LeaveViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            queryset = Leave.objects.get(leave_id=leave, status=LIVE)
+            queryset = Leave.objects.get(leave_id=leave, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -2613,7 +2702,9 @@ class LeaveViewSet(viewsets.ViewSet):
 
         if serialized.is_valid():
 
-            Leave.objects.filter(id__in=request.data["leave_ids"]).update(status=0)
+            Leave.objects.filter(id__in=request.data["leave_ids"]).update(
+                is_deleted=True
+            )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -2691,7 +2782,7 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
                 prev_leave_records = LeaveReportTypeMembership.objects.filter(
                     fk_employee_report=prev_leave_report.id
                 )  # CHANGE FIELD NAME
-                prev_leave_report.status = HIDDEN
+                prev_leave_report.is_active = False
                 prev_leave_report.save()
                 leave_report.save()
                 for policy in leave_policies:
@@ -2818,7 +2909,7 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
             )
         try:
             queryset = EmployeeLeaveReport.objects.get(
-                id=EmployeeLeaveReport, status=LIVE
+                id=EmployeeLeaveReport, is_deleted=False
             )
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
@@ -2860,7 +2951,7 @@ class EmployeeLeaveReportViewSet(viewsets.ViewSet):
         if serialized.is_valid():
             EmployeeLeaveReport.objects.filter(
                 id__in=request.data["employee_leave_report_ids"]
-            ).update(status=0)
+            ).update(is_deleted=True)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
         return Response(data=serialized.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -2913,7 +3004,7 @@ class ScheduleViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            queryset = Schedule.objects.get(id=schedule, status=LIVE)
+            queryset = Schedule.objects.get(id=schedule, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -2997,7 +3088,7 @@ class ScheduleViewSet(viewsets.ViewSet):
         if serialized.is_valid():
 
             Schedule.objects.filter(id__in=request.data["schedule_ids"]).update(
-                status=0
+                is_deleted=True
             )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
@@ -3052,7 +3143,7 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            queryset = WorkdayDivision.objects.get(leave_id=leave, status=LIVE)
+            queryset = WorkdayDivision.objects.get(leave_id=leave, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -3123,7 +3214,7 @@ class WorkdayDivisionViewSet(viewsets.ViewSet):
         if serialized.is_valid():
 
             WorkdayDivision.objects.filter(id__in=request.data["leave_ids"]).update(
-                status=0
+                is_deleted=True
             )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
@@ -3178,7 +3269,7 @@ class DaysListViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         try:
-            queryset = DaysList.objects.get(id=leave, status=LIVE)
+            queryset = DaysList.objects.get(id=leave, is_deleted=False)
         except:
             return Response({"detail": "Not Found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -3244,7 +3335,7 @@ class DaysListViewSet(viewsets.ViewSet):
         if serialized.is_valid():
 
             DaysList.objects.filter(id__in=request.data["days_list_ids"]).update(
-                status=0
+                is_deleted=True
             )
 
             return Response(data=request.data, status=status.HTTP_200_OK)
@@ -3262,7 +3353,7 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
             return Response({"detail": "specify accepted ids"})
 
         compensate_leave_applications = CompensateLeaveApplication.objects.filter(
-            id__in=accepted_ids, status=LIVE
+            id__in=accepted_ids, is_deleted=False
         )
 
         for app_id in accepted_ids:
@@ -3271,7 +3362,7 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
             if compensate_leave_application.application_status == "Approved":
                 continue
             leave_report = EmployeeLeaveReport.objects.get(
-                fk_employee=compensate_leave_application.fk_employee, status=LIVE
+                fk_employee=compensate_leave_application.fk_employee, is_deleted=False
             )
             leave_details = LeaveReportTypeMembership.objects.get(
                 fk_employee_report=leave_report.id,
@@ -3340,7 +3431,7 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
 
             # try:
             #     employee_leave_report = EmployeeLeaveReport.objects.get(
-            #         fk_employee=request.data["fk_employee"], status=LIVE
+            #         fk_employee=request.data["fk_employee"], is_deleted = False
             #     )
             # except:
 
@@ -3520,7 +3611,7 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
 
             Company.objects.filter(
                 id__in=request.data["compensate_leave_application_ids"]
-            ).update(status=0)
+            ).update(is_deleted=True)
 
             return Response(data=request.data, status=status.HTTP_200_OK)
 
@@ -3698,80 +3789,3 @@ class CompensateLeaveApplicationViewSet(viewsets.ViewSet):
 #         Events.objects.filter(event_id__in = request.data["event_ids"]).update(status = 0)
 
 #         return Response(data=request.data, status= status.HTTP_200_OK)
-
-
-# class LeaveMembershipViewSet(viewsets.ViewSet):
-#     @swagger_auto_schema(responses={200: LeavePolicySerializer})
-#     def create_policy(self, request, design_id):
-#         designation_id = design_id  # ask
-#         serializer_class = LeavePolicySerializer
-#         if LeavePolicy.objects.filter(
-#             leave_type=request.data["leavetype_id"],
-#             #designations=design_id,
-#         ):
-#             return Response(
-#                 {"detail": "Leave Policy exists"}, status=status.HTTP_400_BAD_REQUEST
-#             )
-#         else:
-#             serializer = LeavePolicySerializer(data=request.data)
-#             serializer.is_valid(raise_exception=True)
-#             policy = serializer.save()
-
-#     def create_leave_membership(self, request):
-#         serializer = self.read_serializer(data=request.data, many=True)
-#         serializer.is_valid(raise_exception=True)
-
-#         for index in serializer.validated_data:
-#             try:
-#                 leaveid = LeavePolicy_TypeMembership.objects.get(
-#                     leave_type=index["leavetype_id"],
-#                     leave_policy=index["leavepolicy_id"],
-#                 )
-#                 leaveid.total_days_allowed = index["total_days"]
-#                 leaveid.total_consecutive_days = index["total_cons"]
-#                 leaveid.save()
-#             except LeavePolicy_TypeMembership.DoesNotExist:
-#                 membership = LeavePolicy_TypeMembership(
-#                     leave_type=index["leavetype_id"],
-#                     leave_policy=index["leavepoliccy_id"],
-#                     total_days_allowed=index["total_days"],
-#                     total_consecutive_days=index["total_cons"],
-#                 )
-#                 membership.save()
-
-# Single Employee based attendance views (entries for that particular employee) (get/create) (when check in, see if an existing attendance, if not create) done
-
-# All attendees in a Day done
-
-# Department wise attendances done
-
-# monthly attendance and hours to see for overtime or absentee hours remaining
-
-# make leave application/get/create employee based should have all deets and all apps, whereas when requesting all, only get open #loran
-
-# accept/reject leave application loran
-
-
-# ask rugved about leave policy problem
-
-# leave generation based on designation's leave policy for each employee
-
-# privileged leave assigned per quarter/ carry forwarding /
-
-
-# @swagger_auto_schema(responses={200: EmployeeSerializer})
-# def read_all_employees(self, request):
-
-#     try:
-#         queryset = Employee.objects.filter(status = 2)
-#     except:
-#         return Response({"detail" : "NOT FOUND"}, status=status.HTTP_404_NOT_FOUND )
-
-#     try:
-#         serialized = EmployeeSerializer(queryset, many = True)
-#     except:
-#         return Response({"detail" : "Serializer error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR )
-
-#     return Response(data=serialized.data, status= status.HTTP_200_OK)
-
-# @action(detail=True, methods=['create'])
